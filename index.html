@@ -1,0 +1,2907 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-900 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Visbody & Mounjaro Personal Tracker</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="VM Tracker">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Personal Visbody scan and Mounjaro tracker. Works offline once installed.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#ecfeff',
+              100: '#cffaff',
+              500: '#06b6d4',
+              600: '#0891b2',
+              700: '#0e7490',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
+  
+  <!-- Chart.js CDN (pinned) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.js" crossorigin="anonymous"></script>
+
+  <style>
+    /* Custom Scrollbars & iOS Safe Areas */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+    ::-webkit-scrollbar-thumb { background: rgba(51, 65, 85, 0.8); border-radius: 9999px; }
+    
+    .pb-safe { padding-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
+    .pt-safe { padding-top: max(0.75rem, env(safe-area-inset-top)); }
+    
+    .touch-target { min-height: 44px; min-width: 44px; }
+    .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    .glass-nav { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); border-top: 1px solid rgba(255, 255, 255, 0.1); }
+    
+    /* Dynamic Theme Colors */
+    .accent-cyan { --accent-color: #06b6d4; --accent-light: rgba(6, 182, 212, 0.15); }
+    .accent-emerald { --accent-color: #10b981; --accent-light: rgba(16, 185, 129, 0.15); }
+    .accent-violet { --accent-color: #8b5cf6; --accent-light: rgba(139, 92, 246, 0.15); }
+    .accent-amber { --accent-color: #f59e0b; --accent-light: rgba(245, 158, 11, 0.15); }
+    .accent-rose { --accent-color: #f43f5e; --accent-light: rgba(244, 63, 94, 0.15); }
+    
+    .bg-accent { background-color: var(--accent-color, #06b6d4); }
+    .text-accent { color: var(--accent-color, #06b6d4); }
+    .border-accent { border-color: var(--accent-color, #06b6d4); }
+    .bg-accent-light { background-color: var(--accent-light, rgba(6, 182, 212, 0.15)); }
+
+    /* ==========================================================================
+       v7 ADDITIONS — iOS / PWA hardening
+       ========================================================================== */
+    html, body { height: 100%; overscroll-behavior: none; -webkit-text-size-adjust: 100%; }
+    body { -webkit-tap-highlight-color: transparent; font-variant-numeric: tabular-nums; color-scheme: dark; }
+    #app { height: 100vh; height: 100dvh; }
+
+    /* Tailwind's py-3 / py-1.5 utilities were overriding the safe-area helpers, so the header sat
+       under the iOS status bar and the nav under the home indicator. Element-qualified selectors win. */
+    header.pt-safe { padding-top: max(0.75rem, env(safe-area-inset-top)); }
+    nav.pb-safe { padding-bottom: max(0.5rem, env(safe-area-inset-bottom)); }
+    #mainScrollContainer { padding-bottom: calc(6.25rem + env(safe-area-inset-bottom)); -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; }
+    div.drawer-panel { padding-top: max(1.25rem, env(safe-area-inset-top)); padding-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
+
+    /* DATE BOX OVERFLOW FIX
+       Grid items default to min-width:auto, and iOS date inputs report a wide intrinsic width,
+       so the boxes pushed past the card edge. Letting grid children and form controls shrink fixes it. */
+    .grid > * { min-width: 0; }
+    input, select, textarea { min-width: 0; max-width: 100%; box-sizing: border-box; font-family: inherit; }
+    input[type="date"], input[type="datetime-local"], input[type="time"] {
+      -webkit-appearance: none; appearance: none;
+      display: block; min-height: 2.5rem; line-height: 1.25; text-align: left;
+    }
+    input[type="date"]::-webkit-date-and-time-value,
+    input[type="datetime-local"]::-webkit-date-and-time-value { text-align: left; margin: 0; min-height: 1.25em; }
+    input[type="date"]::-webkit-datetime-edit,
+    input[type="datetime-local"]::-webkit-datetime-edit { padding: 0; }
+    select { -webkit-appearance: none; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 0.75rem center; }
+
+    select[id] { padding-right: 2rem; }
+
+    /* iOS zooms the page when a focused field is under 16px — stop that without disabling pinch-zoom */
+    @media (hover: none) and (pointer: coarse) {
+      input, select, textarea { font-size: 16px !important; }
+    }
+
+    /* Tables scroll sideways inside their card instead of squeezing columns */
+    .overflow-x-auto { -webkit-overflow-scrolling: touch; }
+    .overflow-x-auto > table { min-width: 30rem; }
+    td, th { white-space: nowrap; }
+
+    /* Press feedback + keyboard focus */
+    button { transition: transform 0.08s ease, background-color 0.15s ease; }
+    button:active { transform: scale(0.97); }
+    :focus-visible { outline: 2px solid var(--accent-color, #06b6d4); outline-offset: 2px; }
+
+    /* ACCENT THEME — the swatches in Settings now actually recolour the app */
+    body .text-cyan-400 { color: var(--accent-color, #06b6d4); }
+    body .bg-cyan-600 { background-color: var(--accent-color, #06b6d4); }
+    body .hover\:bg-cyan-500:hover { background-color: var(--accent-color, #06b6d4); filter: brightness(1.12); }
+    body .hover\:text-cyan-300:hover { color: var(--accent-color, #06b6d4); filter: brightness(1.2); }
+    input[type="checkbox"] { accent-color: var(--accent-color, #06b6d4); }
+    #goalBar { transition: width 0.6s ease; }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+
+<body class="h-full font-sans antialiased bg-slate-900 text-slate-100 accent-cyan selection:bg-cyan-500 selection:text-white">
+
+  <!-- APP WRAPPER -->
+  <div id="app" class="flex flex-col h-full max-w-4xl mx-auto relative overflow-hidden bg-slate-950">
+
+    <!-- TOP HEADER -->
+    <header class="pt-safe px-4 py-3 glass-card sticky top-0 z-30 flex items-center justify-between border-b border-slate-800">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+          <i class="fa-solid font-bold text-white text-lg">V</i>
+        </div>
+        <div>
+          <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-1.5">
+            <span>Visbody & Mounjaro</span>
+            <span class="text-xs font-normal text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded-full border border-cyan-800/60">v7.1</span>
+          </h1>
+          <p id="headerSubtitle" class="text-xs text-slate-400">Personal tracker</p>
+        </div>
+      </div>
+
+      <!-- Quick Action Buttons -->
+      <div class="flex items-center space-x-2">
+        <div id="syncBadge" class="hidden sm:flex items-center text-[10px] text-emerald-400 bg-emerald-950/80 px-2 py-1 rounded-full border border-emerald-800/50">
+          <i class="fa-solid font-bold text-[8px] mr-1">●</i> IndexedDB
+        </div>
+        <button id="openSettingsBtn" aria-label="Open settings" onclick="toggleSettingsDrawer(true)" class="p-2.5 rounded-xl bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700 transition touch-target">
+          <i class="fa-solid fa-sliders text-base"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- MAIN VIEW CONTAINER (Scrollable) -->
+    <main id="mainScrollContainer" class="flex-1 overflow-y-auto px-4 py-4 space-y-6 pb-28">
+
+      <!-- TAB 1: DASHBOARD -->
+      <section id="tab-dashboard" class="tab-content space-y-6">
+        <!-- KPI Cards Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="glass-card p-3.5 rounded-2xl border border-slate-800/80 flex flex-col justify-between">
+            <div class="flex justify-between items-start text-xs text-slate-400">
+              <span>AM Fasted Weight</span>
+              <i class="fa-solid fa-weight-scale text-cyan-400"></i>
+            </div>
+            <div class="my-2">
+              <div class="text-2xl font-black text-white" id="kpiAmWeight">— <span class="text-xs font-semibold text-slate-400">kg</span></div>
+              <div class="text-[11px] font-medium text-emerald-400 flex items-center mt-0.5" id="kpiAmWeightDelta">
+                <i class="fa-solid fa-minus text-[9px] mr-1"></i> No data yet
+              </div>
+            </div>
+            <div class="text-[10px] text-slate-400" id="kpiAmWeightDate">No entries yet</div>
+          </div>
+
+          <div class="glass-card p-3.5 rounded-2xl border border-slate-800/80 flex flex-col justify-between">
+            <div class="flex justify-between items-start text-xs text-slate-400">
+              <span>Body Fat Mass</span>
+              <i class="fa-solid fa-fire text-amber-400"></i>
+            </div>
+            <div class="my-2">
+              <div class="text-2xl font-black text-white" id="kpiBfm">— <span class="text-xs font-semibold text-slate-400">kg</span></div>
+              <div class="text-[11px] font-medium text-emerald-400 flex items-center mt-0.5" id="kpiBfmDelta">
+                <i class="fa-solid fa-minus text-[9px] mr-1"></i> No data yet
+              </div>
+            </div>
+            <div class="text-[10px] text-slate-400" id="kpiPbf">PBF: —</div>
+          </div>
+
+          <div class="glass-card p-3.5 rounded-2xl border border-slate-800/80 flex flex-col justify-between">
+            <div class="flex justify-between items-start text-xs text-slate-400">
+              <span>Skeletal Muscle (SMM)</span>
+              <i class="fa-solid fa-dumbbell text-indigo-400"></i>
+            </div>
+            <div class="my-2">
+              <div class="text-2xl font-black text-white" id="kpiSmm">— <span class="text-xs font-semibold text-slate-400">kg</span></div>
+              <div class="text-[11px] font-medium text-cyan-400 flex items-center mt-0.5" id="kpiSmmDelta">
+                <i class="fa-solid fa-minus text-[9px] mr-1"></i> No data yet
+              </div>
+            </div>
+            <div class="text-[10px] text-slate-400">Goal: protect lean mass</div>
+          </div>
+
+          <div class="glass-card p-3.5 rounded-2xl border border-slate-800/80 flex flex-col justify-between">
+            <div class="flex justify-between items-start text-xs text-slate-400">
+              <span>Visceral Fat Level</span>
+              <i class="fa-solid fa-heart-pulse text-rose-400"></i>
+            </div>
+            <div class="my-2">
+              <div class="text-2xl font-black text-white" id="kpiVisceral">— <span class="text-xs font-semibold text-slate-400">lvl</span></div>
+              <div class="text-[11px] font-medium text-emerald-400 flex items-center mt-0.5" id="kpiVisceralDelta">
+                <i class="fa-solid fa-minus text-[9px] mr-1"></i> No data yet
+              </div>
+            </div>
+            <div class="text-[10px] text-slate-400">Target: Level 9 (Healthy)</div>
+          </div>
+        </div>
+
+        <!-- Progress to target (uses the weights from the onboarding screen) -->
+        <div id="goalCard" class="glass-card p-4 rounded-2xl border border-slate-800 space-y-2 hidden">
+          <div class="flex items-baseline justify-between gap-3">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-bullseye text-cyan-400"></i> Progress to target
+            </h2>
+            <span id="goalPercent" class="text-xs font-semibold text-cyan-400">0%</span>
+          </div>
+          <div class="h-2 rounded-full bg-slate-800 overflow-hidden">
+            <div id="goalBar" class="h-full rounded-full bg-accent" style="width:0%"></div>
+          </div>
+          <p id="goalText" class="text-[11px] text-slate-400"></p>
+        </div>
+
+        <!-- Chart 1: Weight Trend (AM Fasted vs Clinic Visbody) -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-800">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3">
+            <div>
+              <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-chart-line text-cyan-400"></i> Weight Trend: AM Fasted vs Clinic Visbody
+              </h2>
+              <p class="text-xs text-slate-400">Compares Tuesday morning home scale with clinic afternoon scan</p>
+            </div>
+            <span id="diurnalBadge" class="text-xs font-medium text-slate-300 bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700">
+              Diurnal Offset: —
+            </span>
+          </div>
+          <div class="h-64 w-full relative">
+            <canvas id="chartWeightTrend"></canvas>
+          </div>
+        </div>
+
+        <!-- Tuesday AM Fasted Scale History List -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
+          <div class="flex justify-between items-center">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-list-check text-cyan-400"></i> Tuesday AM Fasted Scale History Log
+            </h3>
+            <button onclick="switchTab('tab-mounjaro')" class="text-xs text-cyan-400 hover:text-cyan-300 font-medium">
+              + Log AM Scale
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-800/60 text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-700">
+                <tr>
+                  <th class="p-2.5">Date</th>
+                  <th class="p-2.5">AM Fasted Scale</th>
+                  <th class="p-2.5">Visbody Clinic</th>
+                  <th class="p-2.5">Clinic Offset</th>
+                  <th class="p-2.5 text-right">WoW Change</th>
+                  <th class="p-2.5"></th>
+                </tr>
+              </thead>
+              <tbody id="amScaleTableBody" class="divide-y divide-slate-800 text-slate-300">
+                <!-- Dynamic rows populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Chart 2: Body Fat Mass & PBF -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-800">
+          <div class="flex justify-between items-center mb-3">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-chart-area text-amber-400"></i> Body Fat Mass (kg) & PBF (%)
+            </h2>
+          </div>
+          <div class="h-56 w-full relative">
+            <canvas id="chartFatTrend"></canvas>
+          </div>
+        </div>
+
+        <!-- Chart 3: Skeletal Muscle Mass (Zoomed Scale) -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-800">
+          <div class="flex justify-between items-center mb-3">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-dumbbell text-indigo-400"></i> Skeletal Muscle Mass (SMM) — Zoomed View
+            </h2>
+          </div>
+          <div class="h-56 w-full relative">
+            <canvas id="chartSmmTrend"></canvas>
+          </div>
+        </div>
+
+        <!-- Chart 4 & 5 Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Chart 4: Visceral Fat Level -->
+          <div class="glass-card p-4 rounded-2xl border border-slate-800">
+            <h2 class="text-sm font-bold text-white mb-2 flex items-center gap-2">
+              <i class="fa-solid fa-heart-pulse text-rose-400"></i> Visceral Fat Level (1–20)
+            </h2>
+            <div class="h-52 w-full relative">
+              <canvas id="chartVisceralTrend"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 5: Waist Circumferences -->
+          <div class="glass-card p-4 rounded-2xl border border-slate-800">
+            <h2 class="text-sm font-bold text-white mb-2 flex items-center gap-2">
+              <i class="fa-solid fa-ruler-horizontal text-emerald-400"></i> Waist Circumferences (cm)
+            </h2>
+            <div class="h-52 w-full relative">
+              <canvas id="chartWaistTrend"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: VISBODY REPORTS & COMPARISONS -->
+      <section id="tab-visbody" class="tab-content hidden space-y-6">
+        <!-- Scan Selector & Web View Launcher -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-4">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div>
+              <h2 class="text-base font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-file-pdf text-cyan-400"></i> Visbody Scans & Multi-Date Analysis
+              </h2>
+              <p class="text-xs text-slate-400">Select scan date or upload official PDF to sync parameters</p>
+            </div>
+            
+            <div class="flex items-center space-x-2 w-full sm:w-auto">
+              <!-- Date Dropdown -->
+              <select id="visbodyDateSelect" onchange="renderVisbodyReport()" class="bg-slate-800 border border-slate-700 text-white text-xs rounded-xl px-3 py-2 flex-1 sm:flex-none">
+                <!-- Dynamically populated -->
+              </select>
+
+              <!-- Open 3D Web Link Button -->
+              <button onclick="openVisbody3dView()" class="bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-md shadow-cyan-600/30 touch-target">
+                <i class="fa-solid fa-cube"></i> Open 3D Scan Link
+              </button>
+              <button type="button" onclick="deleteSelectedScan()" aria-label="Delete selected scan" class="p-2.5 text-rose-400 hover:bg-slate-800 rounded-xl border border-slate-700 touch-target">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- PDF Uploader & Web Link Paste Bar -->
+          <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 space-y-2">
+            <div class="flex flex-col sm:flex-row gap-2">
+              <input type="text" id="visbodyWebUrlInput" placeholder="Paste Visbody Web Link (rexp-h5.visbody.com...)" class="bg-slate-800 text-xs text-slate-200 border border-slate-700 rounded-xl px-3 py-2 flex-1 focus:outline-none focus:border-cyan-500">
+              <button onclick="saveVisbodyWebUrl()" class="bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 px-3 py-2 rounded-xl border border-slate-700">Save Link</button>
+              
+              <label class="bg-slate-800 hover:bg-slate-700 text-xs font-medium text-cyan-400 border border-cyan-800/60 px-3 py-2 rounded-xl cursor-pointer flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-file-arrow-up"></i> Upload PDF
+                <input type="file" id="pdfFileInput" accept="application/pdf" onchange="handleVisbodyPdfUpload(event)" class="hidden">
+              </label>
+            </div>
+            <div id="pdfUploadStatus" class="text-[11px] text-slate-400 hidden"></div>
+          </div>
+        </div>
+
+        <!-- ADD / REPLACE A VISBODY SCAN (manual entry) -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
+          <div>
+            <h3 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-plus text-cyan-400"></i> Add a Visbody Scan</h3>
+            <p class="text-xs text-slate-400">Type in the numbers from your Visbody report. Saving a scan on a date that already exists replaces it.</p>
+          </div>
+          <form id="scanForm" onsubmit="handleSaveScan(event)" class="space-y-3">
+            <div id="scanFormCore" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
+            <details class="rounded-xl border border-slate-800 bg-slate-900/60">
+              <summary class="cursor-pointer px-3 py-2 text-xs font-semibold text-slate-300">More measurements (optional)</summary>
+              <div id="scanFormOptional" class="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3"></div>
+            </details>
+            <button type="submit" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs py-3 rounded-xl shadow-lg shadow-cyan-600/30">Save Scan</button>
+          </form>
+        </div>
+
+        <!-- 5-PAGE REPORT VIEWER TAB SYSTEM -->
+        <div class="glass-card rounded-2xl border border-slate-800 overflow-hidden">
+          <!-- Inner Sub-Tabs -->
+          <div class="flex overflow-x-auto bg-slate-950/80 border-b border-slate-800 p-1 space-x-1 text-xs">
+            <button onclick="switchVisbodySubTab(1)" id="visSubTab-1" class="vis-subtab bg-slate-800 text-cyan-400 font-semibold px-3 py-2 rounded-lg whitespace-nowrap">Page 1: Composition</button>
+            <button onclick="switchVisbodySubTab(2)" id="visSubTab-2" class="vis-subtab text-slate-400 font-semibold px-3 py-2 rounded-lg whitespace-nowrap">Page 2: Posture Analysis</button>
+            <button onclick="switchVisbodySubTab(3)" id="visSubTab-3" class="vis-subtab text-slate-400 font-semibold px-3 py-2 rounded-lg whitespace-nowrap">Page 3: 14 Circumferences</button>
+            <button onclick="switchVisbodySubTab(4)" id="visSubTab-4" class="vis-subtab text-slate-400 font-semibold px-3 py-2 rounded-lg whitespace-nowrap">Page 4: Spine & Pain Risk</button>
+            <button onclick="switchVisbodySubTab(5)" id="visSubTab-5" class="vis-subtab text-slate-400 font-semibold px-3 py-2 rounded-lg whitespace-nowrap">Page 5: Glute Assessment</button>
+          </div>
+
+          <!-- Page 1 Content -->
+          <div id="visPage-1" class="p-4 space-y-4">
+            <h3 class="text-sm font-bold text-white">Body Composition & Segmental Breakdown</h3>
+            <div id="visPage1Details" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
+          </div>
+
+          <!-- Page 2 Content -->
+          <div id="visPage-2" class="p-4 space-y-4 hidden">
+            <h3 class="text-sm font-bold text-white">Posture Analysis & Alignment Angles</h3>
+            <div id="visPage2Details" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+          </div>
+
+          <!-- Page 3 Content -->
+          <div id="visPage-3" class="p-4 space-y-4 hidden">
+            <h3 class="text-sm font-bold text-white">14 Body Circumference Measurements</h3>
+            <div id="visPage3Details" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
+          </div>
+
+          <!-- Page 4 Content -->
+          <div id="visPage-4" class="p-4 space-y-4 hidden">
+            <h3 class="text-sm font-bold text-white">Spinal Health & Joint Pain Risk Index</h3>
+            <div id="visPage4Details" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+          </div>
+
+          <!-- Page 5 Content -->
+          <div id="visPage-5" class="p-4 space-y-4 hidden">
+            <h3 class="text-sm font-bold text-white">Glute Shape & Pelvic Alignment</h3>
+            <div id="visPage5Details" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+          </div>
+        </div>
+
+        <!-- MULTI-DATE METRIC BREAKDOWN TREND CHART -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-chart-line text-cyan-400"></i> Multi-Date Progress Breakdown Chart
+            </h3>
+            <select id="breakdownMetricSelect" onchange="renderVisbodyBreakdownChart()" class="bg-slate-800 text-xs border border-slate-700 rounded-xl px-3 py-1.5 text-slate-200">
+              <option value="composition">Body Composition (Fat vs SMM)</option>
+              <option value="circumference">Key Circumferences (Waist, Chest, Thigh)</option>
+              <option value="posture">Posture Angles (Pelvis, Head, Shoulder)</option>
+              <option value="spine">Spine Health & Risk Score</option>
+            </select>
+          </div>
+          <div class="h-60 w-full relative">
+            <canvas id="chartVisbodyBreakdown"></canvas>
+          </div>
+        </div>
+
+        <!-- 3-COLUMN DATE COMPARISON TABLE -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
+          <div class="flex justify-between items-center">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-code-compare text-emerald-400"></i> Side-by-Side Date Progress Comparator
+            </h3>
+            <span class="text-[11px] text-slate-400">First vs Previous vs Latest</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-800/80 text-slate-300 uppercase tracking-wider font-semibold border-b border-slate-700">
+                <tr>
+                  <th class="p-2.5">Parameter</th>
+                  <th class="p-2.5">First Scan</th>
+                  <th class="p-2.5">Previous Scan</th>
+                  <th class="p-2.5">Latest Scan</th>
+                  <th class="p-2.5 text-right">Total Net Delta</th>
+                </tr>
+              </thead>
+              <tbody id="visComparisonTableBody" class="divide-y divide-slate-800 text-slate-300">
+                <!-- Dynamically Populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: MOUNJARO TRACKER -->
+      <section id="tab-mounjaro" class="tab-content hidden space-y-6">
+        <!-- Tuesday Fasted Scale Fast-Log Card -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3 bg-gradient-to-r from-slate-900 to-cyan-950/40">
+          <div class="flex justify-between items-center">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-weight-scale text-cyan-400"></i> Fast Log: Tuesday AM Fasted Scale
+            </h2>
+            <span class="text-[11px] text-cyan-400">Syncs with Dashboard List</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1">Log Date</label>
+              <input type="date" id="fastAmScaleDate" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+            </div>
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1">AM Fasted Weight (kg)</label>
+              <input type="number" inputmode="decimal" step="0.1" id="fastAmScaleWeight" placeholder="e.g. 70.5" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+            </div>
+            <div class="flex items-end">
+              <button onclick="saveAmFastedScaleEntry()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold py-2.5 px-3 rounded-xl shadow-lg shadow-cyan-600/30">
+                Save AM Scale Entry
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mounjaro Injection Logging Form -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-4">
+          <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+            <div>
+              <h2 id="mounjaroFormTitle" class="text-base font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-syringe text-emerald-400"></i> Log Mounjaro Injection
+              </h2>
+              <p class="text-xs text-slate-400">Track dosage, injection site rotation, and pharmacokinetics</p>
+            </div>
+            <button id="cancelMjEditBtn" onclick="resetMjForm()" class="hidden text-xs text-rose-400 hover:text-rose-300 font-medium">
+              Cancel Edit
+            </button>
+          </div>
+
+          <form id="mounjaroForm" onsubmit="handleSaveMjShot(event)" class="space-y-4">
+            <input type="hidden" id="mjShotId">
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="text-xs text-slate-300 font-medium block mb-1">Injection Date & Time</label>
+                <input type="datetime-local" id="mjDateTime" required class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+              </div>
+
+              <div>
+                <label class="text-xs text-slate-300 font-medium block mb-1">Dose Strength (mg)</label>
+                <select id="mjDose" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+                  <option value="2.5">2.5 mg (Starter Dose)</option>
+                  <option value="5.0" selected>5.0 mg (Standard Dose)</option>
+                  <option value="7.5">7.5 mg (Escalation Dose)</option>
+                  <option value="10.0">10.0 mg</option>
+                  <option value="12.5">12.5 mg</option>
+                  <option value="15.0">15.0 mg</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- 6-Site Anatomical Grid -->
+            <div>
+              <label class="text-xs text-slate-300 font-medium block mb-1">Select Injection Site (6-Site Rotation)</label>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2" id="mjSiteGrid">
+                <!-- Dynamically generated site cards -->
+              </div>
+            </div>
+
+            <!-- Appetite & Side Effects -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="text-xs text-slate-300 font-medium block mb-1">Appetite Suppression Rating (1–5)</label>
+                <select id="mjAppetite" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+                  <option value="5">5 — Very Strong (No Cravings)</option>
+                  <option value="4" selected>4 — Strong Control</option>
+                  <option value="3">3 — Moderate Suppression</option>
+                  <option value="2">2 — Mild / Wearing Off</option>
+                  <option value="1">1 — Hunger Returned</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="text-xs text-slate-300 font-medium block mb-1">Side Effects / GI Notes</label>
+                <input type="text" id="mjNotes" placeholder="e.g. Mild nausea, sulfur burps, normal..." class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+              </div>
+            </div>
+
+            <button type="submit" id="saveMjShotBtn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs py-3 rounded-xl shadow-lg shadow-emerald-600/30">
+              Save Injection Shot Entry
+            </button>
+          </form>
+        </div>
+
+        <!-- Active Pharmacokinetic Estimated Level Chart -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
+          <div class="flex justify-between items-center">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-wave-square text-emerald-400"></i> Estimated Active Level Curve (~120h Half-Life)
+            </h3>
+            <span id="currentActiveMjLevel" class="text-xs font-semibold text-emerald-400 bg-emerald-950 px-2.5 py-1 rounded-lg border border-emerald-800/60">Active: 0.0 mg</span>
+          </div>
+          <div class="h-56 w-full relative">
+            <canvas id="chartMjActiveLevel"></canvas>
+          </div>
+        </div>
+
+        <!-- Mounjaro Shot History List -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-history text-slate-400"></i> Logged Mounjaro Shot History
+          </h3>
+          <div id="mjHistoryContainer" class="space-y-2">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: DAILY LOG & MEDICATIONS -->
+      <section id="tab-dailylog" class="tab-content hidden space-y-6">
+        <!-- Date Selector Strip: fixed three-column grid so the date box can never push past the card -->
+        <div class="glass-card p-3 rounded-2xl border border-slate-800 space-y-2">
+          <div class="grid items-center gap-2" style="grid-template-columns: 44px minmax(0, 1fr) 44px;">
+            <button onclick="changeDailyLogDate(-1)" aria-label="Previous day" class="touch-target flex items-center justify-center text-slate-400 hover:text-white rounded-xl bg-slate-800">
+              <i class="fa-solid fa-chevron-left text-xs"></i>
+            </button>
+            <input type="date" id="dailyLogDateInput" onchange="loadDailyLogForSelectedDate()" class="bg-slate-800 border border-slate-700 text-white text-xs rounded-xl px-3 py-2 w-full min-w-0">
+            <button onclick="changeDailyLogDate(1)" aria-label="Next day" class="touch-target flex items-center justify-center text-slate-400 hover:text-white rounded-xl bg-slate-800">
+              <i class="fa-solid fa-chevron-right text-xs"></i>
+            </button>
+          </div>
+          <div class="flex items-center justify-between gap-2 px-1 text-[11px] text-slate-400 min-h-[1.25rem]">
+            <span id="dailyLogDayLabel"></span>
+            <span id="dailySaveToast" class="flex-none text-[11px] text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded-full border border-emerald-800/60 hidden">Saved ✓</span>
+          </div>
+        </div>
+
+        <!-- Medications Checklist -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
+          <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-pills text-indigo-400"></i> Daily Medications & Supplements
+            </h3>
+            <button onclick="openAddMedModal()" class="text-xs text-cyan-400 hover:text-cyan-300 font-medium">+ Custom Med</button>
+          </div>
+
+          <div class="space-y-2" id="medsChecklist">
+            <!-- Populated via JS -->
+          </div>
+
+          <!-- Statin Safety Warning Card -->
+          <div id="statinWarningCard" class="hidden p-3 bg-amber-950/40 border border-amber-800/80 rounded-xl text-xs space-y-1 text-amber-200">
+            <div class="font-bold flex items-center gap-1.5 text-amber-400">
+              <i class="fa-solid fa-triangle-exclamation"></i> Rosuvastatin Myalgia Safety Note
+            </div>
+            <p class="text-[11px] leading-relaxed text-amber-300/90">
+              Muscle soreness logged today. Distinguish post-kettlebell DOMS from statin-induced muscle fatigue. Hydrate well (2.5L+) and report persistent bilateral thigh weakness.
+            </p>
+          </div>
+        </div>
+
+        <!-- Workout & Kettlebell Circuit -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-4">
+          <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+            <div>
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-person-running text-emerald-400"></i> Workout & 8 kg Kettlebell Circuit
+              </h3>
+              <p class="text-xs text-slate-400">Track core stability, posture correction, and steps</p>
+            </div>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <span class="text-xs font-semibold text-slate-300">Lifting Day</span>
+              <input type="checkbox" id="dailyIsWorkoutDay" onchange="saveDailyLogState()" class="w-4 h-4 rounded text-cyan-600 focus:ring-0 bg-slate-800 border-slate-700">
+            </label>
+          </div>
+
+          <!-- Steps & Distance Input -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1">Daily Steps</label>
+              <input type="number" inputmode="numeric" id="dailySteps" onchange="saveDailyLogState()" placeholder="e.g. 8500" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+            </div>
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1">Distance (km)</label>
+              <input type="number" inputmode="decimal" step="0.1" id="dailyDistance" onchange="saveDailyLogState()" placeholder="e.g. 5.8" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+            </div>
+          </div>
+
+          <!-- Exercise Checklist -->
+          <div class="space-y-2">
+            <h4 class="text-xs font-semibold text-slate-300">Target Core & Posture Circuit</h4>
+            <div id="exerciseChecklist" class="space-y-2">
+              <!-- Populated via JS -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: NUTRITION & FOOD LOG -->
+      <section id="tab-food" class="tab-content hidden space-y-6">
+        <!-- Sub-Tabs: Food Intake vs Intake Summary -->
+        <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-semibold">
+          <button onclick="switchFoodSubTab('intake')" id="foodSubTab-intake" class="flex-1 py-2 rounded-lg bg-slate-800 text-cyan-400 text-center">Food Intake Entry</button>
+          <button onclick="switchFoodSubTab('summary')" id="foodSubTab-summary" class="flex-1 py-2 rounded-lg text-slate-400 text-center">Weekly & Monthly Summary</button>
+        </div>
+
+        <!-- SUB-TAB 1: FOOD INTAKE -->
+        <div id="foodView-intake" class="space-y-4">
+          <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2 min-w-0">
+                <i class="fa-solid fa-utensils text-amber-400"></i> Daily Food & Hydration Tracker
+              </h3>
+              <input type="date" id="foodLogDate" onchange="loadFoodLogForDate()" class="bg-slate-800 border border-slate-700 text-white text-xs rounded-xl px-3 py-2 w-full sm:w-auto">
+            </div>
+
+            <!-- Macros & Intake Inputs -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="text-[11px] text-slate-400 block mb-1">Total Calories (kcal)</label>
+                <input type="number" inputmode="numeric" id="foodCalories" onchange="saveFoodLogForDate()" placeholder="e.g. 1800" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+              </div>
+              <div>
+                <label class="text-[11px] text-slate-400 block mb-1">Dietary Fat (g)</label>
+                <input type="number" inputmode="numeric" id="foodFat" onchange="saveFoodLogForDate()" placeholder="Keep single meal < 30%" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+              </div>
+              <div>
+                <label class="text-[11px] text-slate-400 block mb-1">Added Sugar (g) — Cap ≤ 20g</label>
+                <input type="number" inputmode="numeric" id="foodSugar" onchange="saveFoodLogForDate()" placeholder="≤ 20g daily target" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+              </div>
+            </div>
+
+            <!-- Hydration Card -->
+            <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 space-y-2">
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                  <i class="fa-solid fa-droplet text-cyan-400"></i> Water Hydration: <span id="waterDisplay" class="text-white font-bold">0 ml</span>
+                </span>
+                <span class="text-[11px] text-cyan-400">Target: 2,500 – 3,500 ml</span>
+              </div>
+              <div class="flex gap-2">
+                <button onclick="addWater(250)" class="flex-1 bg-slate-800 hover:bg-slate-700 text-cyan-400 font-semibold text-xs py-2 rounded-xl border border-slate-700">
+                  + 250 ml
+                </button>
+                <button onclick="addWater(500)" class="flex-1 bg-slate-800 hover:bg-slate-700 text-cyan-400 font-semibold text-xs py-2 rounded-xl border border-slate-700">
+                  + 500 ml
+                </button>
+                <button onclick="resetWater()" class="px-3 bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs rounded-xl border border-slate-700">
+                  Reset
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUB-TAB 2: INTAKE SUMMARY -->
+        <div id="foodView-summary" class="hidden space-y-4">
+          <!-- Monday-to-Sunday Strip -->
+          <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-calendar-week text-cyan-400"></i> Current Monday–Sunday Active Strip
+            </h3>
+            <div class="grid grid-cols-7 gap-1 text-center" id="weeklyFoodStrip">
+              <!-- Dynamically generated Mon-Sun days -->
+            </div>
+          </div>
+
+          <!-- 30-Day Calories & Sugar Trend Chart -->
+          <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-chart-line text-amber-400"></i> 30-Day Calories & Added Sugar (≤ 20g Red Cap Line)
+            </h3>
+            <div class="h-60 w-full relative">
+              <canvas id="chartFoodTrend"></canvas>
+            </div>
+            <p id="foodTrendEmpty" class="hidden text-[11px] text-slate-500">No food entries in the last 30 days yet. Log intake on the Food Intake Entry tab and it will appear here.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 6: VIRTUAL ADVISOR -->
+      <section id="tab-advisor" class="tab-content hidden space-y-6">
+        <!-- Advisor Banner -->
+        <div class="glass-card p-4 rounded-2xl border border-cyan-800/60 bg-gradient-to-r from-slate-900 via-cyan-950/30 to-slate-900 space-y-2">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-cyan-600/20 text-cyan-400 flex items-center justify-center text-xl font-bold border border-cyan-700/50">
+              <i class="fa-solid fa-user-doctor"></i>
+            </div>
+            <div>
+              <h2 class="text-base font-bold text-white">Virtual Advisor Engine</h2>
+              <p class="text-xs text-slate-400">Live clinical, pharmacokinetic & posture cross-data synthesis</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Cross-Data Briefings -->
+        <div class="space-y-3" id="advisorBriefingsContainer">
+          <!-- Dynamically synthesized alert cards -->
+        </div>
+
+        <!-- Interactive Diagnostic Cards -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-circle-question text-amber-400"></i> "Ask the Advisor" Interactive Deep Dives
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <button onclick="runAdvisorDiagnostic('stall')" class="p-3 bg-slate-800/80 hover:bg-slate-800 rounded-xl text-left border border-slate-700 text-xs space-y-1">
+              <div class="font-bold text-white flex items-center justify-between">
+                <span>Why did my scale stall / jump?</span>
+                <i class="fa-solid fa-chevron-right text-slate-400 text-[10px]"></i>
+              </div>
+              <p class="text-[11px] text-slate-400">Evaluates AM scale vs Visbody diurnal offset & sodium/water intake</p>
+            </button>
+
+            <button onclick="runAdvisorDiagnostic('dose')" class="p-3 bg-slate-800/80 hover:bg-slate-800 rounded-xl text-left border border-slate-700 text-xs space-y-1">
+              <div class="font-bold text-white flex items-center justify-between">
+                <span>Mounjaro Dose Step-Up Readiness</span>
+                <i class="fa-solid fa-chevron-right text-slate-400 text-[10px]"></i>
+              </div>
+              <p class="text-[11px] text-slate-400">Checks appetite suppression velocity and GI side effect history</p>
+            </button>
+
+            <button onclick="runAdvisorDiagnostic('nutrition')" class="p-3 bg-slate-800/80 hover:bg-slate-800 rounded-xl text-left border border-slate-700 text-xs space-y-1">
+              <div class="font-bold text-white flex items-center justify-between">
+                <span>Optimize Mon–Sun Nutrition Plan</span>
+                <i class="fa-solid fa-chevron-right text-slate-400 text-[10px]"></i>
+              </div>
+              <p class="text-[11px] text-slate-400">Anchors calories to your scan BMR, lifting days & a 2.5L water target</p>
+            </button>
+
+            <button onclick="runAdvisorDiagnostic('wardrobe')" class="p-3 bg-slate-800/80 hover:bg-slate-800 rounded-xl text-left border border-slate-700 text-xs space-y-1">
+              <div class="font-bold text-white flex items-center justify-between">
+                <span>Wardrobe & Apparel Unlock</span>
+                <i class="fa-solid fa-chevron-right text-slate-400 text-[10px]"></i>
+              </div>
+              <p class="text-[11px] text-slate-400">Maps your waist and chest changes to sizing milestones</p>
+            </button>
+          </div>
+        </div>
+
+        <!-- Diagnostic Output Modal / Area -->
+        <div id="diagnosticOutputCard" class="hidden glass-card p-4 rounded-2xl border border-cyan-800/60 bg-slate-900/90 space-y-2">
+          <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+            <h4 id="diagnosticTitle" class="text-xs font-bold text-cyan-400">Diagnostic Result</h4>
+            <button onclick="closeDiagnosticOutput()" class="text-xs text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <div id="diagnosticBody" class="text-xs text-slate-300 leading-relaxed space-y-2"></div>
+        </div>
+
+        <!-- Weekly Readiness Scorecard -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
+          <div class="flex justify-between items-center">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-award text-indigo-400"></i> Monday–Sunday Readiness Scorecard
+            </h3>
+            <span id="advisorScoreBadge" class="text-xs font-black text-emerald-400 bg-emerald-950 px-2.5 py-1 rounded-lg border border-emerald-800/60">This week</span>
+          </div>
+          <div class="space-y-2" id="advisorTargetsList">
+            <!-- Dynamically populated target items -->
+          </div>
+        </div>
+        <p class="px-1 text-[11px] leading-relaxed text-slate-500">These notes summarise your own logged numbers for personal tracking. They are not medical advice. Talk to your prescriber before changing a dose or stopping any medication.</p>
+      </section>
+
+    </main>
+
+    <!-- BOTTOM NAVIGATION BAR (6 TABS) -->
+    <nav class="glass-nav fixed bottom-0 left-0 right-0 z-40 max-w-4xl mx-auto px-2 py-1.5 pb-safe">
+      <div class="grid grid-cols-6 gap-1 text-center">
+        <button onclick="switchTab('tab-dashboard')" id="nav-tab-dashboard" class="nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-cyan-400">
+          <i class="fa-solid fa-chart-pie text-lg mb-0.5"></i>
+          <span class="text-[10px] font-semibold tracking-tight">Dash</span>
+        </button>
+
+        <button onclick="switchTab('tab-visbody')" id="nav-tab-visbody" class="nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 hover:text-slate-200">
+          <i class="fa-solid fa-child-reaching text-lg mb-0.5"></i>
+          <span class="text-[10px] font-semibold tracking-tight">Visbody</span>
+        </button>
+
+        <button onclick="switchTab('tab-mounjaro')" id="nav-tab-mounjaro" class="nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 hover:text-slate-200">
+          <i class="fa-solid fa-syringe text-lg mb-0.5"></i>
+          <span class="text-[10px] font-semibold tracking-tight">Mounjaro</span>
+        </button>
+
+        <button onclick="switchTab('tab-dailylog')" id="nav-tab-dailylog" class="nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 hover:text-slate-200">
+          <i class="fa-solid fa-calendar-check text-lg mb-0.5"></i>
+          <span class="text-[10px] font-semibold tracking-tight">Daily</span>
+        </button>
+
+        <button onclick="switchTab('tab-food')" id="nav-tab-food" class="nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 hover:text-slate-200">
+          <i class="fa-solid fa-utensils text-lg mb-0.5"></i>
+          <span class="text-[10px] font-semibold tracking-tight">Food</span>
+        </button>
+
+        <button onclick="switchTab('tab-advisor')" id="nav-tab-advisor" class="nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 hover:text-slate-200">
+          <i class="fa-solid fa-user-doctor text-lg mb-0.5"></i>
+          <span class="text-[10px] font-semibold tracking-tight">Advisor</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- STYLE & SETTINGS DRAWER / MODAL (⚙) -->
+    <div id="settingsDrawer" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex justify-end">
+      <div class="drawer-panel w-full max-w-md bg-slate-900 h-full overflow-y-auto p-5 space-y-6 border-l border-slate-800 shadow-2xl">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-sliders text-cyan-400"></i> Style & App Settings
+          </h2>
+          <button onclick="toggleSettingsDrawer(false)" class="p-2 text-slate-400 hover:text-white rounded-xl bg-slate-800">
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+
+        <!-- Asian / Malaysian Apparel Sizing Predictor -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
+          <h3 class="text-xs font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-shirt text-amber-400"></i> Asian Sizing Predictor (Visbody Derived)
+          </h3>
+          <div class="grid grid-cols-3 gap-2 text-center text-xs">
+            <div class="p-2 bg-slate-800 rounded-xl border border-slate-700">
+              <span class="text-[10px] text-slate-400 block">T-Shirts</span>
+              <span id="sizeTshirt" class="font-bold text-white">—</span>
+            </div>
+            <div class="p-2 bg-slate-800 rounded-xl border border-slate-700">
+              <span class="text-[10px] text-slate-400 block">Shirts</span>
+              <span id="sizeShirt" class="font-bold text-white">—</span>
+            </div>
+            <div class="p-2 bg-slate-800 rounded-xl border border-slate-700">
+              <span class="text-[10px] text-slate-400 block">Pants/Chinos</span>
+              <span id="sizePants" class="font-bold text-white">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Haircut & Beard Framing Selector -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
+          <h3 class="text-xs font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-scissors text-indigo-400"></i> Haircut & Beard Framing Guide
+          </h3>
+          <p class="text-[11px] text-slate-400">Optimized for round-to-oval face slimming during weight loss</p>
+          <div class="p-3 bg-slate-800/80 rounded-xl border border-slate-700 text-xs space-y-1">
+            <div class="font-bold text-cyan-400">Recommended Cut: Low Fade Taper</div>
+            <p class="text-[11px] text-slate-300">Keep side volume tight (#1 to #2 guard) with moderate top length styled up to visually elongate facial features.</p>
+          </div>
+        </div>
+
+        <!-- Theme & Audio Controls -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
+          <h3 class="text-xs font-bold text-white">Preferences</h3>
+          
+          <div class="flex justify-between items-center">
+            <span class="text-xs text-slate-300">Web Audio SFX (Chimes)</span>
+            <input type="checkbox" id="settingSfxToggle" checked onchange="savePreferences()" class="w-4 h-4 rounded text-cyan-600 focus:ring-0 bg-slate-800 border-slate-700">
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-xs text-slate-300 block">Accent Color Theme</label>
+            <div class="flex gap-2">
+              <button onclick="setAccentColor('accent-cyan')" class="w-7 h-7 rounded-full bg-cyan-500 border-2 border-white/20"></button>
+              <button onclick="setAccentColor('accent-emerald')" class="w-7 h-7 rounded-full bg-emerald-500 border-2 border-white/20"></button>
+              <button onclick="setAccentColor('accent-violet')" class="w-7 h-7 rounded-full bg-violet-500 border-2 border-white/20"></button>
+              <button onclick="setAccentColor('accent-amber')" class="w-7 h-7 rounded-full bg-amber-500 border-2 border-white/20"></button>
+              <button onclick="setAccentColor('accent-rose')" class="w-7 h-7 rounded-full bg-rose-500 border-2 border-white/20"></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- JSON Backup & Restore -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
+          <h3 class="text-xs font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-database text-emerald-400"></i> JSON Data Backup & Restore
+          </h3>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="exportJsonBackup()" class="bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 font-semibold py-2 rounded-xl border border-slate-700">
+              Export Backup
+            </button>
+            <label class="bg-slate-800 hover:bg-slate-700 text-xs text-cyan-400 font-semibold py-2 rounded-xl border border-cyan-800/60 cursor-pointer text-center">
+              Import Backup
+              <input type="file" accept=".json" onchange="importJsonBackup(event)" class="hidden">
+            </label>
+          </div>
+        </div>
+
+        <div class="glass-card p-4 rounded-2xl border border-rose-900/60 space-y-2">
+          <h3 class="text-xs font-bold text-white flex items-center gap-2"><i class="fa-solid fa-trash text-rose-400"></i> Erase All Data</h3>
+          <p class="text-[11px] text-slate-400">Deletes every scan, weight, injection, daily and food log, custom medication and your profile from this device. Export a backup first if you may want it again.</p>
+          <button onclick="resetAllData()" class="w-full bg-rose-950/60 hover:bg-rose-900/60 text-xs text-rose-300 font-semibold py-2 rounded-xl border border-rose-800/70">Erase everything on this device</button>
+        </div>
+
+        <button onclick="toggleOnboardingModal(true)" class="w-full text-center text-xs text-slate-400 hover:text-slate-200 underline">
+          Re-open First-Open Onboarding Screen
+        </button>
+      </div>
+    </div>
+
+    <!-- FIRST-OPEN ONBOARDING MODAL -->
+    <div id="onboardingModal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-lg hidden flex items-center justify-center p-4">
+      <div class="glass-card w-full max-w-lg p-6 rounded-3xl border border-slate-800 space-y-5 max-h-full overflow-y-auto">
+        <div class="text-center space-y-2">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-cyan-600 to-blue-600 mx-auto flex items-center justify-center text-2xl font-bold text-white shadow-xl shadow-cyan-600/30">
+            V
+          </div>
+          <h2 class="text-xl font-black text-white tracking-tight">Visbody & Mounjaro Tracker</h2>
+          <p class="text-xs text-slate-400">Tell the app a little about you. Everything stays on this device and every field is optional.</p>
+        </div>
+
+        <div class="space-y-3 text-xs text-slate-300">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1">Display Name</label>
+              <input type="text" id="onboardName" value="" placeholder="Optional" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white w-full">
+            </div>
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1">Height (cm)</label>
+              <input type="number" inputmode="numeric" id="onboardHeight" value="" placeholder="e.g. 170" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white w-full">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1">Starting Weight (kg)</label>
+              <input type="number" inputmode="decimal" step="0.1" id="onboardStartWeight" value="" placeholder="e.g. 90.0" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white w-full">
+            </div>
+            <div>
+              <label class="text-[11px] text-slate-400 block mb-1">Target Weight (kg)</label>
+              <input type="number" inputmode="decimal" step="0.1" id="onboardTargetWeight" value="" placeholder="e.g. 75.0" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white w-full">
+            </div>
+          </div>
+        </div>
+
+        <button onclick="completeOnboarding()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-sm py-3.5 rounded-2xl shadow-xl shadow-cyan-600/30 touch-target">
+          Enter Tracker Dashboard
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CUSTOM MEDICATION MODAL -->
+  <div id="addMedModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <form id="addMedForm" onsubmit="saveCustomMed(event)" class="glass-card w-full max-w-md p-5 rounded-3xl border border-slate-800 space-y-4 max-h-full overflow-y-auto">
+      <div class="flex items-center justify-between">
+        <h2 class="text-base font-bold text-white">Add a custom medication</h2>
+        <button type="button" onclick="closeAddMedModal()" aria-label="Close" class="p-2 text-slate-400 hover:text-white rounded-xl bg-slate-800">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label for="customMedName" class="text-[11px] text-slate-400 block mb-1">Name and strength</label>
+          <input type="text" id="customMedName" required maxlength="80" placeholder="e.g. Vitamin D3 1000 IU" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white w-full">
+        </div>
+        <div>
+          <label for="customMedSchedule" class="text-[11px] text-slate-400 block mb-1">When you take it</label>
+          <input type="text" id="customMedSchedule" maxlength="60" placeholder="e.g. Daily Morning" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white w-full">
+        </div>
+        <div>
+          <label for="customMedNote" class="text-[11px] text-slate-400 block mb-1">Note (optional)</label>
+          <input type="text" id="customMedNote" maxlength="80" placeholder="e.g. With food" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white w-full">
+        </div>
+      </div>
+      <button type="submit" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs py-3 rounded-xl shadow-lg shadow-cyan-600/30">
+        Add to checklist
+      </button>
+    </form>
+  </div>
+
+  <!-- TOASTS (replace blocking alert popups) -->
+  <div id="toastHost" aria-live="polite" class="fixed left-0 right-0 z-[60] pointer-events-none flex justify-center px-4" style="bottom: calc(env(safe-area-inset-bottom) + 5.25rem);"></div>
+
+  <!-- JAVASCRIPT APPLICATION CORE -->
+  <script>
+    /* ==========================================================================
+       1. APP CONSTANTS (no pre-seeded data: the app starts completely empty)
+       ========================================================================== */
+    const MJ_SITES = [
+      { id: "left_abdomen", label: "Left Abdomen" },
+      { id: "right_abdomen", label: "Right Abdomen" },
+      { id: "left_thigh", label: "Left Thigh" },
+      { id: "right_thigh", label: "Right Thigh" },
+      { id: "left_arm", label: "Left Upper Arm" },
+      { id: "right_arm", label: "Right Upper Arm" }
+    ];
+
+    /* ==========================================================================
+       2. INDEXED DB ARCHITECTURE (v6)
+       ========================================================================== */
+    let db = null;
+    const DB_NAME = "VisbodyMounjaroDB_v6";
+
+    function initDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, 1);
+        request.onupgradeneeded = (e) => {
+          const dbRef = e.target.result;
+          if (!dbRef.objectStoreNames.contains("visbodyScans")) {
+            dbRef.createObjectStore("visbodyScans", { keyPath: "date" });
+          }
+          if (!dbRef.objectStoreNames.contains("amScaleLogs")) {
+            dbRef.createObjectStore("amScaleLogs", { keyPath: "date" });
+          }
+          if (!dbRef.objectStoreNames.contains("mjShots")) {
+            dbRef.createObjectStore("mjShots", { keyPath: "id" });
+          }
+          if (!dbRef.objectStoreNames.contains("dailyLogs")) {
+            dbRef.createObjectStore("dailyLogs", { keyPath: "date" });
+          }
+          if (!dbRef.objectStoreNames.contains("foodLogs")) {
+            dbRef.createObjectStore("foodLogs", { keyPath: "date" });
+          }
+        };
+        request.onsuccess = (e) => {
+          db = e.target.result;
+          resolve();
+        };
+        request.onerror = (e) => reject(e);
+      });
+    }
+
+    /* ==========================================================================
+       3. WEB AUDIO API SYNTHESIZED SFX
+       ========================================================================== */
+    function playSfx(type = 'click') {
+      const toggle = document.getElementById('settingSfxToggle');
+      if (toggle && !toggle.checked) return;
+
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        window.__vmtAudio = window.__vmtAudio || new AudioCtx();
+        const ctx = window.__vmtAudio;
+        if (ctx.state === 'suspended') ctx.resume();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        if (type === 'click') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(600, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.04);
+          gain.gain.setValueAtTime(0.15, ctx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.04);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.04);
+        } else if (type === 'chime') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+          osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.06); // E5
+          gain.gain.setValueAtTime(0.1, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.2);
+        }
+      } catch (e) { console.warn("Audio unavailable", e); }
+    }
+
+    /* ==========================================================================
+       3b. SHARED HELPERS (v7): local dates, toasts, storage, preferences
+       ========================================================================== */
+    const pad2 = n => String(n).padStart(2, '0');
+
+    // toISOString() is UTC, so before 08:00 in Malaysia (UTC+8) it returns *yesterday*
+    // and datetime fields defaulted 8 hours behind. These helpers use the device clock.
+    function localDateStr(d = new Date()) { return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; }
+    function localDateTimeStr(d = new Date()) { return `${localDateStr(d)}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`; }
+    function parseLocalDate(s) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); }
+    function addDaysStr(s, n) { const d = parseLocalDate(s); d.setDate(d.getDate() + n); return localDateStr(d); }
+    function mondayOf(s) { const d = parseLocalDate(s); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return localDateStr(d); }
+    function esc(v) {
+      return String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    const isNum = v => typeof v === 'number' && isFinite(v);
+    const f1 = v => isNum(v) ? v.toFixed(1) : '—';
+    // Escaped display value, or a dash when the number was left blank.
+    const fv = (v, suffix = '') => (v === null || v === undefined || v === '' || (typeof v === 'number' && !isFinite(v))) ? '—' : `${esc(v)}${suffix}`;
+
+    /* ---- Toasts (replace blocking alert() popups) ---- */
+    let toastTimer = null;
+    function showToast(message, tone = 'ok') {
+      const host = document.getElementById('toastHost');
+      if (!host) return;
+      const tones = {
+        ok: 'border-emerald-700/70 text-emerald-200',
+        warn: 'border-amber-700/70 text-amber-200',
+        error: 'border-rose-700/70 text-rose-200'
+      };
+      host.innerHTML = `<div role="status" class="glass-card pointer-events-auto max-w-sm rounded-2xl border px-4 py-2.5 text-xs font-medium shadow-xl ${tones[tone] || tones.ok}">${esc(message)}</div>`;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { host.innerHTML = ''; }, tone === 'ok' ? 2600 : 4200);
+    }
+
+    /* ---- localStorage wrapper (never throws) ---- */
+    const LS = {
+      get(key, fallback) {
+        try { const v = localStorage.getItem(key); return v === null ? fallback : JSON.parse(v); }
+        catch (e) { return fallback; }
+      },
+      set(key, value) {
+        try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* private mode or storage full */ }
+      }
+    };
+
+    /* ---- Profile & preferences (previously lost on every reload) ---- */
+    const DEFAULT_PROFILE = { name: '', height: '', startWeight: '', targetWeight: '' };
+    let profile = { ...DEFAULT_PROFILE };
+    let prefs = { sfx: true, accent: 'accent-cyan' };
+
+    function loadProfileAndPrefs() {
+      profile = { ...DEFAULT_PROFILE, ...(LS.get('vmt_profile', {}) || {}) };
+      prefs = { sfx: true, accent: 'accent-cyan', ...(LS.get('vmt_prefs', {}) || {}) };
+    }
+
+    function applyProfileAndPrefs() {
+      const sub = document.getElementById('headerSubtitle');
+      if (sub) sub.innerHTML = profile.name ? `Prepared by <span class="font-medium text-slate-200">${esc(profile.name)}</span>` : 'Personal tracker';
+      const sfx = document.getElementById('settingSfxToggle');
+      if (sfx) sfx.checked = !!prefs.sfx;
+      applyAccent(prefs.accent);
+    }
+
+    function savePreferences() {
+      const sfx = document.getElementById('settingSfxToggle');
+      if (sfx) prefs.sfx = sfx.checked;
+      LS.set('vmt_prefs', prefs);
+    }
+
+    function applyAccent(className) {
+      Array.from(document.body.classList).filter(c => c.startsWith('accent-')).forEach(c => document.body.classList.remove(c));
+      document.body.classList.add(className);
+      document.querySelectorAll('#settingsDrawer [onclick^="setAccentColor"]').forEach(btn => {
+        const active = btn.getAttribute('onclick').includes(`'${className}'`);
+        btn.classList.toggle('ring-2', active);
+        btn.classList.toggle('ring-white', active);
+      });
+    }
+
+    /* ---- IndexedDB helpers ---- */
+    // The original `await tx.oncomplete` awaited a property, not an event, so it never actually waited.
+    const txDone = tx => new Promise((resolve, reject) => {
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error);
+    });
+    function dbGet(store, key) {
+      return new Promise(res => {
+        const r = db.transaction(store, 'readonly').objectStore(store).get(key);
+        r.onsuccess = () => res(r.result || null);
+        r.onerror = () => res(null);
+      });
+    }
+    function dbGetAll(store) {
+      return new Promise(res => {
+        const r = db.transaction(store, 'readonly').objectStore(store).getAll();
+        r.onsuccess = () => res(r.result || []);
+        r.onerror = () => res([]);
+      });
+    }
+    function countStore(store) {
+      return new Promise(res => {
+        const r = db.transaction(store, 'readonly').objectStore(store).count();
+        r.onsuccess = () => res(r.result);
+        r.onerror = () => res(0);
+      });
+    }
+    async function dbPut(store, value) {
+      const tx = db.transaction(store, 'readwrite');
+      tx.objectStore(store).put(value);
+      await txDone(tx);
+    }
+
+    /* ---- Chart.js: readable defaults on the dark background ---- */
+    if (window.Chart) {
+      Chart.defaults.color = '#94a3b8';
+      Chart.defaults.borderColor = 'rgba(148, 163, 184, 0.14)';
+      Chart.defaults.font.size = 11;
+      Chart.defaults.plugins.legend.labels.boxWidth = 12;
+    }
+
+    /* ---- Offline support ---- */
+    function registerServiceWorker() {
+      if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+        navigator.serviceWorker.register('sw.js').catch(err => console.warn('Service worker not registered', err));
+      }
+    }
+
+    /* ---- Dashboard extras (live KPI deltas, goal progress, diurnal badge) ---- */
+    function setKpiDelta(id, tone, icon, text) {
+      const tones = { good: 'text-emerald-400', bad: 'text-rose-400', neutral: 'text-cyan-400', flat: 'text-slate-400' };
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.className = `text-[11px] font-medium flex items-center mt-0.5 ${tones[tone]}`;
+      el.innerHTML = `<i class="fa-solid ${icon} text-[9px] mr-1"></i> ${text}`;
+    }
+
+    function renderKpiDeltas(scans, amLogs) {
+      if (amLogs.length >= 2) {
+        const d = amLogs[amLogs.length - 1].amWeight - amLogs[amLogs.length - 2].amWeight;
+        if (d < -0.049) setKpiDelta('kpiAmWeightDelta', 'good', 'fa-arrow-down', `${Math.abs(d).toFixed(1)} kg drop`);
+        else if (d > 0.049) setKpiDelta('kpiAmWeightDelta', 'bad', 'fa-arrow-up', `${d.toFixed(1)} kg up`);
+        else setKpiDelta('kpiAmWeightDelta', 'flat', 'fa-minus', 'No change');
+      } else {
+        setKpiDelta('kpiAmWeightDelta', 'flat', 'fa-minus', amLogs.length ? 'First entry logged' : 'No data yet');
+      }
+
+      if (scans.length < 2) {
+        const msg = scans.length ? 'First scan logged' : 'Add a scan';
+        ['kpiBfmDelta', 'kpiSmmDelta', 'kpiVisceralDelta'].forEach(id => setKpiDelta(id, 'flat', 'fa-minus', msg));
+        return;
+      }
+
+      const base = scans[0];
+      const latest = scans[scans.length - 1];
+
+      const fat = base.bfm - latest.bfm;
+      if (fat > 0.049) setKpiDelta('kpiBfmDelta', 'good', 'fa-arrow-down', `${fat.toFixed(1)} kg lost`);
+      else if (fat < -0.049) setKpiDelta('kpiBfmDelta', 'bad', 'fa-arrow-up', `${Math.abs(fat).toFixed(1)} kg gained`);
+      else setKpiDelta('kpiBfmDelta', 'flat', 'fa-minus', 'No change');
+
+      const smm = latest.smm - base.smm;
+      if (Math.abs(smm) <= 0.3) setKpiDelta('kpiSmmDelta', 'neutral', 'fa-shield', 'Maintained lean mass');
+      else if (smm > 0) setKpiDelta('kpiSmmDelta', 'good', 'fa-arrow-up', `${smm.toFixed(1)} kg gained`);
+      else setKpiDelta('kpiSmmDelta', 'bad', 'fa-arrow-down', `${Math.abs(smm).toFixed(1)} kg lost`);
+
+      const vfl = latest.vfl - base.vfl;
+      if (vfl < -0.049) setKpiDelta('kpiVisceralDelta', 'good', 'fa-arrow-down', `Down from ${base.vfl.toFixed(1)}`);
+      else if (vfl > 0.049) setKpiDelta('kpiVisceralDelta', 'bad', 'fa-arrow-up', `Up from ${base.vfl.toFixed(1)}`);
+      else setKpiDelta('kpiVisceralDelta', 'flat', 'fa-minus', 'Unchanged');
+    }
+
+    function renderGoalProgress(latestAm) {
+      const card = document.getElementById('goalCard');
+      if (!card) return;
+      const start = parseFloat(profile.startWeight);
+      const target = parseFloat(profile.targetWeight);
+      if (!(start > target) || !latestAm) { card.classList.add('hidden'); return; }
+      card.classList.remove('hidden');
+      const now = latestAm.amWeight;
+      const pct = Math.max(0, Math.min(100, ((start - now) / (start - target)) * 100));
+      document.getElementById('goalBar').style.width = `${pct}%`;
+      document.getElementById('goalPercent').innerText = `${Math.round(pct)}%`;
+      const remaining = Math.max(0, now - target);
+      document.getElementById('goalText').innerText = remaining > 0
+        ? `Started at ${start.toFixed(1)} kg, now ${now.toFixed(1)} kg. ${remaining.toFixed(1)} kg to reach ${target.toFixed(1)} kg.`
+        : `Target of ${target.toFixed(1)} kg reached. Started at ${start.toFixed(1)} kg, now ${now.toFixed(1)} kg.`;
+    }
+
+    // Clinic (Visbody) weight minus AM fasted weight, only where both were logged on the same date.
+    function diurnalOffsets() {
+      return appState.amScaleLogs.map(a => {
+        const s = appState.visbodyScans.find(x => x.date === a.date);
+        return s && isNum(s.weight) && isNum(a.amWeight) ? s.weight - a.amWeight : null;
+      }).filter(isNum);
+    }
+
+    function renderDiurnalBadge() {
+      const badge = document.getElementById('diurnalBadge');
+      if (!badge) return;
+      const offs = diurnalOffsets();
+      if (!offs.length) { badge.innerText = 'Diurnal Offset: —'; return; }
+      const avg = offs.reduce((a, b) => a + b, 0) / offs.length;
+      badge.innerText = `Diurnal Offset ~ ${avg >= 0 ? '+' : ''}${avg.toFixed(1)} kg`;
+    }
+
+    /* ==========================================================================
+       4. STATE & APP INITIALIZATION
+       ========================================================================== */
+    let appState = {
+      activeTab: "tab-dashboard",
+      visbodyScans: [],
+      amScaleLogs: [],
+      mjShots: [],
+      currentMjEditId: null,
+      selectedMjSite: "left_abdomen"
+    };
+
+    let charts = {};
+
+    window.onload = async function() {
+      loadProfileAndPrefs();
+      applyProfileAndPrefs();
+      try {
+        await initDB();
+        await loadAllData();
+      } catch (err) {
+        console.error(err);
+        showToast("Couldn't open on-device storage, so entries can't be saved right now.", 'error');
+        return;
+      }
+      checkFirstOpenOnboarding();
+      renderDashboard();
+      initMjSiteGrid();
+      initScanForm();
+      switchTab('tab-dashboard');
+      registerServiceWorker();
+    };
+
+    async function loadAllData() {
+      const tx = db.transaction(["visbodyScans", "amScaleLogs", "mjShots"], "readonly");
+      appState.visbodyScans = await getAllFromStore(tx.objectStore("visbodyScans"));
+      appState.amScaleLogs = await getAllFromStore(tx.objectStore("amScaleLogs"));
+      appState.mjShots = await getAllFromStore(tx.objectStore("mjShots"));
+
+      appState.visbodyScans.sort((a, b) => a.date.localeCompare(b.date));
+      appState.amScaleLogs.sort((a, b) => a.date.localeCompare(b.date));
+      appState.mjShots.sort((a, b) => a.dateTime.localeCompare(b.dateTime));
+    }
+
+    function getAllFromStore(store) {
+      return new Promise((res) => {
+        const req = store.getAll();
+        req.onsuccess = () => res(req.result || []);
+      });
+    }
+
+    /* ==========================================================================
+       5. NAVIGATION & TAB SWITCHING
+       ========================================================================== */
+    function switchTab(tabId) {
+      playSfx('click');
+      appState.activeTab = tabId;
+
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById(tabId).classList.remove('hidden');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('text-cyan-400');
+        btn.classList.add('text-slate-400');
+      });
+      const activeNavBtn = document.getElementById(`nav-${tabId}`);
+      if (activeNavBtn) {
+        activeNavBtn.classList.remove('text-slate-400');
+        activeNavBtn.classList.add('text-cyan-400');
+      }
+
+      if (tabId === 'tab-dashboard') renderDashboard();
+      if (tabId === 'tab-visbody') renderVisbodyView();
+      if (tabId === 'tab-mounjaro') renderMounjaroView();
+      if (tabId === 'tab-dailylog') loadDailyLogForSelectedDate();
+      if (tabId === 'tab-food') loadFoodLogForDate();
+      if (tabId === 'tab-advisor') renderAdvisorTab();
+
+      document.getElementById('mainScrollContainer').scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* ==========================================================================
+       6. DASHBOARD TAB & CHART.JS ENGINE
+       ========================================================================== */
+    function renderDashboard() {
+      const scans = appState.visbodyScans;
+      const amLogs = appState.amScaleLogs;
+      const latestScan = scans.length ? scans[scans.length - 1] : null;
+      const latestAm = amLogs.length ? amLogs[amLogs.length - 1] : null;
+      const unit = u => `<span class="text-xs font-semibold text-slate-400">${u}</span>`;
+
+      document.getElementById('kpiAmWeight').innerHTML = `${latestAm ? f1(latestAm.amWeight) : '—'} ${unit('kg')}`;
+      document.getElementById('kpiAmWeightDate').innerText = latestAm ? `Latest: ${latestAm.date}` : 'No entries yet';
+      document.getElementById('kpiBfm').innerHTML = `${latestScan ? f1(latestScan.bfm) : '—'} ${unit('kg')}`;
+      document.getElementById('kpiPbf').innerText = `PBF: ${latestScan && isNum(latestScan.pbf) ? latestScan.pbf.toFixed(1) + '%' : '—'}`;
+      document.getElementById('kpiSmm').innerHTML = `${latestScan ? f1(latestScan.smm) : '—'} ${unit('kg')}`;
+      document.getElementById('kpiVisceral').innerHTML = `${latestScan ? f1(latestScan.vfl) : '—'} ${unit('lvl')}`;
+
+      renderAmScaleTable();
+      renderKpiDeltas(scans, amLogs);
+      renderGoalProgress(latestAm);
+      renderDiurnalBadge();
+      renderDashboardCharts();
+      updateSizingPredictor(latestScan);
+    }
+
+    function renderAmScaleTable() {
+      const tbody = document.getElementById('amScaleTableBody');
+      tbody.innerHTML = '';
+      const logs = appState.amScaleLogs;
+
+      if (!logs.length) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-500">No AM weights logged yet. Tap “+ Log AM Scale” to add your first one.</td></tr>`;
+        return;
+      }
+
+      logs.forEach((log, index) => {
+        const prev = index > 0 ? logs[index - 1] : null;
+        const scan = appState.visbodyScans.find(s => s.date === log.date);
+        const visW = scan && isNum(scan.weight) ? scan.weight : null;
+        const off = visW !== null ? visW - log.amWeight : null;
+        const wow = prev ? log.amWeight - prev.amWeight : null;
+        const wowText = wow === null ? '—' : `${wow > 0 ? '+' : ''}${wow.toFixed(1)} kg`;
+        const wowClass = wow === null ? 'text-slate-400' : (wow <= 0 ? 'text-emerald-400' : 'text-rose-400');
+
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-800/40 border-b border-slate-800";
+        tr.innerHTML = `
+          <td class="p-2.5 font-medium text-white">${esc(log.date)}</td>
+          <td class="p-2.5 font-bold text-cyan-400">${log.amWeight.toFixed(1)} kg</td>
+          <td class="p-2.5 text-slate-300">${visW !== null ? visW.toFixed(1) + ' kg' : '—'}</td>
+          <td class="p-2.5 text-slate-400">${off !== null ? (off >= 0 ? '+' : '') + off.toFixed(1) + ' kg' : '—'}</td>
+          <td class="p-2.5 text-right font-semibold ${wowClass}">${wowText}</td>
+          <td class="p-2.5 text-right"><button type="button" data-date="${esc(log.date)}" onclick="deleteAmLog(this.dataset.date)" aria-label="Delete entry for ${esc(log.date)}" class="p-1.5 text-slate-500 hover:text-rose-400"><i class="fa-solid fa-trash"></i></button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function deleteAmLog(date) {
+      if (!confirm(`Delete the AM weight logged on ${date}?`)) return;
+      try {
+        const tx = db.transaction("amScaleLogs", "readwrite");
+        tx.objectStore("amScaleLogs").delete(date);
+        await txDone(tx);
+      } catch (err) { showToast("Couldn't delete that entry", 'error'); return; }
+      playSfx('click');
+      await loadAllData();
+      renderDashboard();
+    }
+
+    function renderDashboardCharts() {
+      const scans = appState.visbodyScans;
+      const amLogs = appState.amScaleLogs;
+
+      const allDates = [...new Set([...scans.map(s => s.date), ...amLogs.map(a => a.date)])].sort();
+      const multiYear = new Set(allDates.map(d => d.slice(0, 4))).size > 1;
+      const labelFor = d => multiYear ? d : d.slice(5);
+      const scanLabels = scans.map(s => labelFor(s.date));
+
+      const amByDate = new Map(amLogs.map(a => [a.date, a.amWeight]));
+      const visByDate = new Map(scans.map(s => [s.date, s.weight]));
+
+      // Chart 1: Weight trend. Every date from either source appears; gaps are left empty, never invented.
+      createOrUpdateChart('chartWeightTrend', {
+        type: 'line',
+        data: {
+          labels: allDates.map(labelFor),
+          datasets: [
+            { label: 'AM Fasted Scale (kg)', data: allDates.map(d => amByDate.has(d) ? amByDate.get(d) : null), borderColor: '#06b6d4', backgroundColor: 'rgba(6, 182, 212, 0.1)', fill: true, tension: 0.3, spanGaps: true },
+            { label: 'Visbody Clinic Weight (kg)', data: allDates.map(d => visByDate.has(d) ? visByDate.get(d) : null), borderColor: '#64748b', borderDash: [4, 4], tension: 0.3, spanGaps: true }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#94a3b8', font: { size: 10 } } } } }
+      });
+
+      // Chart 2: Fat Mass
+      createOrUpdateChart('chartFatTrend', {
+        type: 'line',
+        data: {
+          labels: scanLabels,
+          datasets: [
+            { label: 'Body Fat Mass (kg)', data: scans.map(s => s.bfm), borderColor: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.1)', fill: true }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+
+      // Chart 3: SMM, zoomed to your own range
+      const smmVals = scans.map(s => s.smm).filter(isNum);
+      const smmY = { grid: { color: 'rgba(255,255,255,0.05)' } };
+      if (smmVals.length) {
+        smmY.min = Math.floor(Math.min(...smmVals) - 2);
+        smmY.max = Math.ceil(Math.max(...smmVals) + 2);
+      }
+      createOrUpdateChart('chartSmmTrend', {
+        type: 'line',
+        data: {
+          labels: scanLabels,
+          datasets: [
+            { label: 'Skeletal Muscle Mass (kg)', data: scans.map(s => s.smm), borderColor: '#6366f1', backgroundColor: 'rgba(99, 102, 241, 0.1)', fill: true }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: smmY } }
+      });
+
+      // Chart 4: Visceral Fat
+      createOrUpdateChart('chartVisceralTrend', {
+        type: 'bar',
+        data: {
+          labels: scanLabels,
+          datasets: [{ label: 'Visceral Fat Level', data: scans.map(s => s.vfl), backgroundColor: '#f43f5e' }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+
+      // Chart 5: Waist Trend
+      createOrUpdateChart('chartWaistTrend', {
+        type: 'line',
+        data: {
+          labels: scanLabels,
+          datasets: [
+            { label: 'High Waist', data: scans.map(s => s.highWaist), borderColor: '#10b981', spanGaps: true },
+            { label: 'Mid Waist', data: scans.map(s => s.midWaist), borderColor: '#06b6d4', spanGaps: true },
+            { label: 'Low Waist', data: scans.map(s => s.lowWaist), borderColor: '#8b5cf6', spanGaps: true }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+    }
+
+    function createOrUpdateChart(canvasId, config) {
+      if (!window.Chart) return; // Chart.js not loaded yet (first launch while offline): skip instead of breaking the page
+      if (charts[canvasId]) {
+        charts[canvasId].destroy();
+      }
+      const ctx = document.getElementById(canvasId);
+      if (ctx) {
+        charts[canvasId] = new Chart(ctx, config);
+      }
+    }
+
+    /* ==========================================================================
+       7. VISBODY REPORTS & COMPARISONS TAB
+       ========================================================================== */
+    /* ---- Manual scan entry (replaces the old pre-seeded scans) ---- */
+    const SCAN_CORE_FIELDS = [
+      { id: 'weight', label: 'Weight (kg)' },
+      { id: 'bfm', label: 'Body Fat Mass (kg)' },
+      { id: 'smm', label: 'Skeletal Muscle (kg)' },
+      { id: 'pbf', label: 'Body Fat (%)' },
+      { id: 'vfl', label: 'Visceral Fat Level' }
+    ];
+    const SCAN_OPTIONAL_FIELDS = [
+      { id: 'bmi', label: 'BMI' }, { id: 'bmr', label: 'BMR (kcal)' },
+      { id: 'neck', label: 'Neck (cm)' }, { id: 'shoulder', label: 'Shoulder (cm)' }, { id: 'chest', label: 'Chest (cm)' },
+      { id: 'highWaist', label: 'High Waist (cm)' }, { id: 'midWaist', label: 'Mid Waist (cm)' }, { id: 'lowWaist', label: 'Low Waist (cm)' },
+      { id: 'hip', label: 'Hip (cm)' }, { id: 'leftArm', label: 'Left Arm (cm)' }, { id: 'rightArm', label: 'Right Arm (cm)' },
+      { id: 'leftThigh', label: 'Left Thigh (cm)' }, { id: 'rightThigh', label: 'Right Thigh (cm)' },
+      { id: 'leftCalf', label: 'Left Calf (cm)' }, { id: 'rightCalf', label: 'Right Calf (cm)' },
+      { id: 'pelvicTilt', label: 'Anterior Pelvic Shift (cm)' }, { id: 'headTilt', label: 'Forward Head Posture (cm)' },
+      { id: 'roundedShoulderLeft', label: 'L Rounded Shoulder (cm)' }, { id: 'roundedShoulderRight', label: 'R Rounded Shoulder (cm)' },
+      { id: 'spinePainRisk', label: 'Spine Pain Risk (0–100)' }
+    ];
+
+    function initScanForm() {
+      const inputCls = 'bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full';
+      const labelCls = 'text-[11px] text-slate-400 block mb-1';
+      const num = f => `<div><label for="scan_${f.id}" class="${labelCls}">${f.label}</label><input type="number" inputmode="decimal" step="any" id="scan_${f.id}" class="${inputCls}"></div>`;
+      document.getElementById('scanFormCore').innerHTML =
+        `<div><label for="scan_date" class="${labelCls}">Scan Date</label><input type="date" id="scan_date" class="${inputCls}"></div>` +
+        SCAN_CORE_FIELDS.map(num).join('');
+      document.getElementById('scanFormOptional').innerHTML =
+        SCAN_OPTIONAL_FIELDS.map(num).join('') +
+        `<div><label for="scan_gluteType" class="${labelCls}">Glute Alignment Type</label><input type="text" id="scan_gluteType" maxlength="40" class="${inputCls}"></div>` +
+        `<div class="col-span-2"><label for="scan_webUrl" class="${labelCls}">3D Scan Web Link</label><input type="text" id="scan_webUrl" inputmode="url" placeholder="https://..." class="${inputCls}"></div>`;
+      document.getElementById('scan_date').value = localDateStr();
+    }
+
+    async function handleSaveScan(e) {
+      e.preventDefault();
+      const date = document.getElementById('scan_date').value;
+      if (!date) { showToast('Pick the scan date.', 'warn'); return; }
+
+      const scan = { date };
+      for (const f of [...SCAN_CORE_FIELDS, ...SCAN_OPTIONAL_FIELDS]) {
+        const raw = document.getElementById(`scan_${f.id}`).value;
+        scan[f.id] = raw === '' ? null : Number(raw);
+        if (scan[f.id] !== null && !isFinite(scan[f.id])) { showToast(`${f.label} isn't a valid number.`, 'warn'); return; }
+      }
+      const missing = SCAN_CORE_FIELDS.filter(f => scan[f.id] === null);
+      if (missing.length) { showToast(`Please fill in: ${missing.map(f => f.label).join(', ')}`, 'warn'); return; }
+
+      const heightCm = parseFloat(profile.height);
+      if (scan.bmi === null && heightCm > 0) scan.bmi = Math.round((scan.weight / Math.pow(heightCm / 100, 2)) * 10) / 10;
+      const existing = appState.visbodyScans.find(s => s.date === date);
+      scan.gluteType = document.getElementById('scan_gluteType').value.trim() || null;
+      scan.webUrl = document.getElementById('scan_webUrl').value.trim() || (existing && existing.webUrl) || null;
+
+      try { await dbPut('visbodyScans', scan); }
+      catch (err) { showToast("Couldn't save the scan", 'error'); return; }
+
+      playSfx('chime');
+      await loadAllData();
+      document.getElementById('scanForm').reset();
+      document.getElementById('scan_date').value = localDateStr();
+      renderVisbodyView();
+      renderDashboard();
+      showToast(existing ? 'Scan updated' : 'Scan saved');
+    }
+
+    async function deleteSelectedScan() {
+      const date = document.getElementById('visbodyDateSelect').value;
+      if (!date || !appState.visbodyScans.some(s => s.date === date)) { showToast('No scan selected.', 'warn'); return; }
+      if (!confirm(`Delete the scan from ${date}?`)) return;
+      try {
+        const tx = db.transaction("visbodyScans", "readwrite");
+        tx.objectStore("visbodyScans").delete(date);
+        await txDone(tx);
+      } catch (err) { showToast("Couldn't delete that scan", 'error'); return; }
+      playSfx('click');
+      await loadAllData();
+      renderVisbodyView();
+      renderDashboard();
+    }
+
+    function renderVisbodyView() {
+      const select = document.getElementById('visbodyDateSelect');
+      select.innerHTML = '';
+      if (!appState.visbodyScans.length) {
+        select.appendChild(new Option('No scans yet', ''));
+        select.disabled = true;
+      } else {
+        select.disabled = false;
+        appState.visbodyScans.forEach(s => select.appendChild(new Option(`Scan: ${s.date}`, s.date)));
+        select.value = appState.visbodyScans[appState.visbodyScans.length - 1].date;
+      }
+
+      renderVisbodyReport();
+      renderVisbodyBreakdownChart();
+      renderComparisonTable();
+    }
+
+    function renderVisbodyReport() {
+      const date = document.getElementById('visbodyDateSelect').value;
+      const scans = appState.visbodyScans;
+      const scan = scans.find(s => s.date === date) || scans[scans.length - 1];
+
+      if (!scan) {
+        const msg = `<p class="col-span-full text-xs text-slate-500">No scan saved yet. Add one with the “Add a Visbody Scan” form above.</p>`;
+        [1, 2, 3, 4, 5].forEach(i => { document.getElementById(`visPage${i}Details`).innerHTML = msg; });
+        return;
+      }
+
+      const tile = (label, value, cls = 'text-white text-sm', pad = 'p-3') =>
+        `<div class="${pad} bg-slate-800/80 rounded-xl"><span class="text-slate-400 block text-[10px]">${label}</span><span class="font-bold ${cls}">${value}</span></div>`;
+
+      document.getElementById('visPage1Details').innerHTML = [
+        tile('Weight', fv(scan.weight, ' kg')),
+        tile('Fat Mass', fv(scan.bfm, ' kg'), 'text-amber-400 text-sm'),
+        tile('SMM', fv(scan.smm, ' kg'), 'text-indigo-400 text-sm'),
+        tile('PBF', fv(scan.pbf, '%'), 'text-cyan-400 text-sm'),
+        tile('BMR', fv(scan.bmr, ' kcal'), 'text-emerald-400 text-sm'),
+        tile('Visceral Fat', isNum(scan.vfl) ? `Level ${esc(scan.vfl)}` : '—', 'text-rose-400 text-sm')
+      ].join('');
+
+      document.getElementById('visPage2Details').innerHTML = [
+        tile('Anterior Pelvic Shift', fv(scan.pelvicTilt, ' cm')),
+        tile('Forward Head Posture', fv(scan.headTilt, ' cm')),
+        tile('Left Rounded Shoulder', fv(scan.roundedShoulderLeft, ' cm')),
+        tile('Right Rounded Shoulder', fv(scan.roundedShoulderRight, ' cm'))
+      ].join('');
+
+      const c = (label, v) => tile(label, fv(v, ' cm'), 'text-white', 'p-2.5');
+      document.getElementById('visPage3Details').innerHTML = [
+        c('Neck', scan.neck), c('Shoulder', scan.shoulder), c('Chest', scan.chest),
+        c('High Waist', scan.highWaist), c('Mid Waist', scan.midWaist), c('Low Waist', scan.lowWaist),
+        c('Hip', scan.hip), c('L Arm', scan.leftArm), c('R Arm', scan.rightArm),
+        c('L Thigh', scan.leftThigh), c('R Thigh', scan.rightThigh), c('L Calf', scan.leftCalf), c('R Calf', scan.rightCalf)
+      ].join('');
+
+      const idx = scans.indexOf(scan);
+      const prev = idx > 0 ? scans[idx - 1] : null;
+      let trend = '—', trendCls = 'text-slate-300 text-sm';
+      if (prev && isNum(scan.spinePainRisk) && isNum(prev.spinePainRisk)) {
+        const d = scan.spinePainRisk - prev.spinePainRisk;
+        if (d < 0) { trend = 'Improving'; trendCls = 'text-emerald-400 text-sm'; }
+        else if (d > 0) { trend = 'Higher than previous scan'; trendCls = 'text-rose-400 text-sm'; }
+        else trend = 'Unchanged';
+      }
+      document.getElementById('visPage4Details').innerHTML = [
+        tile('Spine Health & Pain Risk Score', isNum(scan.spinePainRisk) ? `${esc(scan.spinePainRisk)} / 100` : '—', 'text-amber-400 text-sm'),
+        tile('Change vs Previous Scan', trend, trendCls)
+      ].join('');
+
+      document.getElementById('visPage5Details').innerHTML = tile('Glute Alignment Type', fv(scan.gluteType), 'text-cyan-400 text-sm');
+    }
+
+    function switchVisbodySubTab(pageNum) {
+      playSfx('click');
+      for (let i = 1; i <= 5; i++) {
+        document.getElementById(`visPage-${i}`).classList.add('hidden');
+        document.getElementById(`visSubTab-${i}`).classList.remove('bg-slate-800', 'text-cyan-400');
+        document.getElementById(`visSubTab-${i}`).classList.add('text-slate-400');
+      }
+      document.getElementById(`visPage-${pageNum}`).classList.remove('hidden');
+      document.getElementById(`visSubTab-${pageNum}`).classList.add('bg-slate-800', 'text-cyan-400');
+    }
+
+    function renderVisbodyBreakdownChart() {
+      const metric = document.getElementById('breakdownMetricSelect').value;
+      const labels = appState.visbodyScans.map(s => s.date.slice(5));
+
+      let datasets = [];
+      if (metric === 'composition') {
+        datasets = [
+          { label: 'Fat Mass (kg)', data: appState.visbodyScans.map(s => s.bfm), borderColor: '#f59e0b' },
+          { label: 'SMM (kg)', data: appState.visbodyScans.map(s => s.smm), borderColor: '#6366f1' }
+        ];
+      } else if (metric === 'circumference') {
+        datasets = [
+          { label: 'Mid Waist (cm)', data: appState.visbodyScans.map(s => s.midWaist), borderColor: '#06b6d4' },
+          { label: 'Chest (cm)', data: appState.visbodyScans.map(s => s.chest), borderColor: '#10b981' }
+        ];
+      } else if (metric === 'posture') {
+        datasets = [
+          { label: 'Pelvic Shift (cm)', data: appState.visbodyScans.map(s => s.pelvicTilt), borderColor: '#ec4899' },
+          { label: 'Forward Head (cm)', data: appState.visbodyScans.map(s => s.headTilt), borderColor: '#3b82f6' }
+        ];
+      } else {
+        datasets = [
+          { label: 'Spine Risk Index', data: appState.visbodyScans.map(s => s.spinePainRisk), borderColor: '#f43f5e' }
+        ];
+      }
+
+      createOrUpdateChart('chartVisbodyBreakdown', {
+        type: 'line',
+        data: { labels, datasets },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+    }
+
+    function renderComparisonTable() {
+      const scans = appState.visbodyScans;
+      const tbody = document.getElementById('visComparisonTableBody');
+      tbody.innerHTML = '';
+      if (scans.length < 2) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">Add at least two scans to see a comparison.</td></tr>`;
+        return;
+      }
+
+      const base = scans[0];
+      const prev = scans[scans.length - 2];
+      const latest = scans[scans.length - 1];
+
+      const rows = [
+        { name: "Weight (kg)", k: 'weight' },
+        { name: "Body Fat Mass (kg)", k: 'bfm' },
+        { name: "Skeletal Muscle Mass (kg)", k: 'smm' },
+        { name: "Mid Waist (cm)", k: 'midWaist' },
+        { name: "Spine Risk Score", k: 'spinePainRisk' }
+      ];
+
+      rows.forEach(r => {
+        const b = base[r.k], p = prev[r.k], l = latest[r.k];
+        const dNum = isNum(l) && isNum(b) ? l - b : null;
+        const delta = dNum === null ? '—' : `${dNum > 0 ? '+' : ''}${dNum.toFixed(1)}`;
+        const deltaClass = dNum === null ? 'text-slate-400' : (dNum <= 0 ? 'text-emerald-400' : 'text-rose-400');
+        const tr = document.createElement('tr');
+        tr.className = "border-b border-slate-800 hover:bg-slate-800/40";
+        tr.innerHTML = `
+          <td class="p-2.5 font-medium text-white">${r.name}</td>
+          <td class="p-2.5 text-slate-400">${fv(b)}</td>
+          <td class="p-2.5 text-slate-300">${fv(p)}</td>
+          <td class="p-2.5 font-bold text-cyan-400">${fv(l)}</td>
+          <td class="p-2.5 text-right font-semibold ${deltaClass}">${delta}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openVisbody3dView() {
+      const date = document.getElementById('visbodyDateSelect').value;
+      const scan = appState.visbodyScans.find(s => s.date === date);
+      if (scan && scan.webUrl && /^https?:\/\//i.test(scan.webUrl)) {
+        window.open(scan.webUrl, '_blank', 'noopener');
+      } else {
+        showToast('No web link saved for this scan date yet.', 'warn');
+      }
+    }
+
+    async function saveVisbodyWebUrl() {
+      const input = document.getElementById('visbodyWebUrlInput');
+      const url = input.value.trim();
+      const date = document.getElementById('visbodyDateSelect').value;
+      const scan = appState.visbodyScans.find(s => s.date === date);
+      if (!scan) { showToast('Add a scan first, then save its link.', 'warn'); return; }
+      if (!url) { showToast('Paste a link first.', 'warn'); return; }
+      scan.webUrl = url;
+      try {
+        await dbPut('visbodyScans', scan);
+        playSfx('chime');
+        input.value = '';
+        showToast('Web link saved');
+      } catch (err) { showToast("Couldn't save the link", 'error'); }
+    }
+
+    /* ---- Visbody PDF import ----
+       pdf.js reads the text layer of the report; parseVisbodyReport() turns it into a scan record.
+       pages = [ [ {s: 'text', x: 12.3, y: 456.7}, ... ], ... ]  (one array of text items per PDF page) */
+    const PDF_JS_VERSION = '3.11.174';
+    const PDF_JS_URL = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${PDF_JS_VERSION}/pdf.min.js`;
+    const PDF_JS_WORKER_URL = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${PDF_JS_VERSION}/pdf.worker.min.js`;
+
+    function visbodyItemsToLines(items) {
+      const rows = [];
+      items.filter(it => it.s && it.s.trim()).sort((a, b) => b.y - a.y || a.x - b.x).forEach(it => {
+        const row = rows.find(r => Math.abs(r.y - it.y) <= 6);
+        if (row) row.items.push(it); else rows.push({ y: it.y, items: [it] });
+      });
+      return rows.sort((a, b) => b.y - a.y).map(r =>
+        r.items.sort((a, b) => a.x - b.x).map(it => it.s.trim()).join(' ').replace(/\s+/g, ' ')
+          .replace(/ﬁ/g, 'fi').replace(/ﬂ/g, 'fl').replace(/：/g, ':'));
+    }
+
+    function parseVisbodyReport(pages, fileName = '') {
+      const pageLines = pages.map(visbodyItemsToLines);
+      const allLines = pageLines.flat();
+      const allText = allLines.join('\n');
+      const num = s => { const n = parseFloat(s); return isFinite(n) ? n : null; };
+      // First capture group of the first line (searching the given lines) that matches.
+      const grab = (lines, re) => { for (const l of lines) { const m = l.match(re); if (m) return num(m[1]); } return null; };
+      // Pick the pages that carry a given report title; fall back to every line if titles are missing.
+      const section = title => {
+        const hit = pageLines.filter(ls => ls.some(l => l.includes(title))).flat();
+        return hit.length ? hit : allLines;
+      };
+
+      const scan = {};
+
+      // Date: "Test Date/ Time : 2026-11-17 14:58:20", else the file name (Body_20261117.pdf)
+      let m = allText.match(/Test Date\s*\/?\s*Time\s*:?\s*(\d{4})[-\/.](\d{2})[-\/.](\d{2})/);
+      if (!m) m = fileName.match(/(\d{4})[-_.]?(\d{2})[-_.]?(\d{2})/);
+      scan.date = m ? `${m[1]}-${m[2]}-${m[3]}` : null;
+
+      // Page 1: body composition
+      const comp = section('Body Composition Report');
+      scan.weight = grab(comp, /^Weight kg ([\d.]+)\s*\[/);
+      scan.smm = grab(comp, /^SMM kg ([\d.]+)/);
+      scan.bfm = grab(comp, /^Body Fat Mass kg ([\d.]+)\s*\[/);
+      scan.pbf = grab(comp, /^BFP\s*% ([\d.]+)/);
+      scan.bmi = grab(comp, /^BMI kg\/m\S* ([\d.]+)/);
+      scan.bmr = grab(comp, /^Basal Metabolism (?:Rate kcal\/d )?([\d.]+)/) ?? grab(comp, /^Rate kcal\/d ([\d.]+)/);
+      scan.vfl = grab(comp, /^Visceral Fat Level (?:[A-Za-z]+ )*([\d.]+)/);
+
+      // Page 2: posture (the report gives distances in cm). Each value sits a few points off its label's
+      // baseline and beside a wrapped risk-warning column, so look for the nearest "x.x cm" to the right.
+      const postItems = pages.filter((p, i) => pageLines[i].some(l => l.includes('Posture Analysis Report'))).flat();
+      const near = (labelRe, valueRe) => {
+        const label = postItems.find(it => labelRe.test(it.s.trim()));
+        if (!label) return null;
+        const cand = postItems.filter(it => it.x > label.x && Math.abs(it.y - label.y) <= 9 && valueRe.test(it.s.trim()))
+          .sort((a, b) => Math.abs(a.y - label.y) - Math.abs(b.y - label.y) || a.x - b.x)[0];
+        return cand ? num(cand.s) : null;
+      };
+      const cm = /^-?[\d.]+\s*cm$/;
+      scan.headTilt = near(/^Forward Head Posture$/, cm);
+      scan.roundedShoulderLeft = near(/^Rounded Shoulders Posture\s*\(left side\)$|^Posture\s*\(left side\)$/, cm);
+      scan.roundedShoulderRight = near(/^Rounded Shoulders Posture\s*\(right side\)$|^Posture\s*\(right side\)$/, cm);
+      scan.pelvicTilt = near(/^Anterior Pelvic Shift$/, cm);
+
+      // Page 3: circumferences (first number after the label is the "Present" column)
+      const circ = section('Body Circumference Report');
+      scan.neck = grab(circ, /Neck circumference ([\d.]+)/);
+      scan.leftArm = grab(circ, /Left upper arm ([\d.]+)/);
+      scan.rightArm = grab(circ, /Right upper arm ([\d.]+)/);
+      scan.chest = grab(circ, /(?:^|\s)Chest ([\d.]+)/);
+      scan.highWaist = grab(circ, /High waist ([\d.]+)/);
+      scan.midWaist = grab(circ, /Mid waist ([\d.]+)/);
+      scan.lowWaist = grab(circ, /Low waist ([\d.]+)/);
+      scan.hip = grab(circ, /(?:^|\s)Hips ([\d.]+)/);
+      scan.leftThigh = grab(circ, /(?:^|\s)Left thigh ([\d.]+)/);
+      scan.rightThigh = grab(circ, /(?:^|\s)Right thigh ([\d.]+)/);
+      scan.leftCalf = grab(circ, /Left calf circumference ([\d.]+)/);
+      scan.rightCalf = grab(circ, /Right calf circumference ([\d.]+)/);
+
+      // Page 4: spine. The overall score is drawn as a graphic, so when it isn't in the text it is
+      // estimated as the average of the cervical, thoracic and lumbar scores (matches the report).
+      const spine = section('Spinal Health Assessment Report');
+      scan.spinePainRisk = grab(spine, /Overall Score (\d{1,3})(?:\s|$)/);
+      scan.spineEstimated = false;
+      if (scan.spinePainRisk === null) {
+        const seg = [/Cervical Spine (\d+)/, /Thoracic Spine (\d+)/, /Lumbar Spine (\d+)/].map(re => grab(spine, re));
+        if (seg.every(v => v !== null)) {
+          scan.spinePainRisk = Math.round(seg.reduce((a, b) => a + b, 0) / seg.length);
+          scan.spineEstimated = true;
+        }
+      }
+
+      // Page 5: glute shape
+      const glute = section('Glute Shape Assessment Report');
+      const gt = glute.join('\n');
+      const start = gt.search(/Assessment Results/);
+      const gm = (start >= 0 ? gt.slice(start) : gt).match(/(Square|Pear|Inverted V-?\s?|Round|Peach)\s*Shape/);
+      scan.gluteType = gm ? gm[0].replace(/\s+/g, ' ').replace('Inverted V Shape', 'Inverted V-Shape') : null;
+      if (scan.hip === null) scan.hip = grab(glute, /Hips: ([\d.]+) ?cm/);
+
+      return scan;
+    }
+
+    let pdfJsPromise = null;
+    function loadPdfJs() {
+      if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+      if (pdfJsPromise) return pdfJsPromise;
+      // Both files are fetched (so the service worker can serve them offline) and run from blob: URLs.
+      const getBlobUrl = async url => {
+        const res = await fetch(url, { mode: 'cors' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return URL.createObjectURL(new Blob([await res.text()], { type: 'text/javascript' }));
+      };
+      pdfJsPromise = (async () => {
+        const [libUrl, workerUrl] = await Promise.all([getBlobUrl(PDF_JS_URL), getBlobUrl(PDF_JS_WORKER_URL)]);
+        await new Promise((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = libUrl; s.onload = resolve; s.onerror = () => reject(new Error('script'));
+          document.head.appendChild(s);
+        });
+        if (!window.pdfjsLib) throw new Error('pdf.js missing');
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
+        return window.pdfjsLib;
+      })().catch(err => { pdfJsPromise = null; throw err; });
+      return pdfJsPromise;
+    }
+
+    async function readPdfPages(file) {
+      const pdfjsLib = await loadPdfJs();
+      const buf = file.arrayBuffer ? await file.arrayBuffer() : await new Promise((res, rej) => {
+        const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsArrayBuffer(file);
+      });
+      const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
+      const pages = [];
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        pages.push(content.items.filter(it => typeof it.str === 'string').map(it => ({ s: it.str, x: it.transform[4], y: it.transform[5] })));
+      }
+      return pages;
+    }
+
+    function setPdfStatus(msg, tone) {
+      const el = document.getElementById('pdfUploadStatus');
+      el.classList.remove('hidden', 'text-slate-400', 'text-emerald-400', 'text-amber-400', 'text-rose-400');
+      el.classList.add(tone === 'ok' ? 'text-emerald-400' : tone === 'warn' ? 'text-amber-400' : tone === 'error' ? 'text-rose-400' : 'text-slate-400');
+      el.textContent = msg;
+    }
+
+    // Put parsed values into the manual "Add a Visbody Scan" form so they can be checked and saved by hand.
+    function prefillScanForm(parsed) {
+      if (parsed.date) document.getElementById('scan_date').value = parsed.date;
+      for (const f of [...SCAN_CORE_FIELDS, ...SCAN_OPTIONAL_FIELDS]) {
+        if (isNum(parsed[f.id])) document.getElementById(`scan_${f.id}`).value = parsed[f.id];
+      }
+      if (parsed.gluteType) document.getElementById('scan_gluteType').value = parsed.gluteType;
+      document.querySelector('#scanForm details').open = true;
+      document.getElementById('scanForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    async function handleVisbodyPdfUpload(e) {
+      const input = e.target;
+      const file = input.files[0];
+      if (!file) return;
+      setPdfStatus(`Reading ${file.name}...`);
+
+      let pages;
+      try {
+        pages = await readPdfPages(file);
+      } catch (err) {
+        console.error(err);
+        const offline = err && /HTTP|Failed to fetch|Load failed|NetworkError|script|pdf\.js/i.test(String(err.message || err));
+        setPdfStatus(offline
+          ? "Couldn't load the PDF reader. Connect to the internet once and try again; after that it also works offline."
+          : "Couldn't open that file as a PDF. Pick the report exported from Visbody.", 'error');
+        input.value = '';
+        return;
+      }
+      input.value = ''; // lets the same file be picked again
+
+      if (!pages.some(p => p.some(it => it.s.trim()))) {
+        setPdfStatus("This PDF has no readable text (it may be a scan or screenshot). Type the numbers into Add a Visbody Scan instead.", 'error');
+        return;
+      }
+
+      const parsed = parseVisbodyReport(pages, file.name);
+      const fields = [...SCAN_CORE_FIELDS, ...SCAN_OPTIONAL_FIELDS];
+      const found = fields.filter(f => isNum(parsed[f.id])).length + (parsed.gluteType ? 1 : 0);
+      const missingCore = SCAN_CORE_FIELDS.filter(f => !isNum(parsed[f.id]));
+
+      if (!parsed.date || missingCore.length || !found) {
+        prefillScanForm(parsed);
+        const why = !parsed.date ? 'the scan date' : missingCore.map(f => f.label).join(', ');
+        setPdfStatus(found
+          ? `Read ${found} values but couldn't find ${why}. They're filled into the form below. Add the rest and tap Save Scan.`
+          : "This doesn't look like a Visbody report, so nothing was imported.", found ? 'warn' : 'error');
+        playSfx('click');
+        return;
+      }
+
+      const existing = appState.visbodyScans.find(s => s.date === parsed.date);
+      const scan = { ...(existing || {}), date: parsed.date };
+      for (const f of fields) if (isNum(parsed[f.id])) scan[f.id] = parsed[f.id];
+      if (parsed.gluteType) scan.gluteType = parsed.gluteType;
+      for (const f of fields) if (scan[f.id] === undefined) scan[f.id] = null;
+      if (scan.gluteType === undefined) scan.gluteType = null;
+      if (scan.webUrl === undefined) scan.webUrl = null;
+      const heightCm = parseFloat(profile.height);
+      if (!isNum(scan.bmi) && heightCm > 0) scan.bmi = Math.round((scan.weight / Math.pow(heightCm / 100, 2)) * 10) / 10;
+
+      try { await dbPut('visbodyScans', scan); }
+      catch (err) { console.error(err); setPdfStatus("Read the PDF but couldn't save the scan.", 'error'); return; }
+
+      playSfx('chime');
+      await loadAllData();
+      renderVisbodyView();
+      renderDashboard();
+      document.getElementById('visbodyDateSelect').value = parsed.date;
+      renderVisbodyReport();
+
+      const notes = [];
+      if (parsed.spineEstimated) notes.push('Spine score is the average of the three spine segments, because the overall score is a graphic in the PDF.');
+      const blanks = fields.filter(f => !isNum(scan[f.id])).map(f => f.label.replace(/ \(.*\)/, ''));
+      if (blanks.length) notes.push(`Not in this report: ${blanks.join(', ')}.`);
+      setPdfStatus(`${existing ? 'Updated' : 'Imported'} scan for ${parsed.date} (${found} values). ${notes.join(' ')}`.trim(), parsed.spineEstimated ? 'warn' : 'ok');
+      showToast(existing ? 'Scan updated from PDF' : 'Scan imported from PDF');
+    }
+
+    /* ==========================================================================
+       8. DEDICATED MOUNJARO TAB ENGINE
+       ========================================================================== */
+    function renderMounjaroView() {
+      // Pre-set fast AM scale date to today
+      document.getElementById('fastAmScaleDate').value = localDateStr();
+      if (!appState.currentMjEditId) document.getElementById('mjDateTime').value = localDateTimeStr();
+
+      renderMjHistoryList();
+      renderMjActiveLevelChart();
+    }
+
+    function initMjSiteGrid() {
+      const container = document.getElementById('mjSiteGrid');
+      container.innerHTML = '';
+      MJ_SITES.forEach(site => {
+        const btn = document.createElement('button');
+        btn.type = "button";
+        btn.onclick = () => selectMjSite(site.id);
+        btn.id = `site-btn-${site.id}`;
+        btn.className = `p-2.5 rounded-xl border text-xs font-medium text-left transition flex justify-between items-center ${appState.selectedMjSite === site.id ? 'bg-emerald-950/80 border-emerald-500 text-emerald-300' : 'bg-slate-800 border-slate-700 text-slate-300'}`;
+        btn.innerHTML = `
+          <span>${site.label}</span>
+          <i class="fa-solid fa-circle-check ${appState.selectedMjSite === site.id ? 'text-emerald-400' : 'text-slate-600'}"></i>
+        `;
+        container.appendChild(btn);
+      });
+    }
+
+    function selectMjSite(siteId) {
+      playSfx('click');
+      appState.selectedMjSite = siteId;
+      initMjSiteGrid();
+    }
+
+    async function handleSaveMjShot(e) {
+      e.preventDefault();
+      const dateTime = document.getElementById('mjDateTime').value;
+      const dose = parseFloat(document.getElementById('mjDose').value);
+      const appetite = parseInt(document.getElementById('mjAppetite').value);
+      const notes = document.getElementById('mjNotes').value;
+
+      const shot = {
+        id: appState.currentMjEditId || `mj_${Date.now()}`,
+        dateTime,
+        dose,
+        site: appState.selectedMjSite,
+        appetite,
+        notes
+      };
+
+      const tx = db.transaction("mjShots", "readwrite");
+      tx.objectStore("mjShots").put(shot);
+      await txDone(tx);
+
+      playSfx('chime');
+      await loadAllData();
+      resetMjForm();
+      renderMounjaroView();
+    }
+
+    function editMjShot(id) {
+      const shot = appState.mjShots.find(s => s.id === id);
+      if (!shot) return;
+
+      appState.currentMjEditId = shot.id;
+      document.getElementById('mjDateTime').value = shot.dateTime;
+      document.getElementById('mjDose').value = shot.dose;
+      document.getElementById('mjAppetite').value = shot.appetite;
+      document.getElementById('mjNotes').value = shot.notes || '';
+      selectMjSite(shot.site);
+
+      document.getElementById('mounjaroFormTitle').innerText = "Editing Logged Injection Shot";
+      document.getElementById('cancelMjEditBtn').classList.remove('hidden');
+      document.getElementById('mounjaroFormTitle').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    async function deleteMjShot(id) {
+      if (!confirm("Delete this injection shot log?")) return;
+      const tx = db.transaction("mjShots", "readwrite");
+      tx.objectStore("mjShots").delete(id);
+      await txDone(tx);
+
+      playSfx('click');
+      await loadAllData();
+      renderMounjaroView();
+    }
+
+    function resetMjForm() {
+      appState.currentMjEditId = null;
+      document.getElementById('mounjaroFormTitle').innerHTML = `<i class="fa-solid fa-syringe text-emerald-400"></i> Log Mounjaro Injection`;
+      document.getElementById('cancelMjEditBtn').classList.add('hidden');
+      document.getElementById('mounjaroForm').reset();
+      document.getElementById('mjDateTime').value = localDateTimeStr();
+    }
+
+    function renderMjHistoryList() {
+      const container = document.getElementById('mjHistoryContainer');
+      container.innerHTML = '';
+
+      if (!appState.mjShots.length) {
+        container.innerHTML = `<div class="p-4 text-center text-xs text-slate-500">No injection shots logged yet. Log your first shot above.</div>`;
+        return;
+      }
+
+      appState.mjShots.slice().reverse().forEach(shot => {
+        const siteObj = MJ_SITES.find(s => s.id === shot.site) || { label: shot.site };
+        const card = document.createElement('div');
+        card.className = "p-3 bg-slate-800/80 rounded-xl border border-slate-700/80 flex justify-between items-center text-xs";
+        card.innerHTML = `
+          <div class="space-y-0.5">
+            <div class="font-bold text-white flex items-center gap-2">
+              <span class="text-emerald-400">${shot.dose} mg</span> — ${siteObj.label}
+            </div>
+            <div class="text-[11px] text-slate-400">${shot.dateTime.replace('T', ' ')} • Appetite Rating: ${shot.appetite}/5</div>
+            ${shot.notes ? `<div class="text-[10px] text-slate-400 italic">"${esc(shot.notes)}"</div>` : ''}
+          </div>
+          <div class="flex items-center space-x-1">
+            <button onclick="editMjShot('${shot.id}')" class="p-2 text-cyan-400 hover:bg-slate-700 rounded-lg"><i class="fa-solid fa-pen"></i></button>
+            <button onclick="deleteMjShot('${shot.id}')" class="p-2 text-rose-400 hover:bg-slate-700 rounded-lg"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderMjActiveLevelChart() {
+      // Half-life simulation ~120h (5 days), based on your most recent logged shot only.
+      const hours = Array.from({ length: 14 }, (_, i) => i * 12);
+      const labels = hours.map(h => `+${h}h`);
+
+      const shots = appState.mjShots;
+      const latestDose = shots.length ? shots[shots.length - 1].dose : 0;
+      const activeLevels = hours.map(h => latestDose * Math.pow(0.5, h / 120));
+      document.getElementById('currentActiveMjLevel').innerText = shots.length ? `Active Peak: ~${latestDose.toFixed(1)} mg` : 'No shots logged';
+
+      createOrUpdateChart('chartMjActiveLevel', {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{ label: 'Estimated Blood Level (mg)', data: activeLevels, borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.15)', fill: true, tension: 0.4 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+    }
+
+    async function saveAmFastedScaleEntry() {
+      const date = document.getElementById('fastAmScaleDate').value;
+      const weight = parseFloat(document.getElementById('fastAmScaleWeight').value);
+      if (!date || !isFinite(weight) || weight <= 0) {
+        showToast('Enter a valid date and scale weight.', 'warn');
+        return;
+      }
+
+      // Only what you typed is stored. The clinic offset is worked out later from real scans on the same date.
+      const entry = { date, amWeight: weight };
+      try {
+        const tx = db.transaction("amScaleLogs", "readwrite");
+        tx.objectStore("amScaleLogs").put(entry);
+        await txDone(tx);
+      } catch (err) { showToast("Couldn't save the entry", 'error'); return; }
+
+      playSfx('chime');
+      document.getElementById('fastAmScaleWeight').value = '';
+      await loadAllData();
+      renderDashboard();
+      showToast(`Saved AM fasted scale: ${weight} kg`);
+    }
+
+    /* ==========================================================================
+       9. DAILY LOG & MEDICATIONS TAB
+       ========================================================================== */
+    const DEFAULT_MEDS = [
+      { id: "rosuva", name: "Rosuvastatin 20 mg", schedule: "Daily Evening", note: "Monitor muscle soreness/myalgia" },
+      { id: "omega", name: "Infinity Supa-EFA Omega 3 EPA & DHA Plus E", schedule: "Post-Dinner", note: "1 Softgel daily" },
+      { id: "creatine", name: "Heal Apple Creatine (250 ml)", schedule: "Weight Days Only", note: "Pre-workout lean mass protection" }
+    ];
+
+    const DEFAULT_EXERCISES = [
+      { id: "abroll", name: "150 Ab Roller Reps", target: "Core Stability & Lower Back" },
+      { id: "aroundworld", name: "100 Around-the-World KB Reps (8 kg)", target: "Shoulder Mobility & Core" },
+      { id: "sideswing", name: "50 Side Swings (8 kg)", target: "Obliques & Pelvis Balance" },
+      { id: "thrust", name: "40 Hybrid Hinge Thrusts (8 kg)", target: "Glute Activation & Alignment" }
+    ];
+
+    let dailyLoadSeq = 0;
+
+    function getCustomMeds() { return LS.get('vmt_custom_meds', []) || []; }
+
+    function updateDailyLogDayLabel() {
+      const v = document.getElementById('dailyLogDateInput').value;
+      const label = document.getElementById('dailyLogDayLabel');
+      if (!v || !label) return;
+      const text = parseLocalDate(v).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' });
+      label.innerHTML = v === localDateStr()
+        ? `${esc(text)} (today)`
+        : `${esc(text)} <button type="button" onclick="goToTodayDailyLog()" class="ml-1 text-cyan-400 underline">Back to today</button>`;
+    }
+
+    async function loadDailyLogForSelectedDate() {
+      const dateInput = document.getElementById('dailyLogDateInput');
+      if (!dateInput.value) dateInput.value = localDateStr();
+      updateDailyLogDayLabel();
+
+      const seq = ++dailyLoadSeq;
+      const rec = (await dbGet('dailyLogs', dateInput.value)) || {};
+      if (seq !== dailyLoadSeq) return; // a newer date was picked while this one was loading
+
+      renderMedsChecklist(rec.meds || {});
+      renderExerciseChecklist(rec.exercises || {});
+      document.getElementById('dailyIsWorkoutDay').checked = !!rec.isWorkoutDay;
+      document.getElementById('dailySteps').value = rec.steps ?? '';
+      document.getElementById('dailyDistance').value = rec.distance ?? '';
+      document.getElementById('statinWarningCard').classList.toggle('hidden', !(rec.meds && rec.meds.rosuva));
+    }
+
+    function changeDailyLogDate(delta) {
+      const input = document.getElementById('dailyLogDateInput');
+      input.value = addDaysStr(input.value || localDateStr(), delta);
+      loadDailyLogForSelectedDate();
+    }
+
+    function goToTodayDailyLog() {
+      document.getElementById('dailyLogDateInput').value = localDateStr();
+      loadDailyLogForSelectedDate();
+    }
+
+    function renderMedsChecklist(state = {}) {
+      const container = document.getElementById('medsChecklist');
+      container.innerHTML = '';
+      const custom = getCustomMeds();
+
+      [...DEFAULT_MEDS, ...custom].forEach(med => {
+        const isCustom = custom.some(c => c.id === med.id);
+        const item = document.createElement('label');
+        item.className = "p-3 bg-slate-800/80 rounded-xl border border-slate-700 flex justify-between items-center gap-3 text-xs cursor-pointer";
+        item.innerHTML = `
+          <div class="min-w-0">
+            <div class="font-bold text-white">${esc(med.name)}</div>
+            <div class="text-[11px] text-slate-400">${esc([med.schedule, med.note].filter(Boolean).join(' • '))}</div>
+          </div>
+          <div class="flex items-center gap-2 flex-none">
+            ${isCustom ? `<button type="button" onclick="removeCustomMed('${med.id}')" aria-label="Remove ${esc(med.name)}" class="p-1.5 text-slate-500 hover:text-rose-400"><i class="fa-solid fa-xmark"></i></button>` : ''}
+            <input type="checkbox" data-med="${med.id}" ${state[med.id] ? 'checked' : ''} onchange="toggleMedState('${med.id}')" class="w-5 h-5 rounded text-indigo-600 bg-slate-900 border-slate-700">
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function toggleMedState(medId) {
+      playSfx('click');
+      if (medId === 'rosuva') {
+        const cb = document.querySelector('[data-med="rosuva"]');
+        document.getElementById('statinWarningCard').classList.toggle('hidden', !(cb && cb.checked));
+      }
+      saveDailyLogState();
+    }
+
+    /* ---- Custom medication (the "+ Custom Med" button previously did nothing) ---- */
+    function openAddMedModal() {
+      playSfx('click');
+      document.getElementById('addMedForm').reset();
+      document.getElementById('addMedModal').classList.remove('hidden');
+      setTimeout(() => document.getElementById('customMedName').focus(), 50);
+    }
+    function closeAddMedModal() { document.getElementById('addMedModal').classList.add('hidden'); }
+    function saveCustomMed(e) {
+      e.preventDefault();
+      const name = document.getElementById('customMedName').value.trim();
+      if (!name) return;
+      const meds = getCustomMeds();
+      meds.push({
+        id: `custom_${Date.now()}`,
+        name,
+        schedule: document.getElementById('customMedSchedule').value.trim(),
+        note: document.getElementById('customMedNote').value.trim()
+      });
+      LS.set('vmt_custom_meds', meds);
+      closeAddMedModal();
+      playSfx('chime');
+      showToast('Medication added to the checklist');
+      loadDailyLogForSelectedDate();
+    }
+    function removeCustomMed(id) {
+      if (!confirm('Remove this medication from the checklist?')) return;
+      LS.set('vmt_custom_meds', getCustomMeds().filter(m => m.id !== id));
+      loadDailyLogForSelectedDate();
+    }
+
+    function renderExerciseChecklist(state = {}) {
+      const container = document.getElementById('exerciseChecklist');
+      container.innerHTML = '';
+
+      DEFAULT_EXERCISES.forEach(ex => {
+        const item = document.createElement('label');
+        item.className = "p-3 bg-slate-800/80 rounded-xl border border-slate-700 flex justify-between items-center gap-3 text-xs cursor-pointer";
+        item.innerHTML = `
+          <div class="min-w-0">
+            <div class="font-bold text-white">${esc(ex.name)}</div>
+            <div class="text-[11px] text-slate-400">${esc(ex.target)}</div>
+          </div>
+          <input type="checkbox" data-ex="${ex.id}" ${state[ex.id] ? 'checked' : ''} onchange="saveDailyLogState()" class="w-5 h-5 flex-none rounded text-emerald-600 bg-slate-900 border-slate-700">
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    // Previously this only flashed "Saved ✓" and stored nothing. It now writes to the existing `dailyLogs` store.
+    async function saveDailyLogState() {
+      const date = document.getElementById('dailyLogDateInput').value;
+      if (!date) return;
+      const meds = {};
+      document.querySelectorAll('#medsChecklist [data-med]').forEach(cb => { meds[cb.dataset.med] = cb.checked; });
+      const exercises = {};
+      document.querySelectorAll('#exerciseChecklist [data-ex]').forEach(cb => { exercises[cb.dataset.ex] = cb.checked; });
+      const stepsRaw = document.getElementById('dailySteps').value;
+      const distRaw = document.getElementById('dailyDistance').value;
+
+      try {
+        await dbPut('dailyLogs', {
+          date,
+          isWorkoutDay: document.getElementById('dailyIsWorkoutDay').checked,
+          steps: stepsRaw === '' ? null : Number(stepsRaw),
+          distance: distRaw === '' ? null : Number(distRaw),
+          meds,
+          exercises,
+          updatedAt: Date.now()
+        });
+        const toast = document.getElementById('dailySaveToast');
+        toast.classList.remove('hidden');
+        setTimeout(() => toast.classList.add('hidden'), 1500);
+      } catch (err) {
+        showToast("Couldn't save this day's log", 'error');
+      }
+    }
+
+    /* ==========================================================================
+       10. FOOD & NUTRITION TAB
+       ========================================================================== */
+    let currentWaterMl = 0;
+    let foodLoadSeq = 0;
+
+    function updateWaterDisplay() {
+      document.getElementById('waterDisplay').innerText = `${currentWaterMl} ml`;
+    }
+
+    async function loadFoodLogForDate() {
+      const input = document.getElementById('foodLogDate');
+      if (!input.value) input.value = localDateStr();
+
+      const seq = ++foodLoadSeq;
+      const rec = await dbGet('foodLogs', input.value);
+      if (seq !== foodLoadSeq) return;
+
+      document.getElementById('foodCalories').value = rec?.calories ?? '';
+      document.getElementById('foodFat').value = rec?.fat ?? '';
+      document.getElementById('foodSugar').value = rec?.sugar ?? '';
+      currentWaterMl = rec?.water || 0;
+      updateWaterDisplay();
+      renderWeeklyFoodStrip();
+      renderFoodTrendChart();
+    }
+
+    function switchFoodSubTab(type) {
+      playSfx('click');
+      if (type === 'intake') {
+        document.getElementById('foodView-intake').classList.remove('hidden');
+        document.getElementById('foodView-summary').classList.add('hidden');
+        document.getElementById('foodSubTab-intake').classList.add('bg-slate-800', 'text-cyan-400');
+        document.getElementById('foodSubTab-summary').classList.remove('bg-slate-800', 'text-cyan-400');
+      } else {
+        document.getElementById('foodView-intake').classList.add('hidden');
+        document.getElementById('foodView-summary').classList.remove('hidden');
+        document.getElementById('foodSubTab-summary').classList.add('bg-slate-800', 'text-cyan-400');
+        document.getElementById('foodSubTab-intake').classList.remove('bg-slate-800', 'text-cyan-400');
+        // draw charts only once the panel is visible so Chart.js measures a real width
+        renderWeeklyFoodStrip();
+        renderFoodTrendChart();
+      }
+    }
+
+    function addWater(ml) {
+      playSfx('click');
+      currentWaterMl += ml;
+      updateWaterDisplay();
+      saveFoodLogForDate(true);
+    }
+
+    function resetWater() {
+      currentWaterMl = 0;
+      updateWaterDisplay();
+      saveFoodLogForDate(true);
+    }
+
+    // Previously an empty stub. Now writes to the existing `foodLogs` store.
+    async function saveFoodLogForDate(quiet = false) {
+      const date = document.getElementById('foodLogDate').value;
+      if (!date) return;
+      const num = id => { const v = document.getElementById(id).value; return v === '' ? null : Number(v); };
+      try {
+        await dbPut('foodLogs', {
+          date,
+          calories: num('foodCalories'),
+          fat: num('foodFat'),
+          sugar: num('foodSugar'),
+          water: currentWaterMl,
+          updatedAt: Date.now()
+        });
+        if (!quiet) showToast('Food log saved');
+        renderWeeklyFoodStrip();
+        renderFoodTrendChart();
+      } catch (err) {
+        showToast("Couldn't save the food log", 'error');
+      }
+    }
+
+    function openFoodDay(date) {
+      document.getElementById('foodLogDate').value = date;
+      switchFoodSubTab('intake');
+      loadFoodLogForDate();
+    }
+
+    async function renderWeeklyFoodStrip() {
+      const container = document.getElementById('weeklyFoodStrip');
+      const logs = await dbGetAll('foodLogs');
+      const byDate = new Map(logs.map(l => [l.date, l]));
+      const today = localDateStr();
+      const monday = mondayOf(today);
+      const labels = ["Mon", "Tue ★", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+      container.innerHTML = '';
+      labels.forEach((label, i) => {
+        const date = addDaysStr(monday, i);
+        const rec = byDate.get(date);
+        const logged = !!rec && (rec.calories != null || rec.fat != null || rec.sugar != null || rec.water > 0);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.onclick = () => openFoodDay(date);
+        btn.setAttribute('aria-label', `${label.replace(' ★', '')} ${date}${logged ? ', logged' : ', nothing logged'}`);
+        btn.className = `p-2 bg-slate-800/80 rounded-xl border text-xs ${date === today ? 'border-accent' : 'border-slate-700'}`;
+        btn.innerHTML = `
+          <div class="text-[10px] text-slate-400">${label}</div>
+          <div class="text-[10px] text-slate-500">${date.slice(8)}</div>
+          <div class="font-bold text-xs mt-1 ${logged ? 'text-emerald-400' : 'text-slate-600'}">${logged ? '✓' : '–'}</div>
+        `;
+        container.appendChild(btn);
+      });
+    }
+
+    // Previously drew random numbers. Now plots your logged sugar and calories for the last 30 days.
+    async function renderFoodTrendChart() {
+      const logs = await dbGetAll('foodLogs');
+      const byDate = new Map(logs.map(l => [l.date, l]));
+      const today = localDateStr();
+      const days = Array.from({ length: 30 }, (_, i) => addDaysStr(today, i - 29));
+      const sugar = days.map(d => byDate.get(d)?.sugar ?? null);
+      const calories = days.map(d => byDate.get(d)?.calories ?? null);
+
+      const empty = document.getElementById('foodTrendEmpty');
+      if (empty) empty.classList.toggle('hidden', sugar.some(v => v != null) || calories.some(v => v != null));
+
+      createOrUpdateChart('chartFoodTrend', {
+        type: 'bar',
+        data: {
+          labels: days.map(d => d.slice(5)),
+          datasets: [
+            { label: 'Added Sugar (g)', data: sugar, backgroundColor: '#f59e0b', yAxisID: 'y' },
+            { label: 'Sugar Cap (20g)', data: Array(30).fill(20), type: 'line', borderColor: '#f43f5e', borderDash: [5, 5], pointRadius: 0, yAxisID: 'y' },
+            { label: 'Calories (kcal)', data: calories, type: 'line', borderColor: '#06b6d4', tension: 0.3, pointRadius: 2, spanGaps: true, yAxisID: 'y1' }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          scales: {
+            y: { beginAtZero: true },
+            y1: { position: 'right', grid: { drawOnChartArea: false } }
+          }
+        }
+      });
+    }
+
+    /* ==========================================================================
+       11. VIRTUAL ADVISOR TAB ENGINE
+       ========================================================================== */
+    function mjSiteLabel(id) { return (MJ_SITES.find(s => s.id === id) || { label: id }).label; }
+
+    function daysSince(dateTimeStr) {
+      const t = new Date(dateTimeStr).getTime();
+      return isFinite(t) ? Math.max(0, Math.floor((Date.now() - t) / 86400000)) : null;
+    }
+
+    function renderAdvisorTab() {
+      renderAdvisorBriefings();
+      renderAdvisorScorecard();
+    }
+
+    function renderAdvisorBriefings() {
+      const container = document.getElementById('advisorBriefingsContainer');
+      container.innerHTML = '';
+
+      const am = appState.amScaleLogs;
+      const scans = appState.visbodyScans;
+      const shots = appState.mjShots;
+      const latestScan = scans.length ? scans[scans.length - 1] : null;
+
+      let recomp = 'Log at least two AM weights to see how your weight is trending.';
+      if (am.length >= 2) {
+        const last = am[am.length - 1].amWeight;
+        const d = last - am[am.length - 2].amWeight;
+        const dir = d < -0.049 ? `down ${Math.abs(d).toFixed(1)} kg` : d > 0.049 ? `up ${d.toFixed(1)} kg` : 'unchanged';
+        recomp = `Your latest AM weight is ${last.toFixed(1)} kg, ${dir} from the entry before.`;
+        if (latestScan && isNum(latestScan.smm)) recomp += ` Skeletal muscle mass on your latest scan is ${latestScan.smm.toFixed(1)} kg, so keep an eye on it while the scale moves.`;
+      }
+
+      let mj = 'No injections logged yet. Log one on the Mounjaro tab to see notes here.';
+      if (shots.length) {
+        const last = shots[shots.length - 1];
+        const dd = daysSince(last.dateTime);
+        const when = dd === null ? '' : ` (${dd === 0 ? 'today' : `${dd} day${dd === 1 ? '' : 's'} ago`})`;
+        mj = `Your last logged injection was ${last.dose} mg at ${mjSiteLabel(last.site)}${when}, with an appetite rating of ${last.appetite}/5. Moderate-fat meals and steady hydration often help with nausea or reflux. Raise persistent side effects with your prescriber.`;
+      }
+
+      let posture = 'Add posture measurements to a Visbody scan to see posture notes here.';
+      if (latestScan && isNum(latestScan.pelvicTilt)) {
+        posture = `Your latest Visbody scan shows a ${latestScan.pelvicTilt} cm anterior pelvic shift. The core and glute circuit on the Daily tab is a good place to work on it.`;
+      }
+
+      [
+        { title: "Body Recomposition & Lean Mass", icon: "fa-dumbbell", color: "text-indigo-400", text: recomp },
+        { title: "Mounjaro Injection Log", icon: "fa-syringe", color: "text-emerald-400", text: mj },
+        { title: "Posture (Anterior Pelvic Tilt)", icon: "fa-person-walking", color: "text-cyan-400", text: posture }
+      ].forEach(b => {
+        const card = document.createElement('div');
+        card.className = "glass-card p-4 rounded-2xl border border-slate-800 space-y-1.5";
+        card.innerHTML = `
+          <div class="font-bold text-white text-xs flex items-center gap-2">
+            <i class="fa-solid ${b.icon} ${b.color}"></i> ${b.title}
+          </div>
+          <p class="text-[11px] text-slate-300 leading-relaxed">${esc(b.text)}</p>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function runAdvisorDiagnostic(type) {
+      playSfx('click');
+      const card = document.getElementById('diagnosticOutputCard');
+      const title = document.getElementById('diagnosticTitle');
+      const body = document.getElementById('diagnosticBody');
+      card.classList.remove('hidden');
+
+      const scans = appState.visbodyScans;
+      const latestScan = scans.length ? scans[scans.length - 1] : null;
+      const shots = appState.mjShots;
+      const am = appState.amScaleLogs;
+      const li = t => `<p>• ${t}</p>`;
+
+      if (type === 'stall') {
+        title.innerText = "Diagnostic: Scale Stall / Jump Analysis";
+        const offs = diurnalOffsets();
+        const avg = offs.length ? offs.reduce((a, b) => a + b, 0) / offs.length : null;
+        body.innerHTML =
+          li(`<strong>Diurnal Offset Check:</strong> ${avg === null
+            ? 'Log an AM weight on the same date as a Visbody scan to see how much heavier you weigh at the clinic than first thing in the morning.'
+            : `Your clinic Visbody weight has averaged ${avg >= 0 ? '+' : ''}${avg.toFixed(1)} kg versus your AM fasted weight on the same dates.`}`) +
+          li(`<strong>Hydration & Sodium:</strong> Water retention can move the scale by 0.5–1.0 kg from day to day with sodium, hydration and sore muscles. Judge progress by the multi-week trend, not a single reading.`);
+      } else if (type === 'dose') {
+        title.innerText = "Diagnostic: Mounjaro Step-Up Readiness";
+        if (!shots.length) {
+          body.innerHTML = li('Log an injection on the Mounjaro tab to see dose and appetite notes here.');
+        } else {
+          const last = shots[shots.length - 1];
+          let html = li(`<strong>Last dose:</strong> ${last.dose} mg on ${esc(last.dateTime.replace('T', ' '))}.`) +
+                     li(`<strong>Appetite Rating:</strong> ${last.appetite}/5.`);
+          if (am.length >= 2) {
+            const first = am[0], end = am[am.length - 1];
+            const days = Math.round((parseLocalDate(end.date) - parseLocalDate(first.date)) / 86400000);
+            if (days > 0) html += li(`<strong>Weight trend:</strong> ${((end.amWeight - first.amWeight) / days * 7).toFixed(1)} kg per week on average across your AM entries.`);
+          }
+          html += li(`<strong>Next step:</strong> Dose changes are a decision for you and your prescriber. Bring your appetite ratings, side-effect notes and weight trend to that conversation.`);
+          body.innerHTML = html;
+        }
+      } else if (type === 'nutrition') {
+        title.innerText = "Diagnostic: Monday–Sunday Nutrition Optimization";
+        body.innerHTML =
+          li(`<strong>BMR Anchor:</strong> ${latestScan && isNum(latestScan.bmr) ? `${Math.round(latestScan.bmr).toLocaleString()} kcal/day from your latest scan.` : 'Add a BMR value to a Visbody scan to anchor your calorie target.'}`) +
+          li(`<strong>Sugar Cap:</strong> Keep added sugar ≤ 20g daily.`) +
+          li(`<strong>Water:</strong> Aim for 2.5 L or more per day.`);
+      } else if (type === 'wardrobe') {
+        title.innerText = "Diagnostic: Wardrobe & Apparel Milestone";
+        body.innerHTML = latestScan && (isNum(latestScan.midWaist) || isNum(latestScan.chest))
+          ? li(`<strong>Mid Waist:</strong> ${fv(latestScan.midWaist, ' cm')}.`) +
+            li(`<strong>Chest:</strong> ${fv(latestScan.chest, ' cm')}.`) +
+            li(`The sizing guide in Settings updates with each scan.`)
+          : li('Add a scan with waist and chest measurements to see sizing notes here.');
+      }
+    }
+
+    function closeDiagnosticOutput() {
+      document.getElementById('diagnosticOutputCard').classList.add('hidden');
+    }
+
+    // Counts come from what you actually logged on the Food and Daily tabs this Monday to Sunday.
+    async function renderAdvisorScorecard() {
+      const container = document.getElementById('advisorTargetsList');
+      const today = localDateStr();
+      const monday = mondayOf(today);
+      const elapsed = Array.from({ length: 7 }, (_, i) => addDaysStr(monday, i)).filter(d => d <= today);
+
+      const [foods, dailies] = await Promise.all([dbGetAll('foodLogs'), dbGetAll('dailyLogs')]);
+      const food = new Map(foods.map(f => [f.date, f]));
+      const daily = new Map(dailies.map(d => [d.date, d]));
+
+      const waterDays = elapsed.filter(d => (food.get(d)?.water || 0) >= 2500).length;
+      const sugarLogged = elapsed.filter(d => isNum(food.get(d)?.sugar));
+      const sugarOk = sugarLogged.filter(d => food.get(d).sugar <= 20).length;
+      const abDays = elapsed.filter(d => daily.get(d)?.exercises?.abroll).length;
+
+      const badge = document.getElementById('advisorScoreBadge');
+      if (badge) {
+        badge.className = 'text-xs font-black text-cyan-400 bg-cyan-950 px-2.5 py-1 rounded-lg border border-cyan-800/60';
+        badge.innerText = `Week of ${monday.slice(5)}`;
+      }
+
+      const targets = [
+        { text: "Hit 2,500 ml water target daily", value: `${waterDays} / ${elapsed.length} days`, good: waterDays === elapsed.length },
+        { text: "Keep added sugar ≤ 20g daily", value: sugarLogged.length ? `${sugarOk} / ${sugarLogged.length} days logged` : 'No data yet', good: sugarLogged.length > 0 && sugarOk === sugarLogged.length },
+        { text: "Complete 150 Ab Roller reps on core days", value: `${abDays} day${abDays === 1 ? '' : 's'} this week`, good: abDays > 0 }
+      ];
+
+      container.innerHTML = '';
+      targets.forEach(t => {
+        const pill = t.good ? 'text-emerald-400 bg-emerald-950 border-emerald-800/60' : 'text-cyan-400 bg-cyan-950 border-cyan-800/60';
+        const item = document.createElement('div');
+        item.className = "p-2.5 bg-slate-800/80 rounded-xl border border-slate-700 flex justify-between items-center gap-2 text-xs";
+        item.innerHTML = `
+          <span class="text-slate-300 font-medium">${t.text}</span>
+          <span class="text-[10px] font-bold ${pill} px-2 py-0.5 rounded-full border whitespace-nowrap">${t.value}</span>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    /* ==========================================================================
+       12. STYLE & SETTINGS DRAWER ENGINE
+       ========================================================================== */
+    function toggleSettingsDrawer(show) {
+      playSfx('click');
+      const drawer = document.getElementById('settingsDrawer');
+      if (show) drawer.classList.remove('hidden');
+      else drawer.classList.add('hidden');
+    }
+
+    function updateSizingPredictor(scan) {
+      const waist = scan ? scan.midWaist : null;
+      const chest = scan ? scan.chest : null;
+
+      let tshirt = '—', shirt = '—', pants = '—';
+      if (isNum(chest)) { tshirt = chest < 100 ? 'L / XL' : 'XL / 2XL'; shirt = '16.5 / XL'; }
+      if (isNum(waist)) { pants = waist < 90 ? '32 Waist' : waist < 95 ? '34 Waist' : '36 Waist'; }
+
+      document.getElementById('sizeTshirt').innerText = tshirt;
+      document.getElementById('sizeShirt').innerText = shirt;
+      document.getElementById('sizePants').innerText = pants;
+    }
+
+    function setAccentColor(className) {
+      playSfx('click');
+      prefs.accent = className;
+      applyAccent(className);
+      LS.set('vmt_prefs', prefs);
+    }
+
+    const BACKUP_STORES = ['visbodyScans', 'amScaleLogs', 'mjShots', 'dailyLogs', 'foodLogs'];
+
+    async function buildBackupPayload() {
+      const [visbodyScans, amScaleLogs, mjShots, dailyLogs, foodLogs] = await Promise.all(BACKUP_STORES.map(s => dbGetAll(s)));
+      return {
+        app: 'visbody-mounjaro-tracker',
+        version: 7,
+        exportedAt: new Date().toISOString(),
+        visbodyScans, amScaleLogs, mjShots, dailyLogs, foodLogs,
+        customMeds: getCustomMeds(),
+        profile
+      };
+    }
+
+    // iOS home-screen apps can't download data: URLs, so use the native share sheet ("Save to Files") when available.
+    async function exportJsonBackup() {
+      playSfx('chime');
+      let json;
+      try { json = JSON.stringify(await buildBackupPayload(), null, 2); }
+      catch (err) { showToast("Couldn't read your data for the backup", 'error'); return; }
+
+      const name = `Visbody_Mounjaro_Backup_${localDateStr()}.json`;
+      try {
+        const file = new File([json], name, { type: 'application/json' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: name });
+          showToast('Backup ready');
+          return;
+        }
+      } catch (err) {
+        if (err && err.name === 'AbortError') return; // the person closed the share sheet
+      }
+
+      const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      showToast('Backup file saved');
+    }
+
+    const BACKUP_KEYS = { visbodyScans: 'date', amScaleLogs: 'date', mjShots: 'id', dailyLogs: 'date', foodLogs: 'date' };
+
+    function validateBackup(imported) {
+      if (!imported || typeof imported !== 'object') throw new Error('Not an object');
+      let found = false;
+      for (const [store, key] of Object.entries(BACKUP_KEYS)) {
+        if (imported[store] === undefined) continue;
+        if (!Array.isArray(imported[store])) throw new Error(`${store} is not a list`);
+        found = true;
+        imported[store].forEach(r => {
+          if (!r || typeof r[key] !== 'string') throw new Error(`${store} entry missing ${key}`);
+          if (store === 'mjShots' && typeof r.dateTime !== 'string') throw new Error('mjShots entry missing dateTime');
+          if (store === 'amScaleLogs' && typeof r.amWeight !== 'number') throw new Error('amScaleLogs entry missing amWeight');
+        });
+      }
+      if (!found) throw new Error('No data found');
+    }
+
+    function importJsonBackup(e) {
+      const input = e.target;
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        try {
+          const imported = JSON.parse(event.target.result);
+          validateBackup(imported); // checked up front so a bad file can't half-import
+
+          const tx = db.transaction(BACKUP_STORES, "readwrite");
+          BACKUP_STORES.forEach(s => {
+            if (Array.isArray(imported[s])) imported[s].forEach(r => tx.objectStore(s).put(r));
+          });
+          await txDone(tx);
+
+          if (Array.isArray(imported.customMeds)) LS.set('vmt_custom_meds', imported.customMeds);
+          if (imported.profile && typeof imported.profile === 'object') {
+            profile = { ...DEFAULT_PROFILE, ...imported.profile };
+            LS.set('vmt_profile', profile);
+          }
+          await loadAllData();
+          applyProfileAndPrefs();
+          renderDashboard();
+          showToast('Backup imported successfully');
+        } catch (err) {
+          showToast("That file isn't a valid backup", 'error');
+        } finally {
+          input.value = ''; // lets the same file be picked again
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // Wipes everything this app stored on the device: IndexedDB records plus profile, preferences and custom meds.
+    async function resetAllData() {
+      if (!confirm('Erase ALL data on this device? This cannot be undone.')) return;
+      if (!confirm('Last check: every scan, weight, injection, daily log, food log and your profile will be deleted.')) return;
+      try {
+        const tx = db.transaction(BACKUP_STORES, "readwrite");
+        BACKUP_STORES.forEach(st => tx.objectStore(st).clear());
+        await txDone(tx);
+      } catch (err) { showToast("Couldn't erase the data", 'error'); return; }
+      ['vmt_profile', 'vmt_prefs', 'vmt_custom_meds', 'onboardingDone'].forEach(k => { try { localStorage.removeItem(k); } catch (e) { /* ignore */ } });
+      location.reload();
+    }
+
+    /* ==========================================================================
+       13. ONBOARDING MODAL ENGINE
+       ========================================================================== */
+    function checkFirstOpenOnboarding() {
+      if (!LS.get('onboardingDone', false)) toggleOnboardingModal(true);
+    }
+
+    function toggleOnboardingModal(show) {
+      const modal = document.getElementById('onboardingModal');
+      if (show) {
+        document.getElementById('onboardName').value = profile.name;
+        document.getElementById('onboardHeight').value = profile.height;
+        document.getElementById('onboardStartWeight').value = profile.startWeight;
+        document.getElementById('onboardTargetWeight').value = profile.targetWeight;
+        modal.classList.remove('hidden');
+      } else {
+        modal.classList.add('hidden');
+      }
+    }
+
+    // Height, starting weight and target weight were collected here but never kept. They now persist
+    // and drive the "Progress to target" card on the dashboard.
+    function completeOnboarding() {
+      playSfx('chime');
+      const num = (id, fallback) => { const v = parseFloat(document.getElementById(id).value); return isFinite(v) && v > 0 ? v : fallback; };
+      profile = {
+        name: (document.getElementById('onboardName').value || '').trim(),
+        height: num('onboardHeight', profile.height),
+        startWeight: num('onboardStartWeight', profile.startWeight),
+        targetWeight: num('onboardTargetWeight', profile.targetWeight)
+      };
+      LS.set('vmt_profile', profile);
+      LS.set('onboardingDone', true);
+      applyProfileAndPrefs();
+      toggleOnboardingModal(false);
+      renderDashboard();
+    }
+  </script>
+</body>
+</html>
