@@ -131,19 +131,52 @@
 
 <body class="h-full font-sans antialiased bg-slate-900 text-slate-100 accent-cyan selection:bg-cyan-500 selection:text-white">
 
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><symbol id="vmMark" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="vm-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1220"/>
+      <stop offset="0.55" stop-color="#0f2a43"/>
+      <stop offset="1" stop-color="#0e5a6b"/>
+    </linearGradient>
+    <radialGradient id="vm-glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#22d3ee" stop-opacity="0.20"/>
+      <stop offset="1" stop-color="#22d3ee" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="vm-arcg" gradientUnits="userSpaceOnUse" x1="230" y1="760" x2="800" y2="330">
+      <stop offset="0" stop-color="#22d3ee"/>
+      <stop offset="1" stop-color="#4ade80"/>
+    </linearGradient>
+    <linearGradient id="vm-arrg" gradientUnits="userSpaceOnUse" x1="352" y1="650" x2="716" y2="404">
+      <stop offset="0" stop-color="#a5f3fc"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#vm-bg)"/>
+  
+  <g transform="translate(512 552.0) scale(1.0) translate(-512 -512)">
+    <circle cx="512" cy="512" r="310" fill="url(#vm-glow)"/>
+    <path d="M 299.9 724.1 A 300 300 0 1 1 724.1 724.1" fill="none" stroke="#ffffff" stroke-opacity="0.12" stroke-width="64" stroke-linecap="round"/>
+    <path d="M 299.9 724.1 A 300 300 0 1 1 789.2 397.2" fill="none" stroke="url(#vm-arcg)" stroke-width="64" stroke-linecap="round"/>
+    <polyline points="352,650 456,548 536,606 650,478" fill="none" stroke="url(#vm-arrg)" stroke-width="54" stroke-linecap="round" stroke-linejoin="round"/>
+    <polygon points="716,404 704,530 590,448" fill="url(#vm-arrg)" stroke="#ecfeff" stroke-width="20" stroke-linejoin="round"/>
+    <g>
+      <circle cx="789.2" cy="397.2" r="58" fill="#fde68a" fill-opacity="0.22"/>
+      <polygon points="789.2,335.2 801.4,384.9 851.2,397.2 801.4,409.5 789.2,459.2 776.9,409.5 727.2,397.2 776.9,384.9" fill="#fef3c7" stroke="#fde68a" stroke-width="6" stroke-linejoin="round"/>
+    </g>
+  </g>
+</symbol></svg>
+
   <!-- APP WRAPPER -->
   <div id="app" class="flex flex-col h-full max-w-4xl mx-auto relative overflow-hidden bg-slate-950">
 
     <!-- TOP HEADER -->
     <header class="pt-safe px-4 py-3 glass-card sticky top-0 z-30 flex items-center justify-between border-b border-slate-800">
       <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-          <i class="fa-solid font-bold text-white text-lg">V</i>
-        </div>
+        <svg class="w-10 h-10 rounded-xl shadow-lg shadow-cyan-500/20 flex-none" aria-hidden="true"><use href="#vmMark"/></svg>
         <div>
           <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-1.5">
             <span>Visbody & Mounjaro</span>
-            <span class="text-xs font-normal text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded-full border border-cyan-800/60">v7.1</span>
+            <span class="text-xs font-normal text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded-full border border-cyan-800/60">v7.3</span>
           </h1>
           <p id="headerSubtitle" class="text-xs text-slate-400">Personal tracker</p>
         </div>
@@ -206,7 +239,7 @@
                 <i class="fa-solid fa-minus text-[9px] mr-1"></i> No data yet
               </div>
             </div>
-            <div class="text-[10px] text-slate-400">Goal: protect lean mass</div>
+            <div class="text-[10px] text-slate-400" id="kpiSmmGoal">Goal: protect lean mass</div>
           </div>
 
           <div class="glass-card p-3.5 rounded-2xl border border-slate-800/80 flex flex-col justify-between">
@@ -220,7 +253,7 @@
                 <i class="fa-solid fa-minus text-[9px] mr-1"></i> No data yet
               </div>
             </div>
-            <div class="text-[10px] text-slate-400">Target: Level 9 (Healthy)</div>
+            <div class="text-[10px] text-slate-400" id="kpiVflTarget">Target: Level 9 (Healthy)</div>
           </div>
         </div>
 
@@ -364,7 +397,7 @@
           <!-- PDF Uploader & Web Link Paste Bar -->
           <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 space-y-2">
             <div class="flex flex-col sm:flex-row gap-2">
-              <input type="text" id="visbodyWebUrlInput" placeholder="Paste Visbody Web Link (rexp-h5.visbody.com...)" class="bg-slate-800 text-xs text-slate-200 border border-slate-700 rounded-xl px-3 py-2 flex-1 focus:outline-none focus:border-cyan-500">
+              <input type="text" id="visbodyWebUrlInput" placeholder="Paste the full Visbody web link (rexp-h5.visbody.com...)" class="bg-slate-800 text-xs text-slate-200 border border-slate-700 rounded-xl px-3 py-2 flex-1 focus:outline-none focus:border-cyan-500">
               <button onclick="saveVisbodyWebUrl()" class="bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 px-3 py-2 rounded-xl border border-slate-700">Save Link</button>
               
               <label class="bg-slate-800 hover:bg-slate-700 text-xs font-medium text-cyan-400 border border-cyan-800/60 px-3 py-2 rounded-xl cursor-pointer flex items-center justify-center gap-1.5">
@@ -372,6 +405,14 @@
                 <input type="file" id="pdfFileInput" accept="application/pdf" onchange="handleVisbodyPdfUpload(event)" class="hidden">
               </label>
             </div>
+            <div id="visbodyLinkStatus" class="hidden flex items-center justify-between gap-2 text-[11px] text-slate-400 bg-slate-800/60 rounded-lg px-2.5 py-1.5">
+              <span id="visbodyLinkText" class="truncate min-w-0"></span>
+              <span class="flex-none flex gap-3">
+                <button type="button" onclick="copyVisbodyLink()" class="text-cyan-400 underline">Copy</button>
+                <button type="button" onclick="removeVisbodyLink()" class="text-rose-400 underline">Remove</button>
+              </span>
+            </div>
+            <p id="visbodyLinkHint" class="hidden text-[11px] text-amber-400"></p>
             <div id="pdfUploadStatus" class="text-[11px] text-slate-400 hidden"></div>
           </div>
         </div>
@@ -542,10 +583,11 @@
               </div>
             </div>
 
-            <!-- 6-Site Anatomical Grid -->
+            <!-- Injection site: left / right abdomen -->
             <div>
-              <label class="text-xs text-slate-300 font-medium block mb-1">Select Injection Site (6-Site Rotation)</label>
-              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2" id="mjSiteGrid">
+              <label class="text-xs text-slate-300 font-medium block mb-1">Injection Site (alternate left and right)</label>
+              <p id="mjSiteHint" class="text-[11px] text-slate-400 mb-1.5"></p>
+              <div class="grid grid-cols-2 gap-2" id="mjSiteGrid">
                 <!-- Dynamically generated site cards -->
               </div>
             </div>
@@ -671,9 +713,19 @@
 
           <!-- Exercise Checklist -->
           <div class="space-y-2">
-            <h4 class="text-xs font-semibold text-slate-300">Target Core & Posture Circuit</h4>
+            <div class="flex items-center justify-between gap-2">
+              <h4 class="text-xs font-semibold text-slate-300">Target Core & Posture Circuit</h4>
+              <div class="flex items-center gap-4 text-xs font-medium">
+                <button type="button" id="exerciseEditBtn" onclick="toggleExerciseEdit()" class="py-1 text-slate-300 hover:text-white">Edit</button>
+                <button type="button" onclick="openExerciseModal()" class="py-1 text-cyan-400 hover:text-cyan-300">+ Add routine</button>
+              </div>
+            </div>
             <div id="exerciseChecklist" class="space-y-2">
               <!-- Populated via JS -->
+            </div>
+            <div id="exerciseEditBar" class="hidden flex items-center justify-between gap-2 text-[11px] text-slate-400">
+              <span>Tap the pencil to rename a routine or the bin to remove it.</span>
+              <button type="button" onclick="restoreDefaultExercises()" class="flex-none text-amber-400 underline">Restore defaults</button>
             </div>
           </div>
         </div>
@@ -705,11 +757,11 @@
               </div>
               <div>
                 <label class="text-[11px] text-slate-400 block mb-1">Dietary Fat (g)</label>
-                <input type="number" inputmode="numeric" id="foodFat" onchange="saveFoodLogForDate()" placeholder="Keep single meal < 30%" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+                <input type="number" inputmode="decimal" step="0.1" min="0" id="foodFat" onchange="saveFoodLogForDate()" placeholder="Keep single meal < 30%" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
               </div>
               <div>
                 <label class="text-[11px] text-slate-400 block mb-1">Added Sugar (g) — Cap ≤ 20g</label>
-                <input type="number" inputmode="numeric" id="foodSugar" onchange="saveFoodLogForDate()" placeholder="≤ 20g daily target" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+                <input type="number" inputmode="decimal" step="0.1" min="0" id="foodSugar" onchange="saveFoodLogForDate()" placeholder="≤ 20g daily target" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
               </div>
             </div>
 
@@ -721,6 +773,7 @@
                 </span>
                 <span class="text-[11px] text-cyan-400">Target: 2,500 – 3,500 ml</span>
               </div>
+              <div class="h-1.5 rounded-full bg-slate-800 overflow-hidden"><div id="waterBar" class="h-full rounded-full bg-cyan-500" style="width:0%"></div></div>
               <div class="flex gap-2">
                 <button onclick="addWater(250)" class="flex-1 bg-slate-800 hover:bg-slate-700 text-cyan-400 font-semibold text-xs py-2 rounded-xl border border-slate-700">
                   + 250 ml
@@ -731,6 +784,11 @@
                 <button onclick="resetWater()" class="px-3 bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs rounded-xl border border-slate-700">
                   Reset
                 </button>
+              </div>
+              <div class="flex gap-2">
+                <input type="number" id="waterCustomMl" inputmode="numeric" min="1" max="5000" step="1" placeholder="Custom amount (ml)" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomWater(1);}" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white flex-1 min-w-0">
+                <button type="button" onclick="addCustomWater(1)" class="px-3 bg-slate-800 hover:bg-slate-700 text-cyan-400 font-semibold text-xs rounded-xl border border-slate-700">+ Add</button>
+                <button type="button" onclick="addCustomWater(-1)" aria-label="Subtract this amount" class="px-3 bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs rounded-xl border border-slate-700">&minus; Less</button>
               </div>
             </div>
           </div>
@@ -748,15 +806,23 @@
             </div>
           </div>
 
-          <!-- 30-Day Calories & Sugar Trend Chart -->
+          <!-- Intake trend: one metric at a time, 7 or 30 days -->
           <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
-            <h3 class="text-sm font-bold text-white flex items-center gap-2">
-              <i class="fa-solid fa-chart-line text-amber-400"></i> 30-Day Calories & Added Sugar (≤ 20g Red Cap Line)
-            </h3>
-            <div class="h-60 w-full relative">
+            <div class="flex items-center justify-between gap-2">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-chart-column text-amber-400"></i> Intake Trend
+              </h3>
+              <div class="flex bg-slate-950 p-0.5 rounded-lg border border-slate-800 text-[11px] font-semibold">
+                <button type="button" id="foodRange-7" onclick="setFoodRange(7)" class="px-3 py-1 rounded-md bg-slate-800 text-cyan-400">7 days</button>
+                <button type="button" id="foodRange-30" onclick="setFoodRange(30)" class="px-3 py-1 rounded-md text-slate-400">30 days</button>
+              </div>
+            </div>
+            <div id="foodSummaryTiles" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
+            <div class="h-52 w-full relative">
               <canvas id="chartFoodTrend"></canvas>
             </div>
-            <p id="foodTrendEmpty" class="hidden text-[11px] text-slate-500">No food entries in the last 30 days yet. Log intake on the Food Intake Entry tab and it will appear here.</p>
+            <p id="foodChartCaption" class="text-[11px] text-slate-400"></p>
+            <p id="foodTrendEmpty" class="hidden text-[11px] text-slate-500">No entries in this period yet. Log intake on the Food Intake Entry tab and it will appear here.</p>
           </div>
         </div>
       </section>
@@ -830,17 +896,22 @@
           <div id="diagnosticBody" class="text-xs text-slate-300 leading-relaxed space-y-2"></div>
         </div>
 
-        <!-- Weekly Readiness Scorecard -->
-        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
-          <div class="flex justify-between items-center">
+        <!-- Weekly Scorecard -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-4">
+          <div class="flex justify-between items-center gap-2">
             <h3 class="text-sm font-bold text-white flex items-center gap-2">
-              <i class="fa-solid fa-award text-indigo-400"></i> Monday–Sunday Readiness Scorecard
+              <i class="fa-solid fa-award text-indigo-400"></i> Scorecard
             </h3>
-            <span id="advisorScoreBadge" class="text-xs font-black text-emerald-400 bg-emerald-950 px-2.5 py-1 rounded-lg border border-emerald-800/60">This week</span>
+            <div class="flex items-center gap-1">
+              <button type="button" onclick="shiftScoreWeek(-1)" aria-label="Previous week" class="touch-target flex items-center justify-center w-9 h-9 rounded-lg bg-slate-800 text-slate-300"><i class="fa-solid fa-chevron-left text-[10px]"></i></button>
+              <span id="advisorScoreBadge" class="text-[11px] font-semibold text-cyan-400 bg-cyan-950 px-2.5 py-1.5 rounded-lg border border-cyan-800/60 whitespace-nowrap">This week</span>
+              <button type="button" id="scoreNextBtn" onclick="shiftScoreWeek(1)" aria-label="Next week" class="touch-target flex items-center justify-center w-9 h-9 rounded-lg bg-slate-800 text-slate-300"><i class="fa-solid fa-chevron-right text-[10px]"></i></button>
+            </div>
           </div>
-          <div class="space-y-2" id="advisorTargetsList">
-            <!-- Dynamically populated target items -->
-          </div>
+          <div id="advisorScoreSummary"></div>
+          <div class="space-y-2" id="advisorTargetsList"></div>
+          <div id="advisorSuggestions" class="space-y-2"></div>
+          <p class="text-[10px] leading-relaxed text-slate-500">Score = share of this week's targets you hit, weighted: hydration 20, sugar 20, circuit 20, food logging 10, steps 10, medication checklist 10, weigh-in 10. Items with no data and days you have not finished yet are not counted against you.</p>
         </div>
         <p class="px-1 text-[11px] leading-relaxed text-slate-500">These notes summarise your own logged numbers for personal tracking. They are not medical advice. Talk to your prescriber before changing a dose or stopping any medication.</p>
       </section>
@@ -920,10 +991,28 @@
           <h3 class="text-xs font-bold text-white flex items-center gap-2">
             <i class="fa-solid fa-scissors text-indigo-400"></i> Haircut & Beard Framing Guide
           </h3>
-          <p class="text-[11px] text-slate-400">Optimized for round-to-oval face slimming during weight loss</p>
-          <div class="p-3 bg-slate-800/80 rounded-xl border border-slate-700 text-xs space-y-1">
-            <div class="font-bold text-cyan-400">Recommended Cut: Low Fade Taper</div>
-            <p class="text-[11px] text-slate-300">Keep side volume tight (#1 to #2 guard) with moderate top length styled up to visually elongate facial features.</p>
+          <p class="text-[11px] text-slate-400">Optimized for round-to-oval face slimming during weight loss. Tap a haircut and a beard to preview the combination.</p>
+          <div class="flex gap-3 items-start">
+            <div id="stylePreview" class="w-28 h-32 flex-none rounded-2xl overflow-hidden border border-slate-700"></div>
+            <div id="styleDetail" class="min-w-0 space-y-2 text-xs"></div>
+          </div>
+          <div>
+            <div class="text-[11px] font-semibold text-slate-300 mb-1.5">Haircut</div>
+            <div id="hairOptions" class="grid grid-cols-4 gap-2"></div>
+          </div>
+          <div>
+            <div class="text-[11px] font-semibold text-slate-300 mb-1.5">Beard</div>
+            <div id="beardOptions" class="grid grid-cols-4 gap-2"></div>
+          </div>
+          <div class="pt-3 border-t border-slate-800 space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="text-[11px] font-semibold text-slate-300">My reference photos</div>
+              <label class="text-[11px] text-cyan-400 cursor-pointer font-medium">+ Add photo
+                <input type="file" accept="image/*" onchange="addRefPhoto(event)" class="hidden">
+              </label>
+            </div>
+            <p class="text-[11px] text-slate-500">The sketches above are simple guides. Save real barber or inspiration photos from your camera roll here; they stay on this device.</p>
+            <div id="refPhotoGrid" class="grid grid-cols-3 gap-2"></div>
           </div>
         </div>
 
@@ -980,9 +1069,7 @@
     <div id="onboardingModal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-lg hidden flex items-center justify-center p-4">
       <div class="glass-card w-full max-w-lg p-6 rounded-3xl border border-slate-800 space-y-5 max-h-full overflow-y-auto">
         <div class="text-center space-y-2">
-          <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-cyan-600 to-blue-600 mx-auto flex items-center justify-center text-2xl font-bold text-white shadow-xl shadow-cyan-600/30">
-            V
-          </div>
+          <svg class="w-16 h-16 rounded-2xl mx-auto shadow-xl shadow-cyan-600/30" aria-hidden="true"><use href="#vmMark"/></svg>
           <h2 class="text-xl font-black text-white tracking-tight">Visbody & Mounjaro Tracker</h2>
           <p class="text-xs text-slate-400">Tell the app a little about you. Everything stays on this device and every field is optional.</p>
         </div>
@@ -1048,6 +1135,72 @@
     </form>
   </div>
 
+<!-- ROUTINE (EXERCISE) MODAL -->
+  <div id="exerciseModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <form id="exerciseForm" onsubmit="saveExercise(event)" class="glass-card w-full max-w-md p-5 rounded-3xl border border-slate-800 space-y-4 max-h-full overflow-y-auto">
+      <div class="flex items-center justify-between">
+        <h2 id="exerciseModalTitle" class="text-base font-bold text-white">Add routine</h2>
+        <button type="button" onclick="closeExerciseModal()" aria-label="Close" class="p-2 text-slate-400 hover:text-white rounded-xl bg-slate-800">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+      <input type="hidden" id="exerciseId">
+      <div class="space-y-3 text-xs">
+        <div>
+          <label for="exerciseName" class="text-[11px] text-slate-400 block mb-1">Routine (name, reps, weight)</label>
+          <input type="text" id="exerciseName" required maxlength="80" placeholder="e.g. 3 x 30 s Plank" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white w-full">
+        </div>
+        <div>
+          <label for="exerciseTarget" class="text-[11px] text-slate-400 block mb-1">What it targets (optional)</label>
+          <input type="text" id="exerciseTarget" maxlength="60" placeholder="e.g. Core & posture" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white w-full">
+        </div>
+      </div>
+      <button type="submit" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs py-3 rounded-xl shadow-lg shadow-cyan-600/30">Save routine</button>
+    </form>
+  </div>
+
+  <!-- VISBODY TARGET & REMARK MODAL -->
+  <div id="targetModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <form id="targetForm" onsubmit="saveVisTarget(event)" class="glass-card w-full max-w-md p-5 rounded-3xl border border-slate-800 space-y-4 max-h-full overflow-y-auto">
+      <div class="flex items-center justify-between">
+        <h2 id="targetModalTitle" class="text-base font-bold text-white">Target & remark</h2>
+        <button type="button" onclick="closeTargetModal()" aria-label="Close" class="p-2 text-slate-400 hover:text-white rounded-xl bg-slate-800">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+      <input type="hidden" id="targetKey">
+      <div class="space-y-3 text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="targetValue" class="text-[11px] text-slate-400 block mb-1">Target <span id="targetUnit"></span></label>
+            <input type="number" inputmode="decimal" step="any" id="targetValue" placeholder="Optional" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white w-full">
+          </div>
+          <div>
+            <label for="targetDir" class="text-[11px] text-slate-400 block mb-1">Better when</label>
+            <select id="targetDir" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white w-full">
+              <option value="lower">Lower is better</option>
+              <option value="higher">Higher is better</option>
+              <option value="note">Remark only</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label for="targetNote" class="text-[11px] text-slate-400 block mb-1">Remark</label>
+          <input type="text" id="targetNote" maxlength="120" placeholder="e.g. Aim for this by January" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white w-full">
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <button type="button" onclick="resetVisTarget()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold py-3 rounded-xl border border-slate-700">Reset to default</button>
+        <button type="submit" class="bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs py-3 rounded-xl shadow-lg shadow-cyan-600/30">Save</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- REFERENCE PHOTO VIEWER -->
+  <div id="photoViewer" onclick="closePhotoViewer()" class="fixed inset-0 z-50 bg-black/90 hidden flex items-center justify-center p-4">
+    <img id="photoViewerImg" alt="Reference photo" class="max-h-full max-w-full rounded-xl">
+  </div>
+
   <!-- TOASTS (replace blocking alert popups) -->
   <div id="toastHost" aria-live="polite" class="fixed left-0 right-0 z-[60] pointer-events-none flex justify-center px-4" style="bottom: calc(env(safe-area-inset-bottom) + 5.25rem);"></div>
 
@@ -1056,14 +1209,12 @@
     /* ==========================================================================
        1. APP CONSTANTS (no pre-seeded data: the app starts completely empty)
        ========================================================================== */
-    const MJ_SITES = [
+        const MJ_SITES = [
       { id: "left_abdomen", label: "Left Abdomen" },
-      { id: "right_abdomen", label: "Right Abdomen" },
-      { id: "left_thigh", label: "Left Thigh" },
-      { id: "right_thigh", label: "Right Thigh" },
-      { id: "left_arm", label: "Left Upper Arm" },
-      { id: "right_arm", label: "Right Upper Arm" }
+      { id: "right_abdomen", label: "Right Abdomen" }
     ];
+    // Older entries may still use sites that are no longer offered; keep their labels readable.
+    const MJ_LEGACY_SITES = { left_thigh: "Left Thigh", right_thigh: "Right Thigh", left_arm: "Left Upper Arm", right_arm: "Right Upper Arm" };
 
     /* ==========================================================================
        2. INDEXED DB ARCHITECTURE (v6)
@@ -1073,7 +1224,7 @@
 
     function initDB() {
       return new Promise((resolve, reject) => {
-        const request = indexedDB.open(DB_NAME, 1);
+        const request = indexedDB.open(DB_NAME, 2);
         request.onupgradeneeded = (e) => {
           const dbRef = e.target.result;
           if (!dbRef.objectStoreNames.contains("visbodyScans")) {
@@ -1091,6 +1242,9 @@
           if (!dbRef.objectStoreNames.contains("foodLogs")) {
             dbRef.createObjectStore("foodLogs", { keyPath: "date" });
           }
+          if (!dbRef.objectStoreNames.contains("refPhotos")) {
+            dbRef.createObjectStore("refPhotos", { keyPath: "id" });
+          }
         };
         request.onsuccess = (e) => {
           db = e.target.result;
@@ -1103,38 +1257,62 @@
     /* ==========================================================================
        3. WEB AUDIO API SYNTHESIZED SFX
        ========================================================================== */
+    let audioCtx = null;
+    function getAudioCtx() {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return null;
+      if (!audioCtx || audioCtx.state === 'closed') audioCtx = new AudioCtx();
+      return audioCtx;
+    }
+    // iOS suspends or kills the audio session while the app is minimised, and a context left over from
+    // before that stays silent for good. So it is thrown away when the app is hidden, and the next tap
+    // (a real user gesture, which iOS requires) builds a fresh one.
+    function dropAudioCtx() {
+      if (audioCtx) { try { audioCtx.close(); } catch (e) { /* already closed */ } audioCtx = null; }
+    }
+    function wakeAudio() {
+      const ctx = getAudioCtx();
+      if (ctx && ctx.state !== 'running') {
+        try { const p = ctx.resume(); if (p && p.catch) p.catch(() => {}); } catch (e) { /* ignore */ }
+      }
+    }
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') dropAudioCtx(); });
+    window.addEventListener('pagehide', dropAudioCtx);
+    window.addEventListener('pageshow', e => { if (e.persisted) dropAudioCtx(); });
+    // Resume inside the gesture itself (capture phase, before the button's own handler plays its sound).
+    ['touchend', 'click'].forEach(ev => document.addEventListener(ev, wakeAudio, { capture: true, passive: true }));
+
     function playSfx(type = 'click') {
       const toggle = document.getElementById('settingSfxToggle');
       if (toggle && !toggle.checked) return;
 
       try {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (!AudioCtx) return;
-        window.__vmtAudio = window.__vmtAudio || new AudioCtx();
-        const ctx = window.__vmtAudio;
-        if (ctx.state === 'suspended') ctx.resume();
+        const ctx = getAudioCtx();
+        if (!ctx) return;
+        wakeAudio();
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
 
         osc.connect(gain);
         gain.connect(ctx.destination);
 
+        const t = ctx.currentTime;
         if (type === 'click') {
           osc.type = 'sine';
-          osc.frequency.setValueAtTime(600, ctx.currentTime);
-          osc.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.04);
-          gain.gain.setValueAtTime(0.15, ctx.currentTime);
-          gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.04);
-          osc.start();
-          osc.stop(ctx.currentTime + 0.04);
+          osc.frequency.setValueAtTime(600, t);
+          osc.frequency.exponentialRampToValueAtTime(200, t + 0.04);
+          gain.gain.setValueAtTime(0.15, t);
+          gain.gain.linearRampToValueAtTime(0.01, t + 0.04);
+          osc.start(t);
+          osc.stop(t + 0.04);
         } else if (type === 'chime') {
           osc.type = 'triangle';
-          osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
-          osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.06); // E5
-          gain.gain.setValueAtTime(0.1, ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
-          osc.start();
-          osc.stop(ctx.currentTime + 0.2);
+          osc.frequency.setValueAtTime(523.25, t); // C5
+          osc.frequency.setValueAtTime(659.25, t + 0.06); // E5
+          gain.gain.setValueAtTime(0.1, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+          osc.start(t);
+          osc.stop(t + 0.2);
         }
       } catch (e) { console.warn("Audio unavailable", e); }
     }
@@ -1189,11 +1367,11 @@
     /* ---- Profile & preferences (previously lost on every reload) ---- */
     const DEFAULT_PROFILE = { name: '', height: '', startWeight: '', targetWeight: '' };
     let profile = { ...DEFAULT_PROFILE };
-    let prefs = { sfx: true, accent: 'accent-cyan' };
+    let prefs = { sfx: true, accent: 'accent-cyan', hair: 'taper', beard: 'stubble' };
 
     function loadProfileAndPrefs() {
       profile = { ...DEFAULT_PROFILE, ...(LS.get('vmt_profile', {}) || {}) };
-      prefs = { sfx: true, accent: 'accent-cyan', ...(LS.get('vmt_prefs', {}) || {}) };
+      prefs = { sfx: true, accent: 'accent-cyan', hair: 'taper', beard: 'stubble', ...(LS.get('vmt_prefs', {}) || {}) };
     }
 
     function applyProfileAndPrefs() {
@@ -1202,6 +1380,7 @@
       const sfx = document.getElementById('settingSfxToggle');
       if (sfx) sfx.checked = !!prefs.sfx;
       applyAccent(prefs.accent);
+      renderStyleGuide();
     }
 
     function savePreferences() {
@@ -1261,6 +1440,36 @@
       Chart.defaults.font.size = 11;
       Chart.defaults.plugins.legend.labels.boxWidth = 12;
     }
+
+    /* ---- Chart readability helpers (v7.3): short date labels, fewer ticks, legends only where needed ---- */
+    const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    function shortDate(d, withYear = false) { // '2026-11-17' -> '17 Nov'
+      const [y, m, day] = d.split('-').map(Number);
+      return `${day} ${MONTHS[m - 1]}${withYear ? ` ${String(y).slice(2)}` : ''}`;
+    }
+    function mergeDeep(a, b) {
+      const out = { ...a };
+      for (const k of Object.keys(b || {})) {
+        const bothObjects = b[k] && typeof b[k] === 'object' && !Array.isArray(b[k]) && a && a[k] && typeof a[k] === 'object';
+        out[k] = bothObjects ? mergeDeep(a[k], b[k]) : b[k];
+      }
+      return out;
+    }
+    function chartOpts(extra = {}, points = 0) {
+      const base = {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        elements: { point: { radius: points > 14 ? 0 : 3, hoverRadius: 5 }, line: { borderWidth: 2 } },
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, boxHeight: 10, padding: 10, font: { size: 10 } } } },
+        scales: {
+          x: { grid: { display: false }, ticks: { maxTicksLimit: 6, maxRotation: 0, autoSkip: true } },
+          y: { ticks: { maxTicksLimit: 5 } }
+        }
+      };
+      return mergeDeep(base, extra);
+    }
+    const NO_LEGEND = { plugins: { legend: { display: false } } };
 
     /* ---- Offline support ---- */
     function registerServiceWorker() {
@@ -1449,6 +1658,9 @@
       renderKpiDeltas(scans, amLogs);
       renderGoalProgress(latestAm);
       renderDiurnalBadge();
+      const vt = getVisTarget('vfl'), st = getVisTarget('smm');
+      document.getElementById('kpiVflTarget').innerText = isNum(vt.target) ? `Target: Level ${vt.target}${vt.note ? ` (${vt.note})` : ''}` : (vt.note || 'Set a target on the Visbody tab');
+      document.getElementById('kpiSmmGoal').innerText = isNum(st.target) ? `Target: at least ${st.target} kg${st.note ? ` (${st.note})` : ''}` : (st.note ? `Goal: ${st.note}` : 'Set a target on the Visbody tab');
       renderDashboardCharts();
       updateSizingPredictor(latestScan);
     }
@@ -1504,7 +1716,7 @@
 
       const allDates = [...new Set([...scans.map(s => s.date), ...amLogs.map(a => a.date)])].sort();
       const multiYear = new Set(allDates.map(d => d.slice(0, 4))).size > 1;
-      const labelFor = d => multiYear ? d : d.slice(5);
+      const labelFor = d => shortDate(d, multiYear);
       const scanLabels = scans.map(s => labelFor(s.date));
 
       const amByDate = new Map(amLogs.map(a => [a.date, a.amWeight]));
@@ -1520,7 +1732,7 @@
             { label: 'Visbody Clinic Weight (kg)', data: allDates.map(d => visByDate.has(d) ? visByDate.get(d) : null), borderColor: '#64748b', borderDash: [4, 4], tension: 0.3, spanGaps: true }
           ]
         },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#94a3b8', font: { size: 10 } } } } }
+        options: chartOpts({}, allDates.length)
       });
 
       // Chart 2: Fat Mass
@@ -1532,7 +1744,7 @@
             { label: 'Body Fat Mass (kg)', data: scans.map(s => s.bfm), borderColor: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.1)', fill: true }
           ]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: chartOpts(NO_LEGEND, scans.length)
       });
 
       // Chart 3: SMM, zoomed to your own range
@@ -1550,7 +1762,7 @@
             { label: 'Skeletal Muscle Mass (kg)', data: scans.map(s => s.smm), borderColor: '#6366f1', backgroundColor: 'rgba(99, 102, 241, 0.1)', fill: true }
           ]
         },
-        options: { responsive: true, maintainAspectRatio: false, scales: { y: smmY } }
+        options: chartOpts({ ...NO_LEGEND, scales: { y: smmY } }, scans.length)
       });
 
       // Chart 4: Visceral Fat
@@ -1560,7 +1772,7 @@
           labels: scanLabels,
           datasets: [{ label: 'Visceral Fat Level', data: scans.map(s => s.vfl), backgroundColor: '#f43f5e' }]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: chartOpts(NO_LEGEND, scans.length)
       });
 
       // Chart 5: Waist Trend
@@ -1574,7 +1786,7 @@
             { label: 'Low Waist', data: scans.map(s => s.lowWaist), borderColor: '#8b5cf6', spanGaps: true }
           ]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: chartOpts({}, scans.length)
       });
     }
 
@@ -1644,7 +1856,7 @@
       if (scan.bmi === null && heightCm > 0) scan.bmi = Math.round((scan.weight / Math.pow(heightCm / 100, 2)) * 10) / 10;
       const existing = appState.visbodyScans.find(s => s.date === date);
       scan.gluteType = document.getElementById('scan_gluteType').value.trim() || null;
-      scan.webUrl = document.getElementById('scan_webUrl').value.trim() || (existing && existing.webUrl) || null;
+      scan.webUrl = cleanUrl(document.getElementById('scan_webUrl').value) || (existing && existing.webUrl) || null;
 
       try { await dbPut('visbodyScans', scan); }
       catch (err) { showToast("Couldn't save the scan", 'error'); return; }
@@ -1694,6 +1906,7 @@
       const date = document.getElementById('visbodyDateSelect').value;
       const scans = appState.visbodyScans;
       const scan = scans.find(s => s.date === date) || scans[scans.length - 1];
+      renderVisbodyLinkStatus(scan);
 
       if (!scan) {
         const msg = `<p class="col-span-full text-xs text-slate-500">No scan saved yet. Add one with the “Add a Visbody Scan” form above.</p>`;
@@ -1701,31 +1914,40 @@
         return;
       }
 
-      const tile = (label, value, cls = 'text-white text-sm', pad = 'p-3') =>
-        `<div class="${pad} bg-slate-800/80 rounded-xl"><span class="text-slate-400 block text-[10px]">${label}</span><span class="font-bold ${cls}">${value}</span></div>`;
+      // key + raw value turn a tile into a tappable target/remark card
+      const tile = (label, value, cls = 'text-white text-sm', pad = 'p-3', key = null, raw = null) => {
+        const tap = key ? ` role="button" tabindex="0" onclick="openTargetModal('${key}')" onkeydown="if(event.key==='Enter')openTargetModal('${key}')"` : '';
+        return `<div${tap} class="${pad} bg-slate-800/80 rounded-xl ${key ? 'cursor-pointer active:bg-slate-700/80' : ''}">
+          <span class="text-slate-400 text-[10px] flex items-center justify-between gap-1"><span>${label}</span>${key ? '<i class="fa-solid fa-bullseye text-[9px] text-slate-600"></i>' : ''}</span>
+          <span class="font-bold ${cls}">${value}</span>
+          ${key ? `<div class="mt-1 text-[10px] leading-snug">${visTargetLine(key, raw)}</div>` : ''}
+        </div>`;
+      };
+      const T = 'text-white text-sm';
+      const hint = '<p class="col-span-full text-[11px] text-slate-500"><i class="fa-solid fa-bullseye mr-1"></i>Tap any tile to set a target or a remark.</p>';
 
-      document.getElementById('visPage1Details').innerHTML = [
-        tile('Weight', fv(scan.weight, ' kg')),
-        tile('Fat Mass', fv(scan.bfm, ' kg'), 'text-amber-400 text-sm'),
-        tile('SMM', fv(scan.smm, ' kg'), 'text-indigo-400 text-sm'),
-        tile('PBF', fv(scan.pbf, '%'), 'text-cyan-400 text-sm'),
-        tile('BMR', fv(scan.bmr, ' kcal'), 'text-emerald-400 text-sm'),
-        tile('Visceral Fat', isNum(scan.vfl) ? `Level ${esc(scan.vfl)}` : '—', 'text-rose-400 text-sm')
+      document.getElementById('visPage1Details').innerHTML = hint + [
+        tile('Weight', fv(scan.weight, ' kg'), T, 'p-3', 'weight', scan.weight),
+        tile('Fat Mass', fv(scan.bfm, ' kg'), 'text-amber-400 text-sm', 'p-3', 'bfm', scan.bfm),
+        tile('SMM', fv(scan.smm, ' kg'), 'text-indigo-400 text-sm', 'p-3', 'smm', scan.smm),
+        tile('PBF', fv(scan.pbf, '%'), 'text-cyan-400 text-sm', 'p-3', 'pbf', scan.pbf),
+        tile('BMR', fv(scan.bmr, ' kcal'), 'text-emerald-400 text-sm', 'p-3', 'bmr', scan.bmr),
+        tile('Visceral Fat', isNum(scan.vfl) ? `Level ${esc(scan.vfl)}` : '—', 'text-rose-400 text-sm', 'p-3', 'vfl', scan.vfl)
       ].join('');
 
-      document.getElementById('visPage2Details').innerHTML = [
-        tile('Anterior Pelvic Shift', fv(scan.pelvicTilt, ' cm')),
-        tile('Forward Head Posture', fv(scan.headTilt, ' cm')),
-        tile('Left Rounded Shoulder', fv(scan.roundedShoulderLeft, ' cm')),
-        tile('Right Rounded Shoulder', fv(scan.roundedShoulderRight, ' cm'))
+      document.getElementById('visPage2Details').innerHTML = hint + [
+        tile('Anterior Pelvic Shift', fv(scan.pelvicTilt, ' cm'), T, 'p-3', 'pelvicTilt', scan.pelvicTilt),
+        tile('Forward Head Posture', fv(scan.headTilt, ' cm'), T, 'p-3', 'headTilt', scan.headTilt),
+        tile('Left Rounded Shoulder', fv(scan.roundedShoulderLeft, ' cm'), T, 'p-3', 'roundedShoulderLeft', scan.roundedShoulderLeft),
+        tile('Right Rounded Shoulder', fv(scan.roundedShoulderRight, ' cm'), T, 'p-3', 'roundedShoulderRight', scan.roundedShoulderRight)
       ].join('');
 
-      const c = (label, v) => tile(label, fv(v, ' cm'), 'text-white', 'p-2.5');
-      document.getElementById('visPage3Details').innerHTML = [
-        c('Neck', scan.neck), c('Shoulder', scan.shoulder), c('Chest', scan.chest),
-        c('High Waist', scan.highWaist), c('Mid Waist', scan.midWaist), c('Low Waist', scan.lowWaist),
-        c('Hip', scan.hip), c('L Arm', scan.leftArm), c('R Arm', scan.rightArm),
-        c('L Thigh', scan.leftThigh), c('R Thigh', scan.rightThigh), c('L Calf', scan.leftCalf), c('R Calf', scan.rightCalf)
+      const c = (label, v, key) => tile(label, fv(v, ' cm'), 'text-white', 'p-2.5', key, v);
+      document.getElementById('visPage3Details').innerHTML = hint + [
+        c('Neck', scan.neck, 'neck'), c('Shoulder', scan.shoulder, 'shoulder'), c('Chest', scan.chest, 'chest'),
+        c('High Waist', scan.highWaist, 'highWaist'), c('Mid Waist', scan.midWaist, 'midWaist'), c('Low Waist', scan.lowWaist, 'lowWaist'),
+        c('Hip', scan.hip, 'hip'), c('L Arm', scan.leftArm, 'leftArm'), c('R Arm', scan.rightArm, 'rightArm'),
+        c('L Thigh', scan.leftThigh, 'leftThigh'), c('R Thigh', scan.rightThigh, 'rightThigh'), c('L Calf', scan.leftCalf, 'leftCalf'), c('R Calf', scan.rightCalf, 'rightCalf')
       ].join('');
 
       const idx = scans.indexOf(scan);
@@ -1737,12 +1959,12 @@
         else if (d > 0) { trend = 'Higher than previous scan'; trendCls = 'text-rose-400 text-sm'; }
         else trend = 'Unchanged';
       }
-      document.getElementById('visPage4Details').innerHTML = [
-        tile('Spine Health & Pain Risk Score', isNum(scan.spinePainRisk) ? `${esc(scan.spinePainRisk)} / 100` : '—', 'text-amber-400 text-sm'),
+      document.getElementById('visPage4Details').innerHTML = hint + [
+        tile('Spine Health & Pain Risk Score', isNum(scan.spinePainRisk) ? `${esc(scan.spinePainRisk)} / 100` : '—', 'text-amber-400 text-sm', 'p-3', 'spinePainRisk', scan.spinePainRisk),
         tile('Change vs Previous Scan', trend, trendCls)
       ].join('');
 
-      document.getElementById('visPage5Details').innerHTML = tile('Glute Alignment Type', fv(scan.gluteType), 'text-cyan-400 text-sm');
+      document.getElementById('visPage5Details').innerHTML = hint + tile('Glute Alignment Type', fv(scan.gluteType), 'text-cyan-400 text-sm', 'p-3', 'gluteType', null);
     }
 
     function switchVisbodySubTab(pageNum) {
@@ -1758,7 +1980,7 @@
 
     function renderVisbodyBreakdownChart() {
       const metric = document.getElementById('breakdownMetricSelect').value;
-      const labels = appState.visbodyScans.map(s => s.date.slice(5));
+      const labels = appState.visbodyScans.map(s => shortDate(s.date));
 
       let datasets = [];
       if (metric === 'composition') {
@@ -1785,7 +2007,7 @@
       createOrUpdateChart('chartVisbodyBreakdown', {
         type: 'line',
         data: { labels, datasets },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: chartOpts({}, labels.length)
       });
     }
 
@@ -1828,30 +2050,177 @@
       });
     }
 
-    function openVisbody3dView() {
+    /* ==========================================================================
+       7b. VISBODY TARGETS & REMARKS (v7.3)
+       Every metric tile can carry a target and a short remark. Stored on this device only.
+       ========================================================================== */
+    const VIS_METRICS = {
+      weight: { label: 'Weight', unit: 'kg', dir: 'lower' },
+      bfm: { label: 'Fat Mass', unit: 'kg', dir: 'lower' },
+      smm: { label: 'Skeletal Muscle (SMM)', unit: 'kg', dir: 'higher' },
+      pbf: { label: 'Body Fat %', unit: '%', dir: 'lower' },
+      bmr: { label: 'BMR', unit: 'kcal', dir: 'note' },
+      vfl: { label: 'Visceral Fat Level', unit: 'level', dir: 'lower' },
+      pelvicTilt: { label: 'Anterior Pelvic Shift', unit: 'cm', dir: 'lower' },
+      headTilt: { label: 'Forward Head Posture', unit: 'cm', dir: 'lower' },
+      roundedShoulderLeft: { label: 'Left Rounded Shoulder', unit: 'cm', dir: 'lower' },
+      roundedShoulderRight: { label: 'Right Rounded Shoulder', unit: 'cm', dir: 'lower' },
+      neck: { label: 'Neck', unit: 'cm', dir: 'note' },
+      shoulder: { label: 'Shoulder', unit: 'cm', dir: 'note' },
+      chest: { label: 'Chest', unit: 'cm', dir: 'note' },
+      highWaist: { label: 'High Waist', unit: 'cm', dir: 'lower' },
+      midWaist: { label: 'Mid Waist', unit: 'cm', dir: 'lower' },
+      lowWaist: { label: 'Low Waist', unit: 'cm', dir: 'lower' },
+      hip: { label: 'Hip', unit: 'cm', dir: 'note' },
+      leftArm: { label: 'Left Arm', unit: 'cm', dir: 'note' },
+      rightArm: { label: 'Right Arm', unit: 'cm', dir: 'note' },
+      leftThigh: { label: 'Left Thigh', unit: 'cm', dir: 'note' },
+      rightThigh: { label: 'Right Thigh', unit: 'cm', dir: 'note' },
+      leftCalf: { label: 'Left Calf', unit: 'cm', dir: 'note' },
+      rightCalf: { label: 'Right Calf', unit: 'cm', dir: 'note' },
+      spinePainRisk: { label: 'Spine Health & Pain Risk Score', unit: '/100', dir: 'note' },
+      gluteType: { label: 'Glute Alignment Type', unit: '', dir: 'note' }
+    };
+    // Only what the app already said before: visceral level 9 and "protect lean mass".
+    const VIS_DEFAULTS = {
+      vfl: { target: 9, dir: 'lower', note: 'Healthy' },
+      smm: { dir: 'higher', note: 'Protect lean mass' }
+    };
+
+    function getVisTargetMap() { return LS.get('vmt_vis_targets', {}) || {}; }
+
+    function getVisTarget(key) {
+      const m = VIS_METRICS[key] || { dir: 'note', unit: '' };
+      let t = { target: null, dir: m.dir, note: '' };
+      if (VIS_DEFAULTS[key]) t = { ...t, ...VIS_DEFAULTS[key] };
+      if (key === 'weight') { const tw = parseFloat(profile.targetWeight); if (tw > 0) t.target = tw; }
+      const saved = getVisTargetMap()[key];
+      return saved ? { ...t, ...saved } : t;
+    }
+
+    function visTargetLine(key, raw) {
+      const m = VIS_METRICS[key] || { unit: '' };
+      const t = getVisTarget(key);
+      const unit = m.unit && m.unit !== 'level' ? ` ${m.unit}` : '';
+      const lines = [];
+      if (isNum(t.target) && t.dir !== 'note') {
+        let status = '';
+        if (isNum(raw)) {
+          const gap = t.dir === 'lower' ? raw - t.target : t.target - raw;
+          status = gap <= 0.0001
+            ? ' <span class="text-emerald-400">&#10003; reached</span>'
+            : ` <span class="text-amber-400">${gap.toFixed(1)}${esc(unit)} to go</span>`;
+        }
+        lines.push(`<span class="text-slate-300">Target ${t.dir === 'lower' ? '&le;' : '&ge;'} ${esc(t.target)}${esc(unit)}</span>${status}`);
+      }
+      if (t.note) lines.push(`<span class="text-slate-400 italic">${esc(t.note)}</span>`);
+      if (!lines.length) return '';
+      return lines.map(l => `<div>${l}</div>`).join('');
+    }
+
+    function openTargetModal(key) {
+      const m = VIS_METRICS[key];
+      if (!m) return;
+      playSfx('click');
+      const t = getVisTarget(key);
+      document.getElementById('targetKey').value = key;
+      document.getElementById('targetModalTitle').innerText = `${m.label}: target & remark`;
+      document.getElementById('targetUnit').innerText = m.unit ? `(${m.unit})` : '';
+      document.getElementById('targetValue').value = isNum(t.target) ? t.target : '';
+      document.getElementById('targetDir').value = t.dir;
+      document.getElementById('targetNote').value = t.note || '';
+      document.getElementById('targetModal').classList.remove('hidden');
+    }
+    function closeTargetModal() { document.getElementById('targetModal').classList.add('hidden'); }
+    function saveVisTarget(e) {
+      e.preventDefault();
+      const key = document.getElementById('targetKey').value;
+      const raw = document.getElementById('targetValue').value;
+      const target = raw === '' ? null : Number(raw);
+      if (target !== null && !isFinite(target)) { showToast('Target must be a number.', 'warn'); return; }
+      const map = getVisTargetMap();
+      map[key] = { target, dir: document.getElementById('targetDir').value, note: document.getElementById('targetNote').value.trim() };
+      LS.set('vmt_vis_targets', map);
+      closeTargetModal();
+      playSfx('chime');
+      renderVisbodyReport();
+      renderDashboard();
+      showToast('Target saved');
+    }
+    function resetVisTarget() {
+      const key = document.getElementById('targetKey').value;
+      const map = getVisTargetMap();
+      delete map[key];
+      LS.set('vmt_vis_targets', map);
+      closeTargetModal();
+      renderVisbodyReport();
+      renderDashboard();
+      showToast('Back to the default');
+    }
+
+    /* ---- 3D scan link (v7.3): tidy pasted text, show what is saved, open it reliably ---- */
+    function cleanUrl(text) {
+      const m = String(text || '').match(/https?:\/\/[^\s"'<>]+/i);
+      return m ? m[0].replace(/[),.;]+$/, '') : '';
+    }
+    function currentVisbodyScan() {
       const date = document.getElementById('visbodyDateSelect').value;
-      const scan = appState.visbodyScans.find(s => s.date === date);
+      return appState.visbodyScans.find(s => s.date === date) || null;
+    }
+    function renderVisbodyLinkStatus(scan) {
+      const box = document.getElementById('visbodyLinkStatus');
+      const hint = document.getElementById('visbodyLinkHint');
+      if (!box || !hint) return;
+      if (!scan || !scan.webUrl) { box.classList.add('hidden'); hint.classList.add('hidden'); return; }
+      let shown = scan.webUrl, hasToken = true;
+      try {
+        const u = new URL(scan.webUrl);
+        hasToken = u.search.length > 1 || u.hash.length > 1;
+        shown = u.host + (u.pathname.length > 1 ? u.pathname : '') + (hasToken ? ' ...' : '');
+      } catch (err) { /* keep the raw text */ }
+      document.getElementById('visbodyLinkText').textContent = `Saved link: ${shown}`;
+      box.classList.remove('hidden');
+      hint.textContent = 'This link has nothing after the page address (no login token), so Visbody may ask you to sign in. Paste the full link from Visbody\'s share option instead.';
+      hint.classList.toggle('hidden', hasToken);
+    }
+    function openVisbody3dView() {
+      const scan = currentVisbodyScan();
       if (scan && scan.webUrl && /^https?:\/\//i.test(scan.webUrl)) {
-        window.open(scan.webUrl, '_blank', 'noopener');
+        const a = document.createElement('a');
+        a.href = scan.webUrl; a.target = '_blank'; a.rel = 'noopener noreferrer';
+        document.body.appendChild(a); a.click(); a.remove();
       } else {
         showToast('No web link saved for this scan date yet.', 'warn');
       }
     }
-
     async function saveVisbodyWebUrl() {
       const input = document.getElementById('visbodyWebUrlInput');
-      const url = input.value.trim();
-      const date = document.getElementById('visbodyDateSelect').value;
-      const scan = appState.visbodyScans.find(s => s.date === date);
+      const scan = currentVisbodyScan();
       if (!scan) { showToast('Add a scan first, then save its link.', 'warn'); return; }
-      if (!url) { showToast('Paste a link first.', 'warn'); return; }
-      scan.webUrl = url;
+      if (!input.value.trim()) { showToast('Paste a link first.', 'warn'); return; }
+      const url = cleanUrl(input.value);
+      if (!url) { showToast('No web address found in what you pasted.', 'warn'); return; }
+      scan.webUrl = url; // the whole address is kept as pasted, including everything after ? or #
       try {
         await dbPut('visbodyScans', scan);
         playSfx('chime');
         input.value = '';
+        renderVisbodyLinkStatus(scan);
         showToast('Web link saved');
       } catch (err) { showToast("Couldn't save the link", 'error'); }
+    }
+    async function copyVisbodyLink() {
+      const scan = currentVisbodyScan();
+      if (!scan || !scan.webUrl) return;
+      try { await navigator.clipboard.writeText(scan.webUrl); showToast('Link copied'); }
+      catch (err) { window.prompt('Copy this link', scan.webUrl); }
+    }
+    async function removeVisbodyLink() {
+      const scan = currentVisbodyScan();
+      if (!scan || !confirm('Remove the saved link for this scan?')) return;
+      scan.webUrl = null;
+      try { await dbPut('visbodyScans', scan); } catch (err) { showToast("Couldn't remove the link", 'error'); return; }
+      renderVisbodyLinkStatus(scan);
     }
 
     /* ---- Visbody PDF import ----
@@ -2085,11 +2454,18 @@
     /* ==========================================================================
        8. DEDICATED MOUNJARO TAB ENGINE
        ========================================================================== */
+    function suggestedMjSite() {
+      const last = appState.mjShots[appState.mjShots.length - 1];
+      return last && last.site === 'left_abdomen' ? 'right_abdomen' : 'left_abdomen';
+    }
+
     function renderMounjaroView() {
       // Pre-set fast AM scale date to today
       document.getElementById('fastAmScaleDate').value = localDateStr();
       if (!appState.currentMjEditId) document.getElementById('mjDateTime').value = localDateTimeStr();
-
+      // Suggest the opposite side from the last shot unless a site was picked by hand or a shot is being edited.
+      if (!appState.currentMjEditId && !appState.siteTouched) appState.selectedMjSite = suggestedMjSite();
+      initMjSiteGrid();
       renderMjHistoryList();
       renderMjActiveLevelChart();
     }
@@ -2097,7 +2473,10 @@
     function initMjSiteGrid() {
       const container = document.getElementById('mjSiteGrid');
       container.innerHTML = '';
-      MJ_SITES.forEach(site => {
+      const sites = [...MJ_SITES];
+      // Editing an old entry from a site that is no longer offered keeps that site visible and selected.
+      if (!sites.some(x => x.id === appState.selectedMjSite)) sites.push({ id: appState.selectedMjSite, label: mjSiteLabel(appState.selectedMjSite) });
+      sites.forEach(site => {
         const btn = document.createElement('button');
         btn.type = "button";
         btn.onclick = () => selectMjSite(site.id);
@@ -2109,10 +2488,16 @@
         `;
         container.appendChild(btn);
       });
+      const hint = document.getElementById('mjSiteHint');
+      if (hint) {
+        const last = appState.mjShots[appState.mjShots.length - 1];
+        hint.textContent = last ? `Last shot: ${mjSiteLabel(last.site)}. Alternating sides gives each spot time to recover.` : 'Alternate between left and right abdomen each week.';
+      }
     }
 
     function selectMjSite(siteId) {
       playSfx('click');
+      appState.siteTouched = true;
       appState.selectedMjSite = siteId;
       initMjSiteGrid();
     }
@@ -2172,10 +2557,13 @@
 
     function resetMjForm() {
       appState.currentMjEditId = null;
+      appState.siteTouched = false;
+      appState.selectedMjSite = suggestedMjSite();
       document.getElementById('mounjaroFormTitle').innerHTML = `<i class="fa-solid fa-syringe text-emerald-400"></i> Log Mounjaro Injection`;
       document.getElementById('cancelMjEditBtn').classList.add('hidden');
       document.getElementById('mounjaroForm').reset();
       document.getElementById('mjDateTime').value = localDateTimeStr();
+      initMjSiteGrid();
     }
 
     function renderMjHistoryList() {
@@ -2188,13 +2576,12 @@
       }
 
       appState.mjShots.slice().reverse().forEach(shot => {
-        const siteObj = MJ_SITES.find(s => s.id === shot.site) || { label: shot.site };
         const card = document.createElement('div');
         card.className = "p-3 bg-slate-800/80 rounded-xl border border-slate-700/80 flex justify-between items-center text-xs";
         card.innerHTML = `
           <div class="space-y-0.5">
             <div class="font-bold text-white flex items-center gap-2">
-              <span class="text-emerald-400">${shot.dose} mg</span> — ${siteObj.label}
+              <span class="text-emerald-400">${shot.dose} mg</span> — ${esc(mjSiteLabel(shot.site))}
             </div>
             <div class="text-[11px] text-slate-400">${shot.dateTime.replace('T', ' ')} • Appetite Rating: ${shot.appetite}/5</div>
             ${shot.notes ? `<div class="text-[10px] text-slate-400 italic">"${esc(shot.notes)}"</div>` : ''}
@@ -2224,7 +2611,7 @@
           labels,
           datasets: [{ label: 'Estimated Blood Level (mg)', data: activeLevels, borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.15)', fill: true, tension: 0.4 }]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: chartOpts({ ...NO_LEGEND, scales: { x: { ticks: { maxTicksLimit: 7 } } } }, 0)
       });
     }
 
@@ -2372,22 +2759,103 @@
       loadDailyLogForSelectedDate();
     }
 
+    /* ---- Editable core & posture circuit (v7.3) ---- */
+    let exerciseEditMode = false;
+
+    function getExercises() {
+      const saved = LS.get('vmt_exercises', null);
+      return Array.isArray(saved) ? saved : DEFAULT_EXERCISES.map(e => ({ ...e }));
+    }
+    function setExercises(list) { LS.set('vmt_exercises', list); }
+
+    function currentExerciseTicks() {
+      const state = {};
+      document.querySelectorAll('#exerciseChecklist [data-ex]').forEach(cb => { state[cb.dataset.ex] = cb.checked; });
+      return state;
+    }
+    function refreshExercises() { renderExerciseChecklist(currentExerciseTicks()); }
+
     function renderExerciseChecklist(state = {}) {
       const container = document.getElementById('exerciseChecklist');
       container.innerHTML = '';
+      const list = getExercises();
+      const editBtn = document.getElementById('exerciseEditBtn');
+      if (editBtn) editBtn.innerText = exerciseEditMode ? 'Done' : 'Edit';
+      const bar = document.getElementById('exerciseEditBar');
+      if (bar) bar.classList.toggle('hidden', !exerciseEditMode);
 
-      DEFAULT_EXERCISES.forEach(ex => {
-        const item = document.createElement('label');
-        item.className = "p-3 bg-slate-800/80 rounded-xl border border-slate-700 flex justify-between items-center gap-3 text-xs cursor-pointer";
+      if (!list.length) {
+        container.innerHTML = '<p class="text-[11px] text-slate-500">No routines yet. Tap “+ Add routine” to create one.</p>';
+        return;
+      }
+
+      list.forEach(ex => {
+        const item = document.createElement(exerciseEditMode ? 'div' : 'label');
+        item.className = "p-3 bg-slate-800/80 rounded-xl border border-slate-700 flex justify-between items-center gap-3 text-xs " + (exerciseEditMode ? '' : 'cursor-pointer');
+        // The tick box stays in the page (hidden while editing) so ticks are never lost when the list is redrawn.
         item.innerHTML = `
           <div class="min-w-0">
             <div class="font-bold text-white">${esc(ex.name)}</div>
-            <div class="text-[11px] text-slate-400">${esc(ex.target)}</div>
+            <div class="text-[11px] text-slate-400">${esc(ex.target || '')}</div>
           </div>
-          <input type="checkbox" data-ex="${ex.id}" ${state[ex.id] ? 'checked' : ''} onchange="saveDailyLogState()" class="w-5 h-5 flex-none rounded text-emerald-600 bg-slate-900 border-slate-700">
+          ${exerciseEditMode ? `<div class="flex items-center gap-1 flex-none">
+            <button type="button" data-id="${esc(ex.id)}" onclick="openExerciseModal(this.dataset.id)" aria-label="Edit ${esc(ex.name)}" class="p-2 text-cyan-400"><i class="fa-solid fa-pen"></i></button>
+            <button type="button" data-id="${esc(ex.id)}" onclick="deleteExercise(this.dataset.id)" aria-label="Remove ${esc(ex.name)}" class="p-2 text-rose-400"><i class="fa-solid fa-trash"></i></button>
+          </div>` : ''}
+          <input type="checkbox" data-ex="${esc(ex.id)}" ${state[ex.id] ? 'checked' : ''} onchange="saveDailyLogState()" class="${exerciseEditMode ? 'hidden ' : ''}w-5 h-5 flex-none rounded text-emerald-600 bg-slate-900 border-slate-700">
         `;
         container.appendChild(item);
       });
+    }
+
+    function toggleExerciseEdit() {
+      playSfx('click');
+      const state = currentExerciseTicks();
+      exerciseEditMode = !exerciseEditMode;
+      renderExerciseChecklist(state);
+    }
+    function openExerciseModal(id) {
+      playSfx('click');
+      const ex = id ? getExercises().find(x => x.id === id) : null;
+      document.getElementById('exerciseId').value = ex ? ex.id : '';
+      document.getElementById('exerciseName').value = ex ? ex.name : '';
+      document.getElementById('exerciseTarget').value = ex ? (ex.target || '') : '';
+      document.getElementById('exerciseModalTitle').innerText = ex ? 'Edit routine' : 'Add routine';
+      document.getElementById('exerciseModal').classList.remove('hidden');
+      setTimeout(() => document.getElementById('exerciseName').focus(), 50);
+    }
+    function closeExerciseModal() { document.getElementById('exerciseModal').classList.add('hidden'); }
+    function saveExercise(e) {
+      e.preventDefault();
+      const name = document.getElementById('exerciseName').value.trim();
+      if (!name) return;
+      const target = document.getElementById('exerciseTarget').value.trim();
+      const id = document.getElementById('exerciseId').value;
+      const list = getExercises();
+      if (id) {
+        const ex = list.find(x => x.id === id);
+        if (ex) { ex.name = name; ex.target = target; }
+      } else {
+        list.push({ id: `ex_${Date.now()}`, name, target });
+      }
+      setExercises(list);
+      closeExerciseModal();
+      playSfx('chime');
+      refreshExercises();
+      showToast(id ? 'Routine updated' : 'Routine added');
+    }
+    function deleteExercise(id) {
+      const ex = getExercises().find(x => x.id === id);
+      if (!ex || !confirm(`Remove “${ex.name}” from the circuit? Past ticks stay in your history.`)) return;
+      setExercises(getExercises().filter(x => x.id !== id));
+      playSfx('click');
+      refreshExercises();
+    }
+    function restoreDefaultExercises() {
+      if (!confirm('Replace your circuit with the original four routines?')) return;
+      try { localStorage.removeItem('vmt_exercises'); } catch (err) { /* ignore */ }
+      playSfx('click');
+      refreshExercises();
     }
 
     // Previously this only flashed "Saved ✓" and stored nothing. It now writes to the existing `dailyLogs` store.
@@ -2400,6 +2868,10 @@
       document.querySelectorAll('#exerciseChecklist [data-ex]').forEach(cb => { exercises[cb.dataset.ex] = cb.checked; });
       const stepsRaw = document.getElementById('dailySteps').value;
       const distRaw = document.getElementById('dailyDistance').value;
+      // Keep ticks for any routine or medication that is no longer on screen (removed or renamed).
+      const prev = await dbGet('dailyLogs', date);
+      const keepMeds = { ...((prev && prev.meds) || {}), ...meds };
+      const keepEx = { ...((prev && prev.exercises) || {}), ...exercises };
 
       try {
         await dbPut('dailyLogs', {
@@ -2407,8 +2879,8 @@
           isWorkoutDay: document.getElementById('dailyIsWorkoutDay').checked,
           steps: stepsRaw === '' ? null : Number(stepsRaw),
           distance: distRaw === '' ? null : Number(distRaw),
-          meds,
-          exercises,
+          meds: keepMeds,
+          exercises: keepEx,
           updatedAt: Date.now()
         });
         const toast = document.getElementById('dailySaveToast');
@@ -2425,9 +2897,26 @@
     let currentWaterMl = 0;
     let foodLoadSeq = 0;
 
+    /* ---- Water: manual amounts (v7.3) ---- */
+    const WATER_TARGET_ML = 2500;
     function updateWaterDisplay() {
-      document.getElementById('waterDisplay').innerText = `${currentWaterMl} ml`;
+      document.getElementById('waterDisplay').innerText = `${currentWaterMl.toLocaleString()} ml`;
+      const bar = document.getElementById('waterBar');
+      if (bar) bar.style.width = `${Math.min(100, (currentWaterMl / WATER_TARGET_ML) * 100)}%`;
     }
+    // sign = 1 adds the typed amount, -1 takes it off again (for a mistyped entry)
+    function addCustomWater(sign) {
+      const input = document.getElementById('waterCustomMl');
+      const ml = Math.round(Number(input.value));
+      if (!isFinite(ml) || ml <= 0) { showToast('Type an amount in ml first.', 'warn'); return; }
+      if (ml > 5000) { showToast('That is too much for one entry (max 5,000 ml).', 'warn'); return; }
+      playSfx('click');
+      currentWaterMl = Math.max(0, currentWaterMl + sign * ml);
+      updateWaterDisplay();
+      input.value = '';
+      saveFoodLogForDate(true);
+    }
+
 
     async function loadFoodLogForDate() {
       const input = document.getElementById('foodLogDate');
@@ -2532,42 +3021,102 @@
       });
     }
 
-    // Previously drew random numbers. Now plots your logged sugar and calories for the last 30 days.
+    // One metric at a time over 7 or 30 days, with the four averages doubling as the metric picker.
+    let foodSummary = { metric: 'sugar', days: 7 };
+    const FOOD_METRICS = {
+      sugar: { label: 'Added sugar', unit: 'g', color: '#f59e0b', target: 20, targetColor: '#f43f5e' },
+      calories: { label: 'Calories', unit: 'kcal', color: '#06b6d4', target: null },
+      fat: { label: 'Dietary fat', unit: 'g', color: '#a78bfa', target: null },
+      water: { label: 'Water', unit: 'ml', color: '#38bdf8', target: WATER_TARGET_ML, targetColor: '#10b981' }
+    };
+
+    function setFoodRange(days) {
+      playSfx('click');
+      foodSummary.days = days;
+      [7, 30].forEach(n => {
+        const b = document.getElementById(`foodRange-${n}`);
+        b.classList.toggle('bg-slate-800', n === days);
+        b.classList.toggle('text-cyan-400', n === days);
+        b.classList.toggle('text-slate-400', n !== days);
+      });
+      renderFoodTrendChart();
+    }
+    function setFoodMetric(metric) {
+      playSfx('click');
+      foodSummary.metric = metric;
+      renderFoodTrendChart();
+    }
+
     async function renderFoodTrendChart() {
       const logs = await dbGetAll('foodLogs');
       const byDate = new Map(logs.map(l => [l.date, l]));
       const today = localDateStr();
-      const days = Array.from({ length: 30 }, (_, i) => addDaysStr(today, i - 29));
-      const sugar = days.map(d => byDate.get(d)?.sugar ?? null);
-      const calories = days.map(d => byDate.get(d)?.calories ?? null);
+      const n = foodSummary.days;
+      const days = Array.from({ length: n }, (_, i) => addDaysStr(today, i - (n - 1)));
+      const valueOf = (d, key) => { const v = byDate.get(d)?.[key]; return isNum(v) && (key !== 'water' || v > 0) ? v : null; };
 
+      // Tiles: average per logged day for every metric; the active one is highlighted.
+      const keyOf = { sugar: 'sugar', calories: 'calories', fat: 'fat', water: 'water' };
+      const tiles = Object.entries(FOOD_METRICS).map(([id, m]) => {
+        const vals = days.map(d => valueOf(d, keyOf[id])).filter(v => v !== null);
+        const avg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+        let sub = vals.length ? `${vals.length} day${vals.length === 1 ? '' : 's'} logged` : 'No data';
+        if (vals.length && id === 'sugar') sub = `${vals.filter(v => v > m.target).length} of ${vals.length} over cap`;
+        if (vals.length && id === 'water') sub = `${vals.filter(v => v >= m.target).length} of ${vals.length} on target`;
+        const active = foodSummary.metric === id;
+        const shown = avg === null ? '—' : (id === 'sugar' || id === 'fat' ? avg.toFixed(1) : Math.round(avg).toLocaleString());
+        return `<button type="button" onclick="setFoodMetric('${id}')" aria-pressed="${active}" class="p-2.5 rounded-xl border text-left ${active ? 'bg-slate-800 border-accent' : 'bg-slate-900/60 border-slate-700'}">
+          <div class="text-[10px] text-slate-400">${m.label}</div>
+          <div class="text-base font-black text-white leading-tight">${shown} <span class="text-[10px] font-semibold text-slate-400">${m.unit}/day</span></div>
+          <div class="text-[10px] text-slate-400">${sub}</div>
+        </button>`;
+      });
+      const tilesEl = document.getElementById('foodSummaryTiles');
+      if (tilesEl) tilesEl.innerHTML = tiles.join('');
+
+      const m = FOOD_METRICS[foodSummary.metric];
+      const data = days.map(d => valueOf(d, foodSummary.metric));
+      const logged = data.filter(v => v !== null);
       const empty = document.getElementById('foodTrendEmpty');
-      if (empty) empty.classList.toggle('hidden', sugar.some(v => v != null) || calories.some(v => v != null));
+      if (empty) empty.classList.toggle('hidden', logged.length > 0);
+
+      const barColor = v => {
+        if (v === null) return m.color;
+        if (foodSummary.metric === 'sugar') return v > m.target ? '#f43f5e' : '#f59e0b';
+        if (foodSummary.metric === 'water') return v >= m.target ? '#10b981' : '#38bdf8';
+        return m.color;
+      };
+      const labels = days.map(d => n <= 7 ? `${WEEKDAYS[parseLocalDate(d).getDay()]} ${Number(d.slice(8))}` : shortDate(d));
+
+      const datasets = [{ type: 'bar', label: m.label, data, backgroundColor: data.map(barColor), borderRadius: 4, maxBarThickness: 28 }];
+      let caption = '';
+      if (m.target != null) {
+        datasets.push({ type: 'line', label: 'Target', data: Array(n).fill(m.target), borderColor: m.targetColor, borderDash: [5, 5], pointRadius: 0, borderWidth: 1.5 });
+        caption = foodSummary.metric === 'sugar'
+          ? 'Dashed line is the 20 g daily cap. Red bars went over it.'
+          : 'Dashed line is the 2,500 ml daily target. Green bars reached it.';
+      } else if (logged.length > 1) {
+        const avg = logged.reduce((a, b) => a + b, 0) / logged.length;
+        datasets.push({ type: 'line', label: 'Average', data: Array(n).fill(Math.round(avg * 10) / 10), borderColor: '#94a3b8', borderDash: [5, 5], pointRadius: 0, borderWidth: 1.5 });
+        caption = `Dashed line is your average on logged days (${Math.round(avg).toLocaleString()} ${m.unit}).`;
+      }
+      const cap = document.getElementById('foodChartCaption');
+      if (cap) cap.innerText = caption;
 
       createOrUpdateChart('chartFoodTrend', {
         type: 'bar',
-        data: {
-          labels: days.map(d => d.slice(5)),
-          datasets: [
-            { label: 'Added Sugar (g)', data: sugar, backgroundColor: '#f59e0b', yAxisID: 'y' },
-            { label: 'Sugar Cap (20g)', data: Array(30).fill(20), type: 'line', borderColor: '#f43f5e', borderDash: [5, 5], pointRadius: 0, yAxisID: 'y' },
-            { label: 'Calories (kcal)', data: calories, type: 'line', borderColor: '#06b6d4', tension: 0.3, pointRadius: 2, spanGaps: true, yAxisID: 'y1' }
-          ]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          scales: {
-            y: { beginAtZero: true },
-            y1: { position: 'right', grid: { drawOnChartArea: false } }
-          }
-        }
+        data: { labels, datasets },
+        options: chartOpts({
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true }, x: { ticks: { maxTicksLimit: n <= 7 ? 7 : 6 } } }
+        }, 0)
       });
     }
 
     /* ==========================================================================
        11. VIRTUAL ADVISOR TAB ENGINE
        ========================================================================== */
-    function mjSiteLabel(id) { return (MJ_SITES.find(s => s.id === id) || { label: id }).label; }
+    function mjSiteLabel(id) { return (MJ_SITES.find(s => s.id === id) || {}).label || MJ_LEGACY_SITES[id] || id; }
 
     function daysSince(dateTimeStr) {
       const t = new Date(dateTimeStr).getTime();
@@ -2685,45 +3234,245 @@
       document.getElementById('diagnosticOutputCard').classList.add('hidden');
     }
 
-    // Counts come from what you actually logged on the Food and Daily tabs this Monday to Sunday.
-    async function renderAdvisorScorecard() {
-      const container = document.getElementById('advisorTargetsList');
+    /* ==========================================================================
+       11b. WEEKLY SCORECARD (v7.3): score, per-target progress, and next-step suggestions
+       ========================================================================== */
+    const SCORE_TARGETS = { water: WATER_TARGET_ML, sugar: 20, steps: 8000, circuitDays: 3 };
+    let scoreWeekOffset = 0; // 0 = this week, -1 = last week, ...
+
+    function shiftScoreWeek(delta) {
+      playSfx('click');
+      scoreWeekOffset = Math.min(0, scoreWeekOffset + delta);
+      renderAdvisorScorecard();
+    }
+
+    // Medications marked "... only" in their schedule (e.g. weight days only) are not due on other days.
+    function medsDueOn(day, daily, meds) {
+      const rec = daily.get(day);
+      return meds.filter(m => !(/only/i.test(m.schedule || '') && !(rec && rec.isWorkoutDay)));
+    }
+
+    function scoreWeek(monday, ctx) {
+      const { food, daily, ams, shots, exercises, meds } = ctx;
       const today = localDateStr();
-      const monday = mondayOf(today);
-      const elapsed = Array.from({ length: 7 }, (_, i) => addDaysStr(monday, i)).filter(d => d <= today);
+      const week = Array.from({ length: 7 }, (_, i) => addDaysStr(monday, i));
+      const elapsed = week.filter(d => d <= today);
+      const pastDays = elapsed.filter(d => d < today).length;
+      const weekDone = week[6] < today;
+      const isCurrent = monday === mondayOf(today);
+      const ratioOf = (a, b) => (b > 0 ? a / b : null);
+      const items = [];
+      // A week with nothing logged at all has no score, rather than a misleading 0.
+      if (!week.some(d => food.has(d) || daily.has(d)) && !ams.some(a => week.includes(a.date))) return { items: [], score: null };
+      const foodLogged = d => { const r = food.get(d); return !!r && (r.calories != null || r.fat != null || r.sugar != null || (r.water || 0) > 0); };
 
-      const [foods, dailies] = await Promise.all([dbGetAll('foodLogs'), dbGetAll('dailyLogs')]);
-      const food = new Map(foods.map(f => [f.date, f]));
-      const daily = new Map(dailies.map(d => [d.date, d]));
-
-      const waterDays = elapsed.filter(d => (food.get(d)?.water || 0) >= 2500).length;
-      const sugarLogged = elapsed.filter(d => isNum(food.get(d)?.sugar));
-      const sugarOk = sugarLogged.filter(d => food.get(d).sugar <= 20).length;
-      const abDays = elapsed.filter(d => daily.get(d)?.exercises?.abroll).length;
-
-      const badge = document.getElementById('advisorScoreBadge');
-      if (badge) {
-        badge.className = 'text-xs font-black text-cyan-400 bg-cyan-950 px-2.5 py-1 rounded-lg border border-cyan-800/60';
-        badge.innerText = `Week of ${monday.slice(5)}`;
+      // Today only counts once it is already a success, so a half-finished day never drags the week down.
+      {
+        const pass = d => (food.get(d)?.water || 0) >= SCORE_TARGETS.water;
+        const eligible = elapsed.filter(d => d < today || pass(d));
+        const hit = eligible.filter(pass).length;
+        const vals = elapsed.map(d => food.get(d)?.water || 0).filter(v => v > 0);
+        const avg = vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null;
+        items.push({
+          id: 'water', label: 'Hydration', icon: 'fa-droplet', color: 'text-cyan-400', weight: 20,
+          ratio: ratioOf(hit, eligible.length), value: eligible.length ? `${hit} / ${eligible.length} days` : 'Too early',
+          detail: `Goal ${SCORE_TARGETS.water.toLocaleString()} ml a day.${avg !== null ? ` Average on logged days: ${avg.toLocaleString()} ml.` : ' Nothing logged yet.'}`,
+          tips: ['Keep a 500 ml bottle in sight and log each refill. Finishing one before lunch makes the rest of the day easier.',
+                 'Close. Front-load it: one bottle before lunch, one mid-afternoon, one with dinner.']
+        });
+      }
+      {
+        const logged = elapsed.filter(d => isNum(food.get(d)?.sugar));
+        const ok = logged.filter(d => food.get(d).sugar <= SCORE_TARGETS.sugar).length;
+        const avg = logged.length ? logged.reduce((a, d) => a + food.get(d).sugar, 0) / logged.length : null;
+        items.push({
+          id: 'sugar', label: 'Added sugar', icon: 'fa-cubes-stacked', color: 'text-amber-400', weight: 20,
+          ratio: ratioOf(ok, logged.length), value: logged.length ? `${ok} / ${logged.length} days` : 'No data',
+          detail: `Cap ${SCORE_TARGETS.sugar} g a day.${avg !== null ? ` Average on logged days: ${avg.toFixed(1)} g.` : ' Log sugar to see this.'}`,
+          tips: ['Start with drinks: swapping sweet ones for water or unsweetened options removes most added sugar for most people.',
+                 'Look at the day or two over the cap. Drinks, sauces and desserts are the usual culprits.']
+        });
+      }
+      {
+        const eligible = elapsed.filter(d => d < today || foodLogged(d));
+        const hit = eligible.filter(foodLogged).length;
+        items.push({
+          id: 'logging', label: 'Food logging', icon: 'fa-pen-to-square', color: 'text-emerald-400', weight: 10,
+          ratio: ratioOf(hit, eligible.length), value: eligible.length ? `${hit} / ${eligible.length} days` : 'Too early',
+          detail: 'Days with any food or water entry. Complete logs make every chart more trustworthy.',
+          tips: ['Log at the end of each day, even with rough numbers, so the trends can be trusted.',
+                 'Nearly there. A two-minute log before bed closes the gaps.']
+        });
+      }
+      if (exercises.length && (!isCurrent || weekDone || pastDays > 0)) {
+        const doneMap = d => daily.get(d)?.exercises || {};
+        const full = elapsed.filter(d => exercises.every(e => doneMap(d)[e.id])).length;
+        const partial = elapsed.filter(d => { const k = exercises.filter(e => doneMap(d)[e.id]).length; return k > 0 && k < exercises.length; }).length;
+        const needed = weekDone ? SCORE_TARGETS.circuitDays : Math.max(1, Math.ceil(SCORE_TARGETS.circuitDays * pastDays / 7));
+        items.push({
+          id: 'circuit', label: 'Core & posture circuit', icon: 'fa-person-running', color: 'text-indigo-400', weight: 20,
+          ratio: Math.min(1, (full + 0.5 * partial) / needed), value: `${full} full day${full === 1 ? '' : 's'}`,
+          detail: `Goal ${SCORE_TARGETS.circuitDays} full circuit days a week (${exercises.length} routine${exercises.length === 1 ? '' : 's'}).${partial ? ` ${partial} partial day${partial === 1 ? '' : 's'} count half.` : ''}`,
+          tips: [`Pick ${SCORE_TARGETS.circuitDays} circuit days now and put them in your calendar. On a busy day, even two routines keeps the habit alive.`,
+                 'Almost there. Choose your next circuit day today so it does not slip.']
+        });
+      }
+      {
+        const logged = elapsed.filter(d => isNum(daily.get(d)?.steps));
+        const hit = logged.filter(d => daily.get(d).steps >= SCORE_TARGETS.steps).length;
+        const avg = logged.length ? Math.round(logged.reduce((a, d) => a + daily.get(d).steps, 0) / logged.length) : null;
+        if (logged.length) items.push({
+          id: 'steps', label: 'Daily steps', icon: 'fa-shoe-prints', color: 'text-sky-400', weight: 10,
+          ratio: ratioOf(hit, logged.length), value: `${hit} / ${logged.length} days`,
+          detail: `Goal ${SCORE_TARGETS.steps.toLocaleString()} steps. Average on logged days: ${avg.toLocaleString()}.`,
+          tips: ['Add a 10 minute walk after lunch and after dinner; two short walks lift the daily average a lot.',
+                 'Close to target. One extra short walk a day would tip it over.']
+        });
+      }
+      {
+        let ticks = 0, total = 0;
+        elapsed.forEach(d => {
+          const due = medsDueOn(d, daily, meds);
+          const k = due.filter(m => daily.get(d)?.meds?.[m.id]).length;
+          if (d < today) { ticks += k; total += due.length; }
+          else if (due.length && k === due.length) { ticks += k; total += due.length; }
+        });
+        if (elapsed.some(d => daily.has(d)) && total) items.push({
+          id: 'meds', label: 'Medication checklist', icon: 'fa-pills', color: 'text-violet-400', weight: 10,
+          ratio: ratioOf(ticks, total), value: `${ticks} / ${total} ticked`,
+          detail: 'Share of due items ticked on finished days. Items marked “only” count on the days they apply.',
+          tips: ['Tick each item right after taking it and tie it to a fixed habit such as dinner. If you often miss doses, ask your pharmacist or prescriber what to do.',
+                 'A few unticked days. A phone reminder at the usual time usually fixes this.']
+        });
+      }
+      {
+        const am = ams.find(a => week.includes(a.date));
+        const tuesday = addDaysStr(monday, 1);
+        if (am) {
+          const before = ams.filter(a => a.date < am.date);
+          const prevAm = before.length ? before[before.length - 1] : null;
+          const delta = prevAm ? am.amWeight - prevAm.amWeight : null;
+          items.push({
+            id: 'weighin', label: 'AM weigh-in', icon: 'fa-weight-scale', color: 'text-cyan-400', weight: 10,
+            ratio: 1, value: 'Logged',
+            detail: `${am.amWeight.toFixed(1)} kg on ${shortDate(am.date)}${delta !== null ? ` (${delta > 0 ? '+' : ''}${delta.toFixed(1)} kg vs previous entry)` : ''}.`,
+            tips: []
+          });
+        } else if (today <= tuesday && isCurrent) {
+          items.push({ id: 'weighin', label: 'AM weigh-in', icon: 'fa-weight-scale', color: 'text-cyan-400', weight: 10, ratio: null, value: 'Due Tue', detail: 'Weigh in fasted on Tuesday morning so the trend stays comparable.', tips: [] });
+        } else {
+          items.push({
+            id: 'weighin', label: 'AM weigh-in', icon: 'fa-weight-scale', color: 'text-cyan-400', weight: 10,
+            ratio: 0, value: 'Missed', detail: 'No AM weight logged this week.',
+            tips: ['Weigh in fasted on the same scale after the bathroom, and log it straight away on the Mounjaro tab.']
+          });
+        }
+      }
+      // Information only (not scored): weekly injection timing.
+      if (shots.length) {
+        if (isCurrent) {
+          const last = shots[shots.length - 1];
+          const dd = daysSince(last.dateTime);
+          const lastDay = last.dateTime.slice(0, 10);
+          items.push({
+            id: 'injection', label: 'Mounjaro injection', icon: 'fa-syringe', color: 'text-emerald-400', weight: 0, ratio: null, info: true,
+            value: dd === null ? '—' : (dd === 0 ? 'Today' : `${dd} d ago`),
+            detail: `Last: ${last.dose} mg, ${mjSiteLabel(last.site)}. ${dd !== null && dd >= 7 ? 'A week or more has passed, so check your dosing schedule with your prescriber.' : `Next weekly dose is around ${shortDate(addDaysStr(lastDay, 7))}.`}`,
+            tips: []
+          });
+        } else {
+          const inWeek = shots.filter(s => week.includes(s.dateTime.slice(0, 10)));
+          items.push({ id: 'injection', label: 'Mounjaro injection', icon: 'fa-syringe', color: 'text-emerald-400', weight: 0, ratio: null, info: true,
+            value: `${inWeek.length} logged`, detail: inWeek.length ? inWeek.map(s => `${s.dose} mg, ${mjSiteLabel(s.site)}`).join('; ') + '.' : 'No injection logged this week.', tips: [] });
+        }
       }
 
-      const targets = [
-        { text: "Hit 2,500 ml water target daily", value: `${waterDays} / ${elapsed.length} days`, good: waterDays === elapsed.length },
-        { text: "Keep added sugar ≤ 20g daily", value: sugarLogged.length ? `${sugarOk} / ${sugarLogged.length} days logged` : 'No data yet', good: sugarLogged.length > 0 && sugarOk === sugarLogged.length },
-        { text: "Complete 150 Ab Roller reps on core days", value: `${abDays} day${abDays === 1 ? '' : 's'} this week`, good: abDays > 0 }
-      ];
+      const scored = items.filter(i => i.weight && i.ratio !== null);
+      const wsum = scored.reduce((a, i) => a + i.weight, 0);
+      const score = wsum ? Math.round((100 * scored.reduce((a, i) => a + i.weight * i.ratio, 0)) / wsum) : null;
+      return { items, score };
+    }
 
-      container.innerHTML = '';
-      targets.forEach(t => {
-        const pill = t.good ? 'text-emerald-400 bg-emerald-950 border-emerald-800/60' : 'text-cyan-400 bg-cyan-950 border-cyan-800/60';
-        const item = document.createElement('div');
-        item.className = "p-2.5 bg-slate-800/80 rounded-xl border border-slate-700 flex justify-between items-center gap-2 text-xs";
-        item.innerHTML = `
-          <span class="text-slate-300 font-medium">${t.text}</span>
-          <span class="text-[10px] font-bold ${pill} px-2 py-0.5 rounded-full border whitespace-nowrap">${t.value}</span>
-        `;
-        container.appendChild(item);
+    async function renderAdvisorScorecard() {
+      const [foods, dailies] = await Promise.all([dbGetAll('foodLogs'), dbGetAll('dailyLogs')]);
+      const ctx = {
+        food: new Map(foods.map(f => [f.date, f])),
+        daily: new Map(dailies.map(d => [d.date, d])),
+        ams: appState.amScaleLogs, shots: appState.mjShots,
+        exercises: getExercises(), meds: [...DEFAULT_MEDS, ...getCustomMeds()]
+      };
+      const monday = addDaysStr(mondayOf(localDateStr()), scoreWeekOffset * 7);
+      const cur = scoreWeek(monday, ctx);
+      const prev = scoreWeek(addDaysStr(monday, -7), ctx);
+
+      const badge = document.getElementById('advisorScoreBadge');
+      if (badge) badge.innerText = scoreWeekOffset === 0 ? 'This week' : `Week of ${shortDate(monday)}`;
+      const next = document.getElementById('scoreNextBtn');
+      if (next) { next.disabled = scoreWeekOffset === 0; next.classList.toggle('opacity-30', scoreWeekOffset === 0); }
+
+      const summary = document.getElementById('advisorScoreSummary');
+      const list = document.getElementById('advisorTargetsList');
+      const sugg = document.getElementById('advisorSuggestions');
+
+      if (cur.score === null) {
+        summary.innerHTML = `<p class="text-xs text-slate-400">Nothing to score for this week yet. Log water, food, your circuit or your AM weight and your score appears here.</p>`;
+        list.innerHTML = '';
+        sugg.innerHTML = '';
+        return;
+      }
+
+      const s = cur.score;
+      const tone = s >= 85 ? { c: '#10b981', t: 'Excellent week' } : s >= 70 ? { c: '#22d3ee', t: 'Solid week' } : s >= 50 ? { c: '#f59e0b', t: 'Building momentum' } : { c: '#f43f5e', t: 'Needs a reset' };
+      let delta = 'No earlier week to compare with yet.';
+      if (prev.score !== null) {
+        const d = s - prev.score;
+        delta = d === 0 ? 'Same as the week before.' : `${d > 0 ? '▲' : '▼'} ${Math.abs(d)} point${Math.abs(d) === 1 ? '' : 's'} vs the week before (${prev.score}).`;
+      }
+      const C = 2 * Math.PI * 34;
+      summary.innerHTML = `<div class="flex items-center gap-4">
+        <div class="relative w-20 h-20 flex-none">
+          <svg viewBox="0 0 80 80" class="w-20 h-20 -rotate-90" aria-hidden="true">
+            <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(148,163,184,0.18)" stroke-width="8"/>
+            <circle cx="40" cy="40" r="34" fill="none" stroke="${tone.c}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C * (1 - s / 100)).toFixed(1)}"/>
+          </svg>
+          <div class="absolute inset-0 flex items-center justify-center text-xl font-black text-white">${s}</div>
+        </div>
+        <div class="min-w-0">
+          <div class="text-sm font-bold text-white">${tone.t}${scoreWeekOffset === 0 ? ' <span class="text-[10px] font-medium text-slate-400">so far</span>' : ''}</div>
+          <div class="text-[11px] text-slate-400">${esc(delta)}</div>
+        </div>
+      </div>`;
+
+      list.innerHTML = '';
+      cur.items.forEach(it => {
+        const r = it.ratio;
+        const bar = r === null ? 'bg-slate-600' : r >= 0.85 ? 'bg-emerald-500' : r >= 0.6 ? 'bg-amber-500' : 'bg-rose-500';
+        const pill = r === null ? 'text-slate-300 bg-slate-900 border-slate-700' : r >= 0.85 ? 'text-emerald-400 bg-emerald-950 border-emerald-800/60' : r >= 0.6 ? 'text-amber-400 bg-amber-950/60 border-amber-800/60' : 'text-rose-400 bg-rose-950/60 border-rose-800/60';
+        const row = document.createElement('div');
+        row.className = 'p-2.5 bg-slate-800/80 rounded-xl border border-slate-700 space-y-1.5';
+        row.innerHTML = `
+          <div class="flex justify-between items-center gap-2 text-xs">
+            <span class="text-slate-200 font-medium min-w-0"><i class="fa-solid ${it.icon} ${it.color} mr-1.5"></i>${esc(it.label)}</span>
+            <span class="text-[10px] font-bold ${pill} px-2 py-0.5 rounded-full border whitespace-nowrap">${esc(it.value)}</span>
+          </div>
+          ${r === null ? '' : `<div class="h-1.5 rounded-full bg-slate-900 overflow-hidden"><div class="h-full rounded-full ${bar}" style="width:${Math.round(r * 100)}%"></div></div>`}
+          <div class="text-[11px] text-slate-400">${esc(it.detail)}</div>`;
+        list.appendChild(row);
       });
+
+      const weak = cur.items.filter(i => i.ratio !== null && i.ratio < 0.85 && i.tips.length).sort((a, b) => a.ratio - b.ratio).slice(0, 3);
+      const strong = cur.items.filter(i => i.ratio !== null && i.ratio >= 0.85 && i.weight);
+      let html = '';
+      if (weak.length) {
+        html += `<div class="p-3 rounded-xl border border-cyan-800/60 bg-cyan-950/20 space-y-2">
+          <div class="text-xs font-bold text-cyan-400 flex items-center gap-1.5"><i class="fa-solid fa-lightbulb"></i> ${scoreWeekOffset === 0 ? 'Focus for the rest of this week' : 'What would have helped'}</div>
+          ${weak.map(i => `<div class="text-[11px] text-slate-300 leading-relaxed"><span class="font-semibold text-white">${esc(i.label)}:</span> ${esc(i.ratio < 0.6 ? i.tips[0] : (i.tips[1] || i.tips[0]))}</div>`).join('')}
+        </div>`;
+      } else {
+        html += `<div class="p-3 rounded-xl border border-emerald-800/60 bg-emerald-950/20 text-[11px] text-emerald-300 leading-relaxed"><i class="fa-solid fa-circle-check mr-1"></i> Every scored target is on track. Keep the same routine going.</div>`;
+      }
+      if (strong.length) html += `<div class="text-[11px] text-slate-400 px-1"><span class="text-emerald-400 font-semibold">Going well:</span> ${strong.map(i => esc(i.label)).join(', ')}.</div>`;
+      sugg.innerHTML = html;
     }
 
     /* ==========================================================================
@@ -2732,7 +3481,7 @@
     function toggleSettingsDrawer(show) {
       playSfx('click');
       const drawer = document.getElementById('settingsDrawer');
-      if (show) drawer.classList.remove('hidden');
+      if (show) { drawer.classList.remove('hidden'); renderStyleGuide(); loadRefPhotos(); }
       else drawer.classList.add('hidden');
     }
 
@@ -2756,16 +3505,188 @@
       LS.set('vmt_prefs', prefs);
     }
 
-    const BACKUP_STORES = ['visbodyScans', 'amScaleLogs', 'mjShots', 'dailyLogs', 'foodLogs'];
+    /* ==========================================================================
+       12b. HAIRCUT & BEARD GUIDE (v7.3): drawn sketches + your own reference photos
+       ========================================================================== */
+    const HAIR_STYLES = [
+      { id: 'taper', name: 'Low Fade Taper', short: 'Low Taper', best: true,
+        tip: 'Sides tight (#1 to #2 guard) fading up. Moderate length on top, styled up to add height; height makes a rounder face read longer.' },
+      { id: 'quiff', name: 'Textured Quiff', short: 'Quiff',
+        tip: 'Short tapered sides with about 5 to 7 cm on top, brushed up and back with matte clay. The biggest height gain for a round face.' },
+      { id: 'sidepart', name: 'Side Part', short: 'Side Part',
+        tip: 'Neat office-friendly part with tapered sides. Keep the top slightly longer on the parted side to add an angle.' },
+      { id: 'crew', name: 'Crew Cut', short: 'Crew Cut',
+        tip: 'Lowest maintenance: short all over with a faded neckline. Pair it with a defined beard so the jawline looks sharper.' }
+    ];
+    const BEARD_STYLES = [
+      { id: 'clean', name: 'Clean-shaven', short: 'Clean',
+        tip: 'Shows the jawline change as you lose weight. Shave with the grain and keep the neckline tidy.' },
+      { id: 'stubble', name: 'Light Stubble', short: 'Stubble',
+        tip: 'Even 3 to 5 mm (about a #1 to #2 guard) with a clean cheek line. Low effort, and a tidy cheek and neck line keeps it looking deliberate.' },
+      { id: 'boxed', name: 'Short Boxed Beard', short: 'Boxed',
+        tip: 'Cheeks trimmed to a clean line, slightly fuller at the chin than the sides. Adds definition and lengthens a round face.' },
+      { id: 'anchor', name: 'Anchor / Goatee', short: 'Anchor',
+        tip: 'Chin-focused with a mustache and shaved cheeks. The strongest elongating effect of the four.' }
+    ];
+
+    // Layered SVG: backdrop, shirt, neck, ears, face, beard, features, hair. No ids, so many can sit on one page.
+    function faceSvg(hairId, beardId) {
+      const skin = '#e6b78f', skinShade = '#d29d74', hair = '#111827', hairHi = '#374151';
+      const sideFade = `<path d="M24 54 C23 62 23 68 25 72 L29 67 C28 62 28 58 28 52 Z" fill="${hair}" opacity="0.5"/>
+        <path d="M76 54 C77 62 77 68 75 72 L71 67 C72 62 72 58 72 52 Z" fill="${hair}" opacity="0.5"/>`;
+      const hairs = {
+        taper: `<path d="M25 52 C22 28 36 14 52 14 C68 14 79 28 75 52 C72 40 66 34 50 33 C36 34 29 40 25 52 Z" fill="${hair}"/>${sideFade}`,
+        quiff: `<path d="M24 52 C17 30 30 7 56 5 C79 5 85 27 76 52 C74 40 66 28 50 27 C36 28 28 40 24 52 Z" fill="${hair}"/>
+                <path d="M33 24 C45 10 63 10 74 21" stroke="${hairHi}" stroke-width="2" fill="none" stroke-linecap="round"/>${sideFade}`,
+        sidepart: `<path d="M25 52 C20 28 34 13 53 14 C71 14 80 28 75 52 C73 38 64 31 47 31 C37 32 29 38 25 52 Z" fill="${hair}"/>
+                <path d="M40 15 C38 21 36 27 34 33" stroke="${skinShade}" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                <path d="M44 17 C58 14 70 20 74 30" stroke="${hairHi}" stroke-width="2" fill="none" stroke-linecap="round"/>${sideFade}`,
+        crew: `<path d="M25 50 C24 30 36 21 50 21 C64 21 76 30 75 50 C72 41 64 37 50 36 C36 37 28 41 25 50 Z" fill="${hair}" opacity="0.92"/>${sideFade}`
+      };
+      const jaw = 'M23.5 64 C25 82 35 96 50 98 C65 96 75 82 76.5 64 C73 66 71 68 70 72 C66 80 60 79 56 79 L44 79 C40 79 34 80 30 72 C29 68 27 66 23.5 64 Z';
+      const mustache = 'M39 80 C43 75 57 75 61 80 C57 82.5 54 80.5 50 81 C46 80.5 43 82.5 39 80 Z';
+      const beards = {
+        clean: '',
+        stubble: `<path d="${jaw}" fill="${hair}" opacity="0.32"/><path d="${mustache}" fill="${hair}" opacity="0.32"/>`,
+        boxed: `<path d="${jaw}" fill="${hair}" opacity="0.96"/><path d="${mustache}" fill="${hair}"/>`,
+        anchor: `<path d="${mustache}" fill="${hair}"/>
+                 <path d="M40.5 82 C38.5 91 43 98 50 98 C57 98 61.5 91 59.5 82" stroke="${hair}" stroke-width="4" fill="none" stroke-linecap="round"/>
+                 <path d="M41 88 C41 95 45 98 50 98 C55 98 59 95 59 88 C55 91 45 91 41 88 Z" fill="${hair}"/>`
+      };
+      const mouthColor = beardId === 'boxed' || beardId === 'anchor' ? '#c27a68' : '#a85f50';
+      return `<svg viewBox="0 0 100 120" class="w-full h-full block" role="img" aria-label="Haircut and beard sketch" preserveAspectRatio="xMidYMid slice">
+        <rect width="100" height="120" fill="#52627a"/>
+        <path d="M6 120 C10 104 26 101 38 100 L62 100 C74 101 90 104 94 120 Z" fill="#2b3648"/>
+        <path d="M38 90 L38 106 Q50 114 62 106 L62 90 Z" fill="${skinShade}"/>
+        <ellipse cx="23.5" cy="62" rx="4" ry="7" fill="${skinShade}"/><ellipse cx="76.5" cy="62" rx="4" ry="7" fill="${skinShade}"/>
+        <path d="M50 24 C71 24 78 44 77 62 C76 82 66 96 50 98 C34 96 24 82 23 62 C22 44 29 24 50 24 Z" fill="${skin}"/>
+        ${beards[beardId] || ''}
+        <ellipse cx="40" cy="63" rx="2.6" ry="1.7" fill="${hair}"/><ellipse cx="60" cy="63" rx="2.6" ry="1.7" fill="${hair}"/>
+        <path d="M34.5 57 Q40 54 45.5 56.5" stroke="${hair}" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M54.5 56.5 Q60 54 65.5 57" stroke="${hair}" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M50 65 L48.3 75 Q50 77 53 75" stroke="${skinShade}" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M43.5 85.5 Q50 89 56.5 85.5" stroke="${mouthColor}" stroke-width="2" fill="none" stroke-linecap="round"/>
+        ${hairs[hairId] || ''}
+      </svg>`;
+    }
+
+    function pickStyle(kind, id) {
+      playSfx('click');
+      prefs[kind] = id;
+      LS.set('vmt_prefs', prefs);
+      renderStyleGuide();
+    }
+
+    function renderStyleGuide() {
+      const hairEl = document.getElementById('hairOptions');
+      if (!hairEl) return;
+      const hId = HAIR_STYLES.some(h => h.id === prefs.hair) ? prefs.hair : 'taper';
+      const bId = BEARD_STYLES.some(b => b.id === prefs.beard) ? prefs.beard : 'stubble';
+      const hair = HAIR_STYLES.find(h => h.id === hId), beard = BEARD_STYLES.find(b => b.id === bId);
+
+      const card = (kind, s, selected, svg) => `<button type="button" onclick="pickStyle('${kind}','${s.id}')" aria-pressed="${selected}" aria-label="${esc(s.name)}"
+        class="rounded-xl overflow-hidden border-2 ${selected ? 'border-accent' : 'border-slate-700'} bg-slate-800 text-center">
+        <div class="aspect-[5/6]">${svg}</div>
+        <div class="text-[10px] py-1 leading-tight ${selected ? 'text-white font-semibold' : 'text-slate-400'}">${esc(s.short)}</div>
+      </button>`;
+
+      hairEl.innerHTML = HAIR_STYLES.map(s => card('hair', s, s.id === hId, faceSvg(s.id, bId))).join('');
+      document.getElementById('beardOptions').innerHTML = BEARD_STYLES.map(s => card('beard', s, s.id === bId, faceSvg(hId, s.id))).join('');
+      document.getElementById('stylePreview').innerHTML = faceSvg(hId, bId);
+      document.getElementById('styleDetail').innerHTML = `
+        <div><div class="font-bold text-cyan-400">${esc(hair.name)}${hair.best ? ' <span class="text-[10px] font-semibold text-emerald-400">best fit</span>' : ''}</div>
+          <p class="text-[11px] text-slate-300 leading-snug">${esc(hair.tip)}</p></div>
+        <div><div class="font-bold text-indigo-300">${esc(beard.name)}</div>
+          <p class="text-[11px] text-slate-300 leading-snug">${esc(beard.tip)}</p></div>`;
+    }
+
+    /* ---- Reference photos (stored in IndexedDB on this device, shrunk first) ---- */
+    let refPhotos = [];
+    const REF_PHOTO_LIMIT = 20;
+
+    async function loadRefPhotos() {
+      refPhotos = (await dbGetAll('refPhotos')).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      renderRefPhotos();
+    }
+    function renderRefPhotos() {
+      const grid = document.getElementById('refPhotoGrid');
+      if (!grid) return;
+      grid.innerHTML = '';
+      refPhotos.forEach(p => {
+        const cell = document.createElement('div');
+        cell.className = 'relative aspect-square rounded-xl overflow-hidden border border-slate-700 bg-slate-800';
+        const img = document.createElement('img');
+        img.src = p.dataUrl; img.alt = 'Reference photo'; img.className = 'w-full h-full object-cover';
+        img.onclick = () => openPhotoViewer(p.id);
+        const del = document.createElement('button');
+        del.type = 'button'; del.setAttribute('aria-label', 'Delete photo');
+        del.className = 'absolute top-1 right-1 w-7 h-7 rounded-full bg-slate-950/80 text-rose-300 flex items-center justify-center';
+        del.innerHTML = '<i class="fa-solid fa-xmark text-xs"></i>';
+        del.onclick = () => deleteRefPhoto(p.id);
+        cell.append(img, del);
+        grid.appendChild(cell);
+      });
+    }
+    function resizeImageFile(file, max = 900, quality = 0.82) {
+      return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => {
+          const k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+          const c = document.createElement('canvas');
+          c.width = Math.max(1, Math.round(img.naturalWidth * k));
+          c.height = Math.max(1, Math.round(img.naturalHeight * k));
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          URL.revokeObjectURL(url);
+          resolve(c.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('decode')); };
+        img.src = url;
+      });
+    }
+    async function addRefPhoto(e) {
+      const input = e.target;
+      const file = input.files[0];
+      input.value = '';
+      if (!file) return;
+      if (refPhotos.length >= REF_PHOTO_LIMIT) { showToast(`You can keep up to ${REF_PHOTO_LIMIT} photos. Delete one first.`, 'warn'); return; }
+      try {
+        const dataUrl = await resizeImageFile(file);
+        await dbPut('refPhotos', { id: `ph_${Date.now()}`, dataUrl, createdAt: Date.now() });
+        playSfx('chime');
+        await loadRefPhotos();
+        showToast('Photo saved');
+      } catch (err) { showToast("Couldn't read that photo. Try a JPEG or PNG.", 'error'); }
+    }
+    async function deleteRefPhoto(id) {
+      if (!confirm('Delete this photo?')) return;
+      try {
+        const tx = db.transaction('refPhotos', 'readwrite');
+        tx.objectStore('refPhotos').delete(id);
+        await txDone(tx);
+      } catch (err) { showToast("Couldn't delete the photo", 'error'); return; }
+      await loadRefPhotos();
+    }
+    function openPhotoViewer(id) {
+      const p = refPhotos.find(x => x.id === id);
+      if (!p) return;
+      document.getElementById('photoViewerImg').src = p.dataUrl;
+      document.getElementById('photoViewer').classList.remove('hidden');
+    }
+    function closePhotoViewer() { document.getElementById('photoViewer').classList.add('hidden'); }
+
+    const BACKUP_STORES = ['visbodyScans', 'amScaleLogs', 'mjShots', 'dailyLogs', 'foodLogs', 'refPhotos'];
 
     async function buildBackupPayload() {
-      const [visbodyScans, amScaleLogs, mjShots, dailyLogs, foodLogs] = await Promise.all(BACKUP_STORES.map(s => dbGetAll(s)));
+      const [visbodyScans, amScaleLogs, mjShots, dailyLogs, foodLogs, refPhotos] = await Promise.all(BACKUP_STORES.map(s => dbGetAll(s)));
       return {
         app: 'visbody-mounjaro-tracker',
-        version: 7,
+        version: 8,
         exportedAt: new Date().toISOString(),
-        visbodyScans, amScaleLogs, mjShots, dailyLogs, foodLogs,
+        visbodyScans, amScaleLogs, mjShots, dailyLogs, foodLogs, refPhotos,
         customMeds: getCustomMeds(),
+        customExercises: LS.get('vmt_exercises', null),
+        visTargets: getVisTargetMap(),
         profile
       };
     }
@@ -2800,7 +3721,7 @@
       showToast('Backup file saved');
     }
 
-    const BACKUP_KEYS = { visbodyScans: 'date', amScaleLogs: 'date', mjShots: 'id', dailyLogs: 'date', foodLogs: 'date' };
+    const BACKUP_KEYS = { visbodyScans: 'date', amScaleLogs: 'date', mjShots: 'id', dailyLogs: 'date', foodLogs: 'date', refPhotos: 'id' };
 
     function validateBackup(imported) {
       if (!imported || typeof imported !== 'object') throw new Error('Not an object');
@@ -2835,6 +3756,8 @@
           await txDone(tx);
 
           if (Array.isArray(imported.customMeds)) LS.set('vmt_custom_meds', imported.customMeds);
+          if (Array.isArray(imported.customExercises)) LS.set('vmt_exercises', imported.customExercises);
+          if (imported.visTargets && typeof imported.visTargets === 'object') LS.set('vmt_vis_targets', imported.visTargets);
           if (imported.profile && typeof imported.profile === 'object') {
             profile = { ...DEFAULT_PROFILE, ...imported.profile };
             LS.set('vmt_profile', profile);
@@ -2861,7 +3784,7 @@
         BACKUP_STORES.forEach(st => tx.objectStore(st).clear());
         await txDone(tx);
       } catch (err) { showToast("Couldn't erase the data", 'error'); return; }
-      ['vmt_profile', 'vmt_prefs', 'vmt_custom_meds', 'onboardingDone'].forEach(k => { try { localStorage.removeItem(k); } catch (e) { /* ignore */ } });
+      ['vmt_profile', 'vmt_prefs', 'vmt_custom_meds', 'vmt_exercises', 'vmt_vis_targets', 'onboardingDone'].forEach(k => { try { localStorage.removeItem(k); } catch (e) { /* ignore */ } });
       location.reload();
     }
 
