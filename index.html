@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Visbody & Mounjaro Personal Tracker</title>
+  <title>VM Tracker</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#0f172a">
@@ -12,8 +12,28 @@
   <meta name="color-scheme" content="dark">
   <meta name="description" content="Personal Visbody scan and Mounjaro tracker. Works offline once installed.">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon-v2.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="apple-touch-icon-167-v2.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="apple-touch-icon-152-v2.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <script>
+    /* Safety net for the Add to Home Screen icon: if the icon file can't be reached (wrong folder, 404),
+       swap in an embedded copy so iOS never falls back to a plain letter tile. */
+    (function () {
+      var EMBED = 'data:image/png;base64,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';
+      function useEmbedded() {
+        var links = document.querySelectorAll('link[rel="apple-touch-icon"]');
+        for (var i = 0; i < links.length; i++) {
+          if (i === 0) { links[i].removeAttribute('sizes'); links[i].href = EMBED; } else { links[i].parentNode.removeChild(links[i]); }
+        }
+      }
+      try {
+        fetch('apple-touch-icon-v2.png', { method: 'HEAD', cache: 'no-store' })
+          .then(function (r) { if (!r.ok) useEmbedded(); })
+          .catch(function () { if (navigator.onLine) useEmbedded(); });
+      } catch (e) { /* ignore */ }
+    })();
+  </script>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
@@ -176,7 +196,7 @@
         <div>
           <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-1.5">
             <span>Visbody & Mounjaro</span>
-            <span class="text-xs font-normal text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded-full border border-cyan-800/60">v7.3</span>
+            <span class="text-xs font-normal text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded-full border border-cyan-800/60">v8.0</span>
           </h1>
           <p id="headerSubtitle" class="text-xs text-slate-400">Personal tracker</p>
         </div>
@@ -187,6 +207,9 @@
         <div id="syncBadge" class="hidden sm:flex items-center text-[10px] text-emerald-400 bg-emerald-950/80 px-2 py-1 rounded-full border border-emerald-800/50">
           <i class="fa-solid font-bold text-[8px] mr-1">●</i> IndexedDB
         </div>
+        <button aria-label="Open size predictor" onclick="toggleSettingsDrawer(true)" class="p-2.5 rounded-xl bg-slate-800/80 text-amber-400 hover:text-amber-300 hover:bg-slate-700 transition touch-target">
+          <i class="fa-solid fa-shirt text-base"></i>
+        </button>
         <button id="openSettingsBtn" aria-label="Open settings" onclick="toggleSettingsDrawer(true)" class="p-2.5 rounded-xl bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700 transition touch-target">
           <i class="fa-solid fa-sliders text-base"></i>
         </button>
@@ -749,19 +772,53 @@
               <input type="date" id="foodLogDate" onchange="loadFoodLogForDate()" class="bg-slate-800 border border-slate-700 text-white text-xs rounded-xl px-3 py-2 w-full sm:w-auto">
             </div>
 
-            <!-- Macros & Intake Inputs -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div>
-                <label class="text-[11px] text-slate-400 block mb-1">Total Calories (kcal)</label>
-                <input type="number" inputmode="numeric" id="foodCalories" onchange="saveFoodLogForDate()" placeholder="e.g. 1800" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+            <!-- Day totals (sum of everything logged today) -->
+            <div class="grid grid-cols-3 gap-2 text-center">
+              <div class="p-2.5 bg-slate-800/80 rounded-xl border border-slate-700">
+                <div class="text-[10px] text-slate-400">Calories</div>
+                <div id="foodTotalCal" class="text-base font-bold text-white">&ndash;</div>
+                <div class="text-[10px] text-slate-500">kcal</div>
               </div>
-              <div>
-                <label class="text-[11px] text-slate-400 block mb-1">Dietary Fat (g)</label>
-                <input type="number" inputmode="decimal" step="0.1" min="0" id="foodFat" onchange="saveFoodLogForDate()" placeholder="Keep single meal < 30%" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+              <div class="p-2.5 bg-slate-800/80 rounded-xl border border-slate-700">
+                <div class="text-[10px] text-slate-400">Fat</div>
+                <div id="foodTotalFat" class="text-base font-bold text-white">&ndash;</div>
+                <div class="text-[10px] text-slate-500">g</div>
               </div>
-              <div>
-                <label class="text-[11px] text-slate-400 block mb-1">Added Sugar (g) — Cap ≤ 20g</label>
-                <input type="number" inputmode="decimal" step="0.1" min="0" id="foodSugar" onchange="saveFoodLogForDate()" placeholder="≤ 20g daily target" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+              <div class="p-2.5 bg-slate-800/80 rounded-xl border border-slate-700">
+                <div class="text-[10px] text-slate-400">Added sugar</div>
+                <div id="foodTotalSugar" class="text-base font-bold text-white">&ndash;</div>
+                <div class="text-[10px] text-slate-500">of 20 g cap</div>
+              </div>
+            </div>
+            <div class="h-1.5 rounded-full bg-slate-800 overflow-hidden"><div id="sugarBar" class="h-full rounded-full bg-amber-400" style="width:0%"></div></div>
+
+            <!-- Add as you go, or type the whole day at once -->
+            <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 space-y-3">
+              <div class="flex bg-slate-950 p-0.5 rounded-lg border border-slate-800 text-[11px] font-semibold">
+                <button type="button" id="foodMode-add" onclick="switchFoodMode('add')" class="flex-1 py-1.5 rounded-md bg-slate-800 text-cyan-400">Add as I go</button>
+                <button type="button" id="foodMode-total" onclick="switchFoodMode('total')" class="flex-1 py-1.5 rounded-md text-slate-400">Enter day total</button>
+              </div>
+
+              <div id="foodAddPane" class="space-y-2">
+                <input type="text" id="foodItemLabel" maxlength="40" placeholder="What was it? (optional, e.g. Lunch)" onkeydown="if(event.key==='Enter'){event.preventDefault();addFoodEntry();}" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+                <div class="grid grid-cols-3 gap-2">
+                  <input type="number" inputmode="numeric" min="0" id="foodItemCal" placeholder="kcal" aria-label="Calories to add" onkeydown="if(event.key==='Enter'){event.preventDefault();addFoodEntry();}" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+                  <input type="number" inputmode="decimal" step="0.1" min="0" id="foodItemFat" placeholder="fat g" aria-label="Fat to add in grams" onkeydown="if(event.key==='Enter'){event.preventDefault();addFoodEntry();}" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+                  <input type="number" inputmode="decimal" step="0.1" min="0" id="foodItemSugar" placeholder="sugar g" aria-label="Added sugar to add in grams" onkeydown="if(event.key==='Enter'){event.preventDefault();addFoodEntry();}" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+                </div>
+                <button type="button" onclick="addFoodEntry()" class="w-full bg-slate-800 hover:bg-slate-700 text-cyan-400 font-semibold text-xs py-2 rounded-xl border border-slate-700">+ Add to today</button>
+                <div id="foodRecent" class="flex flex-wrap gap-1.5"></div>
+                <div id="foodEntryList" class="space-y-1.5"></div>
+              </div>
+
+              <div id="foodTotalPane" class="hidden space-y-2">
+                <p class="text-[11px] text-slate-400">Already know the whole day? Type the totals. This replaces anything added above for this date.</p>
+                <div class="grid grid-cols-3 gap-2">
+                  <input type="number" inputmode="numeric" min="0" id="foodDirCal" placeholder="kcal" aria-label="Total calories for the day" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+                  <input type="number" inputmode="decimal" step="0.1" min="0" id="foodDirFat" placeholder="fat g" aria-label="Total fat for the day in grams" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+                  <input type="number" inputmode="decimal" step="0.1" min="0" id="foodDirSugar" placeholder="sugar g" aria-label="Total added sugar for the day in grams" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+                </div>
+                <button type="button" onclick="saveDirectFoodTotal()" class="w-full bg-slate-800 hover:bg-slate-700 text-cyan-400 font-semibold text-xs py-2 rounded-xl border border-slate-700">Save day total</button>
               </div>
             </div>
 
@@ -958,62 +1015,48 @@
       <div class="drawer-panel w-full max-w-md bg-slate-900 h-full overflow-y-auto p-5 space-y-6 border-l border-slate-800 shadow-2xl">
         <div class="flex justify-between items-center border-b border-slate-800 pb-3">
           <h2 class="text-base font-bold text-white flex items-center gap-2">
-            <i class="fa-solid fa-sliders text-cyan-400"></i> Style & App Settings
+            <i class="fa-solid fa-shirt text-cyan-400"></i> Size Predictor & Settings
           </h2>
           <button onclick="toggleSettingsDrawer(false)" class="p-2 text-slate-400 hover:text-white rounded-xl bg-slate-800">
             <i class="fa-solid fa-xmark text-sm"></i>
           </button>
         </div>
 
-        <!-- Asian / Malaysian Apparel Sizing Predictor -->
-        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
-          <h3 class="text-xs font-bold text-white flex items-center gap-2">
-            <i class="fa-solid fa-shirt text-amber-400"></i> Asian Sizing Predictor (Visbody Derived)
-          </h3>
-          <div class="grid grid-cols-3 gap-2 text-center text-xs">
-            <div class="p-2 bg-slate-800 rounded-xl border border-slate-700">
-              <span class="text-[10px] text-slate-400 block">T-Shirts</span>
-              <span id="sizeTshirt" class="font-bold text-white">—</span>
-            </div>
-            <div class="p-2 bg-slate-800 rounded-xl border border-slate-700">
-              <span class="text-[10px] text-slate-400 block">Shirts</span>
-              <span id="sizeShirt" class="font-bold text-white">—</span>
-            </div>
-            <div class="p-2 bg-slate-800 rounded-xl border border-slate-700">
-              <span class="text-[10px] text-slate-400 block">Pants/Chinos</span>
-              <span id="sizePants" class="font-bold text-white">—</span>
-            </div>
+        <!-- Asian Size Predictor (Visbody derived) -->
+        <div id="sizeSection" class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
+          <div class="flex items-start justify-between gap-2">
+            <h3 class="text-xs font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-shirt text-amber-400"></i> Asian Size Predictor
+            </h3>
+            <span id="sizeScanDate" class="text-[10px] text-slate-500 text-right"></span>
           </div>
-        </div>
+          <div id="sizeMeasures" class="grid grid-cols-4 gap-1.5 text-center"></div>
+          <div id="sizeCards" class="space-y-2"></div>
+          <div id="sizeNotes" class="space-y-1.5"></div>
 
-        <!-- Haircut & Beard Framing Selector -->
-        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
-          <h3 class="text-xs font-bold text-white flex items-center gap-2">
-            <i class="fa-solid fa-scissors text-indigo-400"></i> Haircut & Beard Framing Guide
-          </h3>
-          <p class="text-[11px] text-slate-400">Optimized for round-to-oval face slimming during weight loss. Tap a haircut and a beard to preview the combination.</p>
-          <div class="flex gap-3 items-start">
-            <div id="stylePreview" class="w-28 h-32 flex-none rounded-2xl overflow-hidden border border-slate-700"></div>
-            <div id="styleDetail" class="min-w-0 space-y-2 text-xs"></div>
-          </div>
-          <div>
-            <div class="text-[11px] font-semibold text-slate-300 mb-1.5">Haircut</div>
-            <div id="hairOptions" class="grid grid-cols-4 gap-2"></div>
-          </div>
-          <div>
-            <div class="text-[11px] font-semibold text-slate-300 mb-1.5">Beard</div>
-            <div id="beardOptions" class="grid grid-cols-4 gap-2"></div>
-          </div>
           <div class="pt-3 border-t border-slate-800 space-y-2">
-            <div class="flex items-center justify-between">
-              <div class="text-[11px] font-semibold text-slate-300">My reference photos</div>
-              <label class="text-[11px] text-cyan-400 cursor-pointer font-medium">+ Add photo
-                <input type="file" accept="image/*" onchange="addRefPhoto(event)" class="hidden">
-              </label>
+            <div class="text-[11px] font-semibold text-slate-300">Fit you like</div>
+            <div class="flex bg-slate-950 p-0.5 rounded-lg border border-slate-800 text-[11px] font-semibold">
+              <button type="button" id="sizeFit-fitted" onclick="setSizeFit('fitted')" class="flex-1 py-1.5 rounded-md text-slate-400">Fitted</button>
+              <button type="button" id="sizeFit-regular" onclick="setSizeFit('regular')" class="flex-1 py-1.5 rounded-md text-slate-400">Regular</button>
+              <button type="button" id="sizeFit-relaxed" onclick="setSizeFit('relaxed')" class="flex-1 py-1.5 rounded-md text-slate-400">Relaxed</button>
             </div>
-            <p class="text-[11px] text-slate-500">The sketches above are simple guides. Save real barber or inspiration photos from your camera roll here; they stay on this device.</p>
-            <div id="refPhotoGrid" class="grid grid-cols-3 gap-2"></div>
+
+            <div class="text-[11px] font-semibold text-slate-300 pt-1">Calibrate to what fits you now</div>
+            <div class="grid grid-cols-2 gap-2">
+              <input type="number" inputmode="decimal" step="1" min="24" max="50" id="sizeCalPants" placeholder="Pants waist (in), e.g. 34" aria-label="Pants waist size that fits you now, in inches" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+              <select id="sizeCalTop" aria-label="T-shirt size that fits you now" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+                <option value="">T-shirt size now</option>
+                <option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option><option>2XL</option><option>3XL</option><option>4XL</option><option>5XL</option>
+              </select>
+            </div>
+            <div class="flex gap-2">
+              <button type="button" onclick="calibrateSizes()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-cyan-400 font-semibold text-xs py-2 rounded-xl border border-slate-700">Calibrate to latest scan</button>
+              <button type="button" onclick="clearSizeCal()" class="px-3 bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs rounded-xl border border-slate-700">Clear</button>
+            </div>
+            <p class="text-[11px] text-slate-500">Enter the sizes you wear today and tap Calibrate. The predictor then works out how your clothes sit on your body and projects every future size from that.</p>
           </div>
+          <p class="text-[10px] text-slate-500">Built on a common Asian-sizing body chart (cm). Brands vary by about one size, so treat results as a guide and check each product's own size chart.</p>
         </div>
 
         <!-- Theme & Audio Controls -->
@@ -1196,11 +1239,6 @@
     </form>
   </div>
 
-  <!-- REFERENCE PHOTO VIEWER -->
-  <div id="photoViewer" onclick="closePhotoViewer()" class="fixed inset-0 z-50 bg-black/90 hidden flex items-center justify-center p-4">
-    <img id="photoViewerImg" alt="Reference photo" class="max-h-full max-w-full rounded-xl">
-  </div>
-
   <!-- TOASTS (replace blocking alert popups) -->
   <div id="toastHost" aria-live="polite" class="fixed left-0 right-0 z-[60] pointer-events-none flex justify-center px-4" style="bottom: calc(env(safe-area-inset-bottom) + 5.25rem);"></div>
 
@@ -1224,7 +1262,7 @@
 
     function initDB() {
       return new Promise((resolve, reject) => {
-        const request = indexedDB.open(DB_NAME, 2);
+        const request = indexedDB.open(DB_NAME, 3);
         request.onupgradeneeded = (e) => {
           const dbRef = e.target.result;
           if (!dbRef.objectStoreNames.contains("visbodyScans")) {
@@ -1242,8 +1280,9 @@
           if (!dbRef.objectStoreNames.contains("foodLogs")) {
             dbRef.createObjectStore("foodLogs", { keyPath: "date" });
           }
-          if (!dbRef.objectStoreNames.contains("refPhotos")) {
-            dbRef.createObjectStore("refPhotos", { keyPath: "id" });
+          // reference photos belonged to the removed haircut guide
+          if (dbRef.objectStoreNames.contains("refPhotos")) {
+            dbRef.deleteObjectStore("refPhotos");
           }
         };
         request.onsuccess = (e) => {
@@ -1367,11 +1406,12 @@
     /* ---- Profile & preferences (previously lost on every reload) ---- */
     const DEFAULT_PROFILE = { name: '', height: '', startWeight: '', targetWeight: '' };
     let profile = { ...DEFAULT_PROFILE };
-    let prefs = { sfx: true, accent: 'accent-cyan', hair: 'taper', beard: 'stubble' };
+    let prefs = { sfx: true, accent: 'accent-cyan', fit: 'regular', sizeCal: null };
 
     function loadProfileAndPrefs() {
       profile = { ...DEFAULT_PROFILE, ...(LS.get('vmt_profile', {}) || {}) };
-      prefs = { sfx: true, accent: 'accent-cyan', hair: 'taper', beard: 'stubble', ...(LS.get('vmt_prefs', {}) || {}) };
+      prefs = { sfx: true, accent: 'accent-cyan', fit: 'regular', sizeCal: null, ...(LS.get('vmt_prefs', {}) || {}) };
+      delete prefs.hair; delete prefs.beard; // removed with the haircut guide
     }
 
     function applyProfileAndPrefs() {
@@ -1380,7 +1420,7 @@
       const sfx = document.getElementById('settingSfxToggle');
       if (sfx) sfx.checked = !!prefs.sfx;
       applyAccent(prefs.accent);
-      renderStyleGuide();
+      renderSizePredictor();
     }
 
     function savePreferences() {
@@ -2918,6 +2958,143 @@
     }
 
 
+    /* ---- Food: add as you go (like water) or type the day's total (v8) ----
+       A day is saved as { date, calories, fat, sugar, water, entries[], baseCalories, baseFat, baseSugar }.
+       calories/fat/sugar are always the day's totals (base total + every entry), so charts and the advisor keep working. */
+    const SUGAR_CAP_G = 20;
+    let foodEntries = [];
+    let foodBase = { calories: null, fat: null, sugar: null };
+    let foodMode = 'add';
+
+    function foodSum(key) {
+      const vals = foodEntries.map(e => e[key]).filter(isNum);
+      const hasBase = isNum(foodBase[key]);
+      if (!vals.length && !hasBase) return null;
+      return Math.round(((hasBase ? foodBase[key] : 0) + vals.reduce((a, b) => a + b, 0)) * 10) / 10;
+    }
+    const foodTotals = () => ({ calories: foodSum('calories'), fat: foodSum('fat'), sugar: foodSum('sugar') });
+    const fmtFood = v => v === null ? '\u2013' : Number(v).toLocaleString(undefined, { maximumFractionDigits: 1 });
+
+    function renderFoodDay() {
+      const t = foodTotals();
+      document.getElementById('foodTotalCal').innerText = fmtFood(t.calories);
+      document.getElementById('foodTotalFat').innerText = fmtFood(t.fat);
+      const sugarEl = document.getElementById('foodTotalSugar');
+      sugarEl.innerText = fmtFood(t.sugar);
+      sugarEl.className = `text-base font-bold ${isNum(t.sugar) && t.sugar > SUGAR_CAP_G ? 'text-rose-400' : 'text-white'}`;
+      const bar = document.getElementById('sugarBar');
+      bar.style.width = `${Math.min(100, ((t.sugar || 0) / SUGAR_CAP_G) * 100)}%`;
+      bar.className = `h-full rounded-full ${isNum(t.sugar) && t.sugar > SUGAR_CAP_G ? 'bg-rose-500' : 'bg-amber-400'}`;
+
+      // Prefill the day-total boxes with what is logged so far
+      document.getElementById('foodDirCal').value = t.calories ?? '';
+      document.getElementById('foodDirFat').value = t.fat ?? '';
+      document.getElementById('foodDirSugar').value = t.sugar ?? '';
+
+      const list = document.getElementById('foodEntryList');
+      const parts = [];
+      if (isNum(foodBase.calories) || isNum(foodBase.fat) || isNum(foodBase.sugar)) {
+        parts.push({ label: 'Day total entered', time: '', vals: foodBase, base: true });
+      }
+      foodEntries.forEach(e => parts.push({ label: e.label || 'Added', time: e.t ? new Date(e.t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '', vals: e, id: e.id }));
+      list.innerHTML = parts.length ? parts.map(p => {
+        const bits = [];
+        if (isNum(p.vals.calories)) bits.push(`${fmtFood(p.vals.calories)} kcal`);
+        if (isNum(p.vals.fat)) bits.push(`${fmtFood(p.vals.fat)} g fat`);
+        if (isNum(p.vals.sugar)) bits.push(`${fmtFood(p.vals.sugar)} g sugar`);
+        return `<div class="flex items-center gap-2 p-2 bg-slate-800/60 rounded-lg border border-slate-800 text-[11px]">
+          <div class="min-w-0 flex-1"><div class="text-slate-200 truncate">${esc(p.label)}${p.time ? ` <span class="text-slate-500">${esc(p.time)}</span>` : ''}</div>
+          <div class="text-slate-400">${bits.join(' \u00b7 ') || '&ndash;'}</div></div>
+          <button type="button" aria-label="Remove this entry" onclick="${p.base ? 'removeFoodBase()' : `removeFoodEntry('${p.id}')`}" class="flex-none p-1.5 text-slate-500 hover:text-rose-400"><i class="fa-solid fa-trash text-[11px]"></i></button>
+        </div>`;
+      }).join('') : `<p class="text-[11px] text-slate-500">Nothing added for this day yet. Add each meal or snack and the day total builds up here.</p>`;
+      renderFoodRecent();
+    }
+
+    function switchFoodMode(mode) {
+      playSfx('click');
+      foodMode = mode;
+      document.getElementById('foodAddPane').classList.toggle('hidden', mode !== 'add');
+      document.getElementById('foodTotalPane').classList.toggle('hidden', mode !== 'total');
+      const on = ['bg-slate-800', 'text-cyan-400'], off = ['text-slate-400'];
+      const a = document.getElementById('foodMode-add'), t = document.getElementById('foodMode-total');
+      a.classList.remove(...on, ...off); t.classList.remove(...on, ...off);
+      (mode === 'add' ? a : t).classList.add(...on);
+      (mode === 'add' ? t : a).classList.add(...off);
+    }
+
+    function readFoodNum(id, max) {
+      const raw = document.getElementById(id).value;
+      if (raw === '') return null;
+      const v = Number(raw);
+      if (!isFinite(v) || v < 0 || v > max) return NaN;
+      return Math.round(v * 10) / 10;
+    }
+
+    function addFoodEntry(prefill) {
+      const label = prefill ? prefill.label : (document.getElementById('foodItemLabel').value || '').trim();
+      const cal = prefill ? prefill.calories : readFoodNum('foodItemCal', 5000);
+      const fat = prefill ? prefill.fat : readFoodNum('foodItemFat', 500);
+      const sugar = prefill ? prefill.sugar : readFoodNum('foodItemSugar', 500);
+      if ([cal, fat, sugar].some(Number.isNaN)) { showToast('Check the numbers. They must be 0 or more and realistic for one entry.', 'warn'); return; }
+      if (cal === null && fat === null && sugar === null) { showToast('Type calories, fat or sugar first.', 'warn'); return; }
+      playSfx('click');
+      foodEntries.push({ id: `f_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`, t: Date.now(), label, calories: cal, fat, sugar });
+      if (!prefill) ['foodItemLabel', 'foodItemCal', 'foodItemFat', 'foodItemSugar'].forEach(id => { document.getElementById(id).value = ''; });
+      renderFoodDay();
+      saveFoodLogForDate(true);
+    }
+
+    function removeFoodEntry(id) {
+      foodEntries = foodEntries.filter(e => e.id !== id);
+      renderFoodDay();
+      saveFoodLogForDate(true);
+    }
+    function removeFoodBase() {
+      foodBase = { calories: null, fat: null, sugar: null };
+      renderFoodDay();
+      saveFoodLogForDate(true);
+    }
+
+    function saveDirectFoodTotal() {
+      const cal = readFoodNum('foodDirCal', 20000), fat = readFoodNum('foodDirFat', 2000), sugar = readFoodNum('foodDirSugar', 2000);
+      if ([cal, fat, sugar].some(Number.isNaN)) { showToast('Check the numbers. They must be 0 or more.', 'warn'); return; }
+      if (cal === null && fat === null && sugar === null) { showToast('Type at least one total first.', 'warn'); return; }
+      if (foodEntries.length && !confirm(`This replaces the ${foodEntries.length} item${foodEntries.length > 1 ? 's' : ''} added for this day with your totals. Continue?`)) return;
+      foodEntries = [];
+      foodBase = { calories: cal, fat, sugar };
+      playSfx('chime');
+      renderFoodDay();
+      saveFoodLogForDate(true);
+      showToast('Day total saved');
+    }
+
+    // One-tap chips for the things you add most often (built from your own labelled entries)
+    async function renderFoodRecent() {
+      const host = document.getElementById('foodRecent');
+      if (!host) return;
+      let logs = [];
+      try { logs = await dbGetAll('foodLogs'); } catch (e) { return; }
+      const seen = new Map();
+      logs.forEach(l => (l.entries || []).forEach(e => {
+        if (!e.label) return;
+        const k = e.label.toLowerCase();
+        const cur = seen.get(k);
+        if (!cur) seen.set(k, { count: 1, last: e.t || 0, e });
+        else { cur.count++; if ((e.t || 0) >= cur.last) { cur.last = e.t || 0; cur.e = e; } }
+      }));
+      const top = [...seen.values()].sort((a, b) => b.count - a.count || b.last - a.last).slice(0, 6);
+      host.innerHTML = '';
+      top.forEach(({ e }) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700 text-[11px] text-slate-300 hover:text-white';
+        b.textContent = `${e.label}${isNum(e.calories) ? ` \u00b7 ${fmtFood(e.calories)}` : ''}`;
+        b.onclick = () => { addFoodEntry({ label: e.label, calories: e.calories ?? null, fat: e.fat ?? null, sugar: e.sugar ?? null }); showToast(`Added ${e.label}`); };
+        host.appendChild(b);
+      });
+    }
+
     async function loadFoodLogForDate() {
       const input = document.getElementById('foodLogDate');
       if (!input.value) input.value = localDateStr();
@@ -2926,11 +3103,17 @@
       const rec = await dbGet('foodLogs', input.value);
       if (seq !== foodLoadSeq) return;
 
-      document.getElementById('foodCalories').value = rec?.calories ?? '';
-      document.getElementById('foodFat').value = rec?.fat ?? '';
-      document.getElementById('foodSugar').value = rec?.sugar ?? '';
+      if (rec && Array.isArray(rec.entries)) {
+        foodEntries = rec.entries.map(e => ({ ...e }));
+        foodBase = { calories: rec.baseCalories ?? null, fat: rec.baseFat ?? null, sugar: rec.baseSugar ?? null };
+      } else {
+        // days saved before v8 held a single typed total: keep it as the day total
+        foodEntries = [];
+        foodBase = { calories: rec?.calories ?? null, fat: rec?.fat ?? null, sugar: rec?.sugar ?? null };
+      }
       currentWaterMl = rec?.water || 0;
       updateWaterDisplay();
+      renderFoodDay();
       renderWeeklyFoodStrip();
       renderFoodTrendChart();
     }
@@ -2966,18 +3149,22 @@
       saveFoodLogForDate(true);
     }
 
-    // Previously an empty stub. Now writes to the existing `foodLogs` store.
+    // Writes the day to the `foodLogs` store: totals for the charts, plus the entries behind them.
     async function saveFoodLogForDate(quiet = false) {
       const date = document.getElementById('foodLogDate').value;
       if (!date) return;
-      const num = id => { const v = document.getElementById(id).value; return v === '' ? null : Number(v); };
+      const t = foodTotals();
       try {
         await dbPut('foodLogs', {
           date,
-          calories: num('foodCalories'),
-          fat: num('foodFat'),
-          sugar: num('foodSugar'),
+          calories: t.calories,
+          fat: t.fat,
+          sugar: t.sugar,
           water: currentWaterMl,
+          entries: foodEntries,
+          baseCalories: foodBase.calories,
+          baseFat: foodBase.fat,
+          baseSugar: foodBase.sugar,
           updatedAt: Date.now()
         });
         if (!quiet) showToast('Food log saved');
@@ -3222,11 +3409,10 @@
           li(`<strong>Water:</strong> Aim for 2.5 L or more per day.`);
       } else if (type === 'wardrobe') {
         title.innerText = "Diagnostic: Wardrobe & Apparel Milestone";
-        body.innerHTML = latestScan && (isNum(latestScan.midWaist) || isNum(latestScan.chest))
-          ? li(`<strong>Mid Waist:</strong> ${fv(latestScan.midWaist, ' cm')}.`) +
-            li(`<strong>Chest:</strong> ${fv(latestScan.chest, ' cm')}.`) +
-            li(`The sizing guide in Settings updates with each scan.`)
-          : li('Add a scan with waist and chest measurements to see sizing notes here.');
+        const z = computeSizing();
+        body.innerHTML = (z.top || z.pants || z.shirt)
+          ? z.lines.map(l => li(l)).join('') + li('Open the shirt icon at the top right for the full size predictor and to calibrate it to your current clothes.')
+          : li('Add a scan with waist, chest and neck measurements to see sizing milestones here.');
       }
     }
 
@@ -3476,26 +3662,237 @@
     }
 
     /* ==========================================================================
-       12. STYLE & SETTINGS DRAWER ENGINE
+       12. SIZE PREDICTOR (v8): Asian-sizing guide driven by your Visbody scans
        ========================================================================== */
+    // Men's Asian-alpha body chart (inches), used as the reference scale. Converted to cm on use.
+    const SIZE_SCALE = [
+      { s: 'XS',  chest: [31, 33.5],   waist: [26, 28.5], hip: [32, 34] },
+      { s: 'S',   chest: [33.5, 36],   waist: [28.5, 31], hip: [34, 36] },
+      { s: 'M',   chest: [36, 38],     waist: [31, 33.5], hip: [36, 38] },
+      { s: 'L',   chest: [38, 40.5],   waist: [33.5, 36], hip: [38, 40] },
+      { s: 'XL',  chest: [40.5, 43],   waist: [36, 38],   hip: [40, 42] },
+      { s: '2XL', chest: [43, 45.5],   waist: [38, 41],   hip: [42, 44] },
+      { s: '3XL', chest: [45.5, 49],   waist: [41, 44],   hip: [44, 46.5] },
+      { s: '4XL', chest: [49, 51.5],   waist: [44, 46],   hip: [46.5, 48.5] },
+      { s: '5XL', chest: [51.5, 54],   waist: [46, 48],   hip: [48.5, 51] }
+    ];
+    const IN_CM = 2.54;
+    const FIT_LABEL = { fitted: 'Fitted', regular: 'Regular', relaxed: 'Relaxed' };
+    const FIT_TOP_SHIFT = { fitted: 0, regular: 0, relaxed: 1 };       // sizes up from the body chart
+    const FIT_PANTS_EASE = { fitted: 0.5, regular: 2.5, relaxed: 5 };  // cm added to the waist measurement
+    const FIT_COLLAR_EASE = { fitted: 1.5, regular: 2, relaxed: 3 };   // cm added to the neck measurement
+
+    const sizeLo = (k, i) => SIZE_SCALE[i][k][0] * IN_CM;
+    const sizeHi = (k, i) => SIZE_SCALE[i][k][1] * IN_CM;
+    function sizeIdx(k, cm) {
+      for (let i = 0; i < SIZE_SCALE.length - 1; i++) if (cm < sizeHi(k, i)) return i;
+      return SIZE_SCALE.length - 1;
+    }
+    const clampN = (v, a, b) => Math.max(a, Math.min(b, v));
+
+    // Newest value for a measurement, so a scan missing one number still uses the last time you had it
+    function measureLatest(keys) {
+      for (const key of [].concat(keys)) {
+        const arr = (appState.visbodyScans || []).filter(s => isNum(s[key])).sort((a, b) => String(a.date).localeCompare(String(b.date)));
+        const s = arr[arr.length - 1];
+        if (s) return { key, v: s[key], date: s.date };
+      }
+      return null;
+    }
+    // cm per week from your last few scans (null if there is not enough history)
+    function weeklyTrend(key) {
+      const pts = (appState.visbodyScans || []).filter(s => isNum(s[key]) && s.date)
+        .sort((a, b) => String(a.date).localeCompare(String(b.date))).slice(-6)
+        .map(s => ({ t: Date.parse(`${s.date}T00:00:00`) / 86400000, v: s[key] })).filter(p => isFinite(p.t));
+      if (pts.length < 2 || pts[pts.length - 1].t - pts[0].t < 5) return null;
+      const n = pts.length, mt = pts.reduce((a, p) => a + p.t, 0) / n, mv = pts.reduce((a, p) => a + p.v, 0) / n;
+      const den = pts.reduce((a, p) => a + (p.t - mt) ** 2, 0);
+      return den ? (pts.reduce((a, p) => a + (p.t - mt) * (p.v - mv), 0) / den) * 7 : null;
+    }
+    function paceNote(toGo, key) {
+      const tr = weeklyTrend(key);
+      if (tr === null) return '';
+      if (tr > -0.05) return ' \u00b7 no downward trend yet';
+      const w = Math.max(1, Math.ceil(toGo / -tr));
+      return w > 104 ? ' \u00b7 over 2 years at the current pace' : ` \u00b7 about ${w} week${w > 1 ? 's' : ''} at ${tr.toFixed(1)} cm/wk`;
+    }
+
+    function computeSizing() {
+      const fit = FIT_LABEL[prefs.fit] ? prefs.fit : 'regular';
+      const cal = prefs.sizeCal || null;
+      const chest = measureLatest('chest'), neck = measureLatest('neck'), hip = measureLatest('hip');
+      const waist = measureLatest(['midWaist', 'lowWaist', 'highWaist']);
+      const last = SIZE_SCALE.length - 1;
+      const out = { fit, cal, chest, neck, hip, waist, top: null, shirt: null, pants: null, notes: [], lines: [] };
+
+      if (chest) {
+        const i = sizeIdx('chest', chest.v);
+        const shift = cal && isNum(cal.topShift) ? cal.topShift : FIT_TOP_SHIFT[fit];
+        const j = clampN(i + shift, 0, last);
+        const lo = sizeLo('chest', i), hi = sizeHi('chest', i);
+        out.top = {
+          label: SIZE_SCALE[j].s, bodySize: SIZE_SCALE[i].s,
+          next: i > 0 ? SIZE_SCALE[clampN(i - 1 + shift, 0, last)].s : null,
+          toGo: i > 0 ? Math.round((chest.v - lo + 0.1) * 10) / 10 : null,
+          pct: i === last ? null : clampN((chest.v - lo) / (hi - lo), 0, 1),
+          nextAt: Math.round((lo - 0.1) * 10) / 10,
+          border: i < last && hi - chest.v < 1.5
+        };
+      }
+      if (neck || out.top) {
+        const ease = FIT_COLLAR_EASE[fit];
+        const sh = { alpha: out.top ? out.top.label : null, collar: null };
+        if (neck) {
+          const collar = Math.round(neck.v + ease);
+          const thr = collar - 0.5 - ease;
+          sh.collar = collar; sh.inches = Math.round(collar / IN_CM * 2) / 2;
+          sh.toGo = Math.round((neck.v - thr + 0.05) * 10) / 10; sh.nextAt = Math.round((thr - 0.05) * 10) / 10;
+          sh.pct = clampN((neck.v - (collar - 0.5 - ease)) , 0, 1);
+        }
+        out.shirt = sh;
+      }
+      if (waist) {
+        const off = cal && isNum(cal.pantsOff) ? cal.pantsOff : FIT_PANTS_EASE[fit];
+        const lab = Math.round((waist.v + off) / IN_CM);
+        const thrLo = (lab - 0.5) * IN_CM - off;
+        out.pants = {
+          label: lab, cm: Math.round(lab * IN_CM), next: lab - 1,
+          toGo: Math.round((waist.v - thrLo + 0.05) * 10) / 10, nextAt: Math.round((thrLo - 0.05) * 10) / 10,
+          pct: clampN((waist.v - thrLo) / IN_CM, 0, 1), calibrated: !!(cal && isNum(cal.pantsOff))
+        };
+        if (hip) {
+          const wi = sizeIdx('waist', waist.v), hi = sizeIdx('hip', hip.v);
+          if (hi > wi) out.notes.push({ icon: 'fa-circle-info', cls: 'text-amber-300', text: `Your hips measure as ${SIZE_SCALE[hi].s} while your waist measures as ${SIZE_SCALE[wi].s}. Pick a regular or straight cut rather than slim or skinny so the seat and thighs are not tight.` });
+        }
+      }
+      if (chest && waist) {
+        const ci = sizeIdx('chest', chest.v), wi = sizeIdx('waist', waist.v);
+        if (wi > ci) out.notes.push({ icon: 'fa-shirt', cls: 'text-cyan-300', text: `Your waist sits ${wi - ci > 1 ? 'more than a size' : 'a size'} above your chest on the chart. Straight or boxy tops hang better than tapered cuts until the waist catches up.` });
+      }
+      const near = [];
+      if (out.top && out.top.toGo !== null && out.top.toGo <= 3) near.push(`tops (${out.top.toGo} cm)`);
+      if (out.pants && out.pants.toGo <= 3) near.push(`pants (${out.pants.toGo} cm)`);
+      if (out.shirt && out.shirt.collar && out.shirt.toGo <= 1.5) near.push(`collars (${out.shirt.toGo} cm)`);
+      if (near.length) out.notes.push({ icon: 'fa-bag-shopping', cls: 'text-emerald-300', text: `You are close to dropping a size in ${near.join(' and ')}. Hold off on big wardrobe purchases, or buy stretch or adjustable pieces.` });
+      if (!cal) out.notes.push({ icon: 'fa-sliders', cls: 'text-slate-400', text: 'Predictions use average ease. Calibrate to what fits you today (below) for a much more accurate projection.' });
+
+      // plain-text lines for the Virtual Advisor
+      if (out.top) out.lines.push(`<strong>T-shirts:</strong> ${out.top.label} now.${out.top.next ? ` ${out.top.next} at chest \u2264 ${out.top.nextAt} cm (${out.top.toGo} cm to go${paceNote(out.top.toGo, 'chest')}).` : ''}`);
+      if (out.shirt && out.shirt.collar) out.lines.push(`<strong>Shirt collar:</strong> ${out.shirt.collar} cm (${out.shirt.inches}\u2033). Next size down at neck \u2264 ${out.shirt.nextAt} cm.`);
+      if (out.pants) out.lines.push(`<strong>Pants:</strong> ${out.pants.label}\u2033 now. ${out.pants.next}\u2033 at waist \u2264 ${out.pants.nextAt} cm (${out.pants.toGo} cm to go${paceNote(out.pants.toGo, waist.key)}).`);
+      out.notes.filter(n => n.icon !== 'fa-sliders').forEach(n => out.lines.push(esc(n.text)));
+      return out;
+    }
+
+    function renderSizePredictor() {
+      const cards = document.getElementById('sizeCards');
+      if (!cards) return;
+      const z = computeSizing();
+
+      ['fitted', 'regular', 'relaxed'].forEach(f => {
+        const b = document.getElementById(`sizeFit-${f}`);
+        if (!b) return;
+        b.className = `flex-1 py-1.5 rounded-md ${z.fit === f ? 'bg-slate-800 text-cyan-400' : 'text-slate-400'}`;
+      });
+      const calPants = document.getElementById('sizeCalPants'), calTop = document.getElementById('sizeCalTop');
+      if (document.activeElement !== calPants && z.cal && isNum(z.cal.pantsIn)) calPants.value = z.cal.pantsIn;
+      if (calTop && z.cal && z.cal.topSize) calTop.value = z.cal.topSize;
+
+      const dates = [z.chest, z.waist, z.neck, z.hip].filter(Boolean).map(m => m.date).sort();
+      document.getElementById('sizeScanDate').innerText = dates.length ? `Latest data: ${dates[dates.length - 1]}` : '';
+
+      const chip = (label, m) => `<div class="p-1.5 bg-slate-800 rounded-lg border border-slate-700"><div class="text-[10px] text-slate-400">${label}</div><div class="text-xs font-bold ${m ? 'text-white' : 'text-slate-600'}">${m ? `${Math.round(m.v * 10) / 10}` : '\u2013'}</div></div>`;
+      document.getElementById('sizeMeasures').innerHTML = chip('Chest cm', z.chest) + chip('Neck cm', z.neck) + chip('Waist cm', z.waist) + chip('Hip cm', z.hip);
+
+      if (!z.chest && !z.waist && !z.neck) {
+        cards.innerHTML = `<p class="text-[11px] text-slate-400">Add a Visbody scan with chest, waist and neck measurements and your Asian sizes, size milestones and ETA appear here.</p>`;
+        document.getElementById('sizeNotes').innerHTML = '';
+        return;
+      }
+
+      const band = pct => pct === null || pct === undefined ? '' : `<div class="relative h-1.5 rounded-full bg-slate-700 overflow-hidden"><div class="absolute inset-y-0 left-0 rounded-full bg-cyan-500/70" style="width:${Math.round(pct * 100)}%"></div></div>
+        <div class="flex justify-between text-[9px] text-slate-500"><span>drops a size</span><span>edge of this size</span></div>`;
+      const card = (icon, color, title, big, sub, next, pct) => `<div class="p-3 bg-slate-800/70 rounded-xl border border-slate-700 space-y-1.5">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-[11px] text-slate-400 flex items-center gap-1.5"><i class="fa-solid ${icon} ${color}"></i>${title}</span>
+            <span class="text-lg font-bold text-white leading-none">${big}</span>
+          </div>
+          ${sub ? `<div class="text-[11px] text-slate-400">${sub}</div>` : ''}
+          ${band(pct)}
+          ${next ? `<div class="text-[11px] text-emerald-300 leading-snug">${next}</div>` : ''}
+        </div>`;
+
+      let html = '';
+      if (z.top) {
+        const t = z.top;
+        html += card('fa-shirt', 'text-cyan-400', 'T-shirts', esc(t.label),
+          `Body chart size ${esc(t.bodySize)}${z.cal && isNum(z.cal.topShift) ? ' \u00b7 calibrated to you' : ` \u00b7 ${FIT_LABEL[z.fit].toLowerCase()} fit`}${t.border ? ' \u00b7 borderline, size up for room' : ''}`,
+          t.next ? `Next: ${esc(t.next)} at chest \u2264 ${t.nextAt} cm \u00b7 ${t.toGo} cm to go${paceNote(t.toGo, 'chest')}` : 'Smallest size on the chart.', t.pct);
+      } else html += card('fa-shirt', 'text-cyan-400', 'T-shirts', '\u2013', 'Add a chest measurement to a scan.', '', null);
+
+      if (z.shirt) {
+        const s = z.shirt;
+        html += card('fa-user-tie', 'text-indigo-300', 'Shirts', `${s.alpha ? esc(s.alpha) : ''}${s.alpha && s.collar ? ' / ' : ''}${s.collar ? s.collar : ''}`,
+          s.collar ? `Collar ${s.collar} cm (${s.inches}\u2033) from your neck ${Math.round(z.neck.v * 10) / 10} cm` : 'Add a neck measurement for the collar size.',
+          s.collar ? `Next collar: ${s.collar - 1} at neck \u2264 ${s.nextAt} cm \u00b7 ${s.toGo} cm to go${paceNote(s.toGo, 'neck')}` : '', null);
+      }
+      if (z.pants) {
+        const p = z.pants;
+        html += card('fa-ruler-vertical', 'text-amber-400', 'Pants / Chinos', `${p.label}\u2033`,
+          `About ${p.cm} cm \u00b7 ${p.calibrated ? 'calibrated to your pants' : `${FIT_LABEL[z.fit].toLowerCase()} ease`} \u00b7 from waist ${Math.round(z.waist.v * 10) / 10} cm`,
+          `Next: ${p.next}\u2033 at waist \u2264 ${p.nextAt} cm \u00b7 ${p.toGo} cm to go${paceNote(p.toGo, z.waist.key)}`, p.pct);
+      } else html += card('fa-ruler-vertical', 'text-amber-400', 'Pants / Chinos', '\u2013', 'Add a waist measurement to a scan.', '', null);
+      cards.innerHTML = html;
+
+      document.getElementById('sizeNotes').innerHTML = z.notes.map(n => `<div class="flex gap-2 text-[11px] text-slate-300 leading-snug"><i class="fa-solid ${n.icon} ${n.cls} mt-0.5 flex-none"></i><span>${esc(n.text)}</span></div>`).join('');
+    }
+
+    function updateSizingPredictor() { renderSizePredictor(); }
+
+    function setSizeFit(fit) {
+      playSfx('click');
+      prefs.fit = fit;
+      LS.set('vmt_prefs', prefs);
+      renderSizePredictor();
+    }
+    function calibrateSizes() {
+      const pantsIn = parseFloat(document.getElementById('sizeCalPants').value);
+      const topSize = document.getElementById('sizeCalTop').value;
+      const next = { ...(prefs.sizeCal || {}) };
+      if (!(pantsIn > 0) && !topSize) { showToast('Type your pants size or pick a T-shirt size first.', 'warn'); return; }
+      if (pantsIn > 0) {
+        const waist = measureLatest(['midWaist', 'lowWaist', 'highWaist']);
+        if (!waist) { showToast('Add a scan with a waist measurement first.', 'warn'); return; }
+        const off = pantsIn * IN_CM - waist.v;
+        if (pantsIn < 24 || pantsIn > 50 || off < -6 || off > 14) { showToast(`A ${pantsIn}\u2033 pair does not fit a ${Math.round(waist.v)} cm waist. Check the size.`, 'warn'); return; }
+        next.pantsIn = pantsIn; next.pantsOff = off;
+      }
+      if (topSize) {
+        const chest = measureLatest('chest');
+        if (!chest) { showToast('Add a scan with a chest measurement first.', 'warn'); return; }
+        const ti = SIZE_SCALE.findIndex(s => s.s === topSize);
+        next.topSize = topSize; next.topShift = ti - sizeIdx('chest', chest.v);
+      }
+      next.date = localDateStr();
+      prefs.sizeCal = next;
+      LS.set('vmt_prefs', prefs);
+      playSfx('chime');
+      renderSizePredictor();
+      showToast('Calibrated to your current sizes');
+    }
+    function clearSizeCal() {
+      prefs.sizeCal = null;
+      LS.set('vmt_prefs', prefs);
+      document.getElementById('sizeCalPants').value = '';
+      document.getElementById('sizeCalTop').value = '';
+      renderSizePredictor();
+    }
+
     function toggleSettingsDrawer(show) {
       playSfx('click');
       const drawer = document.getElementById('settingsDrawer');
-      if (show) { drawer.classList.remove('hidden'); renderStyleGuide(); loadRefPhotos(); }
+      if (show) { drawer.classList.remove('hidden'); renderSizePredictor(); }
       else drawer.classList.add('hidden');
-    }
-
-    function updateSizingPredictor(scan) {
-      const waist = scan ? scan.midWaist : null;
-      const chest = scan ? scan.chest : null;
-
-      let tshirt = '—', shirt = '—', pants = '—';
-      if (isNum(chest)) { tshirt = chest < 100 ? 'L / XL' : 'XL / 2XL'; shirt = '16.5 / XL'; }
-      if (isNum(waist)) { pants = waist < 90 ? '32 Waist' : waist < 95 ? '34 Waist' : '36 Waist'; }
-
-      document.getElementById('sizeTshirt').innerText = tshirt;
-      document.getElementById('sizeShirt').innerText = shirt;
-      document.getElementById('sizePants').innerText = pants;
     }
 
     function setAccentColor(className) {
@@ -3505,188 +3902,19 @@
       LS.set('vmt_prefs', prefs);
     }
 
-    /* ==========================================================================
-       12b. HAIRCUT & BEARD GUIDE (v7.3): drawn sketches + your own reference photos
-       ========================================================================== */
-    const HAIR_STYLES = [
-      { id: 'taper', name: 'Low Fade Taper', short: 'Low Taper', best: true,
-        tip: 'Sides tight (#1 to #2 guard) fading up. Moderate length on top, styled up to add height; height makes a rounder face read longer.' },
-      { id: 'quiff', name: 'Textured Quiff', short: 'Quiff',
-        tip: 'Short tapered sides with about 5 to 7 cm on top, brushed up and back with matte clay. The biggest height gain for a round face.' },
-      { id: 'sidepart', name: 'Side Part', short: 'Side Part',
-        tip: 'Neat office-friendly part with tapered sides. Keep the top slightly longer on the parted side to add an angle.' },
-      { id: 'crew', name: 'Crew Cut', short: 'Crew Cut',
-        tip: 'Lowest maintenance: short all over with a faded neckline. Pair it with a defined beard so the jawline looks sharper.' }
-    ];
-    const BEARD_STYLES = [
-      { id: 'clean', name: 'Clean-shaven', short: 'Clean',
-        tip: 'Shows the jawline change as you lose weight. Shave with the grain and keep the neckline tidy.' },
-      { id: 'stubble', name: 'Light Stubble', short: 'Stubble',
-        tip: 'Even 3 to 5 mm (about a #1 to #2 guard) with a clean cheek line. Low effort, and a tidy cheek and neck line keeps it looking deliberate.' },
-      { id: 'boxed', name: 'Short Boxed Beard', short: 'Boxed',
-        tip: 'Cheeks trimmed to a clean line, slightly fuller at the chin than the sides. Adds definition and lengthens a round face.' },
-      { id: 'anchor', name: 'Anchor / Goatee', short: 'Anchor',
-        tip: 'Chin-focused with a mustache and shaved cheeks. The strongest elongating effect of the four.' }
-    ];
-
-    // Layered SVG: backdrop, shirt, neck, ears, face, beard, features, hair. No ids, so many can sit on one page.
-    function faceSvg(hairId, beardId) {
-      const skin = '#e6b78f', skinShade = '#d29d74', hair = '#111827', hairHi = '#374151';
-      const sideFade = `<path d="M24 54 C23 62 23 68 25 72 L29 67 C28 62 28 58 28 52 Z" fill="${hair}" opacity="0.5"/>
-        <path d="M76 54 C77 62 77 68 75 72 L71 67 C72 62 72 58 72 52 Z" fill="${hair}" opacity="0.5"/>`;
-      const hairs = {
-        taper: `<path d="M25 52 C22 28 36 14 52 14 C68 14 79 28 75 52 C72 40 66 34 50 33 C36 34 29 40 25 52 Z" fill="${hair}"/>${sideFade}`,
-        quiff: `<path d="M24 52 C17 30 30 7 56 5 C79 5 85 27 76 52 C74 40 66 28 50 27 C36 28 28 40 24 52 Z" fill="${hair}"/>
-                <path d="M33 24 C45 10 63 10 74 21" stroke="${hairHi}" stroke-width="2" fill="none" stroke-linecap="round"/>${sideFade}`,
-        sidepart: `<path d="M25 52 C20 28 34 13 53 14 C71 14 80 28 75 52 C73 38 64 31 47 31 C37 32 29 38 25 52 Z" fill="${hair}"/>
-                <path d="M40 15 C38 21 36 27 34 33" stroke="${skinShade}" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-                <path d="M44 17 C58 14 70 20 74 30" stroke="${hairHi}" stroke-width="2" fill="none" stroke-linecap="round"/>${sideFade}`,
-        crew: `<path d="M25 50 C24 30 36 21 50 21 C64 21 76 30 75 50 C72 41 64 37 50 36 C36 37 28 41 25 50 Z" fill="${hair}" opacity="0.92"/>${sideFade}`
-      };
-      const jaw = 'M23.5 64 C25 82 35 96 50 98 C65 96 75 82 76.5 64 C73 66 71 68 70 72 C66 80 60 79 56 79 L44 79 C40 79 34 80 30 72 C29 68 27 66 23.5 64 Z';
-      const mustache = 'M39 80 C43 75 57 75 61 80 C57 82.5 54 80.5 50 81 C46 80.5 43 82.5 39 80 Z';
-      const beards = {
-        clean: '',
-        stubble: `<path d="${jaw}" fill="${hair}" opacity="0.32"/><path d="${mustache}" fill="${hair}" opacity="0.32"/>`,
-        boxed: `<path d="${jaw}" fill="${hair}" opacity="0.96"/><path d="${mustache}" fill="${hair}"/>`,
-        anchor: `<path d="${mustache}" fill="${hair}"/>
-                 <path d="M40.5 82 C38.5 91 43 98 50 98 C57 98 61.5 91 59.5 82" stroke="${hair}" stroke-width="4" fill="none" stroke-linecap="round"/>
-                 <path d="M41 88 C41 95 45 98 50 98 C55 98 59 95 59 88 C55 91 45 91 41 88 Z" fill="${hair}"/>`
-      };
-      const mouthColor = beardId === 'boxed' || beardId === 'anchor' ? '#c27a68' : '#a85f50';
-      return `<svg viewBox="0 0 100 120" class="w-full h-full block" role="img" aria-label="Haircut and beard sketch" preserveAspectRatio="xMidYMid slice">
-        <rect width="100" height="120" fill="#52627a"/>
-        <path d="M6 120 C10 104 26 101 38 100 L62 100 C74 101 90 104 94 120 Z" fill="#2b3648"/>
-        <path d="M38 90 L38 106 Q50 114 62 106 L62 90 Z" fill="${skinShade}"/>
-        <ellipse cx="23.5" cy="62" rx="4" ry="7" fill="${skinShade}"/><ellipse cx="76.5" cy="62" rx="4" ry="7" fill="${skinShade}"/>
-        <path d="M50 24 C71 24 78 44 77 62 C76 82 66 96 50 98 C34 96 24 82 23 62 C22 44 29 24 50 24 Z" fill="${skin}"/>
-        ${beards[beardId] || ''}
-        <ellipse cx="40" cy="63" rx="2.6" ry="1.7" fill="${hair}"/><ellipse cx="60" cy="63" rx="2.6" ry="1.7" fill="${hair}"/>
-        <path d="M34.5 57 Q40 54 45.5 56.5" stroke="${hair}" stroke-width="2" fill="none" stroke-linecap="round"/>
-        <path d="M54.5 56.5 Q60 54 65.5 57" stroke="${hair}" stroke-width="2" fill="none" stroke-linecap="round"/>
-        <path d="M50 65 L48.3 75 Q50 77 53 75" stroke="${skinShade}" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M43.5 85.5 Q50 89 56.5 85.5" stroke="${mouthColor}" stroke-width="2" fill="none" stroke-linecap="round"/>
-        ${hairs[hairId] || ''}
-      </svg>`;
-    }
-
-    function pickStyle(kind, id) {
-      playSfx('click');
-      prefs[kind] = id;
-      LS.set('vmt_prefs', prefs);
-      renderStyleGuide();
-    }
-
-    function renderStyleGuide() {
-      const hairEl = document.getElementById('hairOptions');
-      if (!hairEl) return;
-      const hId = HAIR_STYLES.some(h => h.id === prefs.hair) ? prefs.hair : 'taper';
-      const bId = BEARD_STYLES.some(b => b.id === prefs.beard) ? prefs.beard : 'stubble';
-      const hair = HAIR_STYLES.find(h => h.id === hId), beard = BEARD_STYLES.find(b => b.id === bId);
-
-      const card = (kind, s, selected, svg) => `<button type="button" onclick="pickStyle('${kind}','${s.id}')" aria-pressed="${selected}" aria-label="${esc(s.name)}"
-        class="rounded-xl overflow-hidden border-2 ${selected ? 'border-accent' : 'border-slate-700'} bg-slate-800 text-center">
-        <div class="aspect-[5/6]">${svg}</div>
-        <div class="text-[10px] py-1 leading-tight ${selected ? 'text-white font-semibold' : 'text-slate-400'}">${esc(s.short)}</div>
-      </button>`;
-
-      hairEl.innerHTML = HAIR_STYLES.map(s => card('hair', s, s.id === hId, faceSvg(s.id, bId))).join('');
-      document.getElementById('beardOptions').innerHTML = BEARD_STYLES.map(s => card('beard', s, s.id === bId, faceSvg(hId, s.id))).join('');
-      document.getElementById('stylePreview').innerHTML = faceSvg(hId, bId);
-      document.getElementById('styleDetail').innerHTML = `
-        <div><div class="font-bold text-cyan-400">${esc(hair.name)}${hair.best ? ' <span class="text-[10px] font-semibold text-emerald-400">best fit</span>' : ''}</div>
-          <p class="text-[11px] text-slate-300 leading-snug">${esc(hair.tip)}</p></div>
-        <div><div class="font-bold text-indigo-300">${esc(beard.name)}</div>
-          <p class="text-[11px] text-slate-300 leading-snug">${esc(beard.tip)}</p></div>`;
-    }
-
-    /* ---- Reference photos (stored in IndexedDB on this device, shrunk first) ---- */
-    let refPhotos = [];
-    const REF_PHOTO_LIMIT = 20;
-
-    async function loadRefPhotos() {
-      refPhotos = (await dbGetAll('refPhotos')).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-      renderRefPhotos();
-    }
-    function renderRefPhotos() {
-      const grid = document.getElementById('refPhotoGrid');
-      if (!grid) return;
-      grid.innerHTML = '';
-      refPhotos.forEach(p => {
-        const cell = document.createElement('div');
-        cell.className = 'relative aspect-square rounded-xl overflow-hidden border border-slate-700 bg-slate-800';
-        const img = document.createElement('img');
-        img.src = p.dataUrl; img.alt = 'Reference photo'; img.className = 'w-full h-full object-cover';
-        img.onclick = () => openPhotoViewer(p.id);
-        const del = document.createElement('button');
-        del.type = 'button'; del.setAttribute('aria-label', 'Delete photo');
-        del.className = 'absolute top-1 right-1 w-7 h-7 rounded-full bg-slate-950/80 text-rose-300 flex items-center justify-center';
-        del.innerHTML = '<i class="fa-solid fa-xmark text-xs"></i>';
-        del.onclick = () => deleteRefPhoto(p.id);
-        cell.append(img, del);
-        grid.appendChild(cell);
-      });
-    }
-    function resizeImageFile(file, max = 900, quality = 0.82) {
-      return new Promise((resolve, reject) => {
-        const url = URL.createObjectURL(file);
-        const img = new Image();
-        img.onload = () => {
-          const k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
-          const c = document.createElement('canvas');
-          c.width = Math.max(1, Math.round(img.naturalWidth * k));
-          c.height = Math.max(1, Math.round(img.naturalHeight * k));
-          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-          URL.revokeObjectURL(url);
-          resolve(c.toDataURL('image/jpeg', quality));
-        };
-        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('decode')); };
-        img.src = url;
-      });
-    }
-    async function addRefPhoto(e) {
-      const input = e.target;
-      const file = input.files[0];
-      input.value = '';
-      if (!file) return;
-      if (refPhotos.length >= REF_PHOTO_LIMIT) { showToast(`You can keep up to ${REF_PHOTO_LIMIT} photos. Delete one first.`, 'warn'); return; }
-      try {
-        const dataUrl = await resizeImageFile(file);
-        await dbPut('refPhotos', { id: `ph_${Date.now()}`, dataUrl, createdAt: Date.now() });
-        playSfx('chime');
-        await loadRefPhotos();
-        showToast('Photo saved');
-      } catch (err) { showToast("Couldn't read that photo. Try a JPEG or PNG.", 'error'); }
-    }
-    async function deleteRefPhoto(id) {
-      if (!confirm('Delete this photo?')) return;
-      try {
-        const tx = db.transaction('refPhotos', 'readwrite');
-        tx.objectStore('refPhotos').delete(id);
-        await txDone(tx);
-      } catch (err) { showToast("Couldn't delete the photo", 'error'); return; }
-      await loadRefPhotos();
-    }
-    function openPhotoViewer(id) {
-      const p = refPhotos.find(x => x.id === id);
-      if (!p) return;
-      document.getElementById('photoViewerImg').src = p.dataUrl;
-      document.getElementById('photoViewer').classList.remove('hidden');
-    }
-    function closePhotoViewer() { document.getElementById('photoViewer').classList.add('hidden'); }
-
-    const BACKUP_STORES = ['visbodyScans', 'amScaleLogs', 'mjShots', 'dailyLogs', 'foodLogs', 'refPhotos'];
+    const BACKUP_STORES = ['visbodyScans', 'amScaleLogs', 'mjShots', 'dailyLogs', 'foodLogs'];
 
     async function buildBackupPayload() {
-      const [visbodyScans, amScaleLogs, mjShots, dailyLogs, foodLogs, refPhotos] = await Promise.all(BACKUP_STORES.map(s => dbGetAll(s)));
+      const [visbodyScans, amScaleLogs, mjShots, dailyLogs, foodLogs] = await Promise.all(BACKUP_STORES.map(s => dbGetAll(s)));
       return {
         app: 'visbody-mounjaro-tracker',
-        version: 8,
+        version: 9,
         exportedAt: new Date().toISOString(),
-        visbodyScans, amScaleLogs, mjShots, dailyLogs, foodLogs, refPhotos,
+        visbodyScans, amScaleLogs, mjShots, dailyLogs, foodLogs,
         customMeds: getCustomMeds(),
         customExercises: LS.get('vmt_exercises', null),
         visTargets: getVisTargetMap(),
+        sizeSettings: { fit: prefs.fit, sizeCal: prefs.sizeCal },
         profile
       };
     }
@@ -3721,7 +3949,7 @@
       showToast('Backup file saved');
     }
 
-    const BACKUP_KEYS = { visbodyScans: 'date', amScaleLogs: 'date', mjShots: 'id', dailyLogs: 'date', foodLogs: 'date', refPhotos: 'id' };
+    const BACKUP_KEYS = { visbodyScans: 'date', amScaleLogs: 'date', mjShots: 'id', dailyLogs: 'date', foodLogs: 'date' };
 
     function validateBackup(imported) {
       if (!imported || typeof imported !== 'object') throw new Error('Not an object');
@@ -3758,6 +3986,11 @@
           if (Array.isArray(imported.customMeds)) LS.set('vmt_custom_meds', imported.customMeds);
           if (Array.isArray(imported.customExercises)) LS.set('vmt_exercises', imported.customExercises);
           if (imported.visTargets && typeof imported.visTargets === 'object') LS.set('vmt_vis_targets', imported.visTargets);
+          if (imported.sizeSettings && typeof imported.sizeSettings === 'object') {
+            if (FIT_LABEL[imported.sizeSettings.fit]) prefs.fit = imported.sizeSettings.fit;
+            if (imported.sizeSettings.sizeCal && typeof imported.sizeSettings.sizeCal === 'object') prefs.sizeCal = imported.sizeSettings.sizeCal;
+            LS.set('vmt_prefs', prefs);
+          }
           if (imported.profile && typeof imported.profile === 'object') {
             profile = { ...DEFAULT_PROFILE, ...imported.profile };
             LS.set('vmt_profile', profile);

@@ -8,7 +8,7 @@
  * User data lives in IndexedDB / localStorage, never in these caches, so updating the app can't touch it.
  * Bump VERSION when you change this file or the pre-cache lists.
  */
-const VERSION = 'v7.3.0';
+const VERSION = 'v8.0.0';
 const SHELL_CACHE = `vmt-shell-${VERSION}`;
 const RUNTIME_CACHE = 'vmt-runtime';
 
@@ -16,10 +16,13 @@ const SHELL_ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './icons/apple-touch-icon.png',
-  './icons/favicon-32.png'
+  './icon-192.png',
+  './icon-512.png',
+  './icon-maskable-512.png',
+  './apple-touch-icon-v2.png',
+  './apple-touch-icon-167-v2.png',
+  './apple-touch-icon-152-v2.png',
+  './favicon-32.png'
 ];
 
 // `cors` must match how index.html requests each file: Tailwind has no crossorigin attribute (no-cors),
@@ -37,7 +40,8 @@ const CDN_ASSETS = [
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const shell = await caches.open(SHELL_CACHE);
-    await shell.addAll(SHELL_ASSETS);
+    // One missing file must not stop the whole install (addAll rejects if any single file 404s)
+    await Promise.allSettled(SHELL_ASSETS.map(u => shell.add(u)));
 
     const runtime = await caches.open(RUNTIME_CACHE);
     await Promise.allSettled(CDN_ASSETS.map(async ({ url, cors }) => {

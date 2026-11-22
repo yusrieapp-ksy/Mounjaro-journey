@@ -10,12 +10,15 @@ Everything you enter stays on your device (IndexedDB and localStorage). Nothing 
 | `index.html` | The whole app |
 | `manifest.webmanifest` | Name, colours and icons for installing |
 | `sw.js` | Offline support (service worker) |
-| `icons/` | Home-screen and favicon images |
+| `apple-touch-icon-v2.png`, `apple-touch-icon-167-v2.png`, `apple-touch-icon-152-v2.png` | The icon iOS uses for Add to Home Screen |
+| `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `favicon-32.png`, `icon.svg` | Manifest, browser tab and source artwork |
+
+Everything sits in **one flat folder**. There is no `icons/` sub-folder, so upload every file to the root of the repository.
 
 ## Host it on GitHub Pages
 
 1. On GitHub, create a new repository (for example `vm-tracker`). **Public** works on every plan. Private repos need a paid plan for Pages.
-2. Upload everything in this folder to the root of the repository, keeping the `icons` folder. Dragging the files into the web uploader is fine.
+2. Upload every file in this folder to the root of the repository. Dragging the files into the web uploader is fine.
 3. Open **Settings → Pages**. Under **Build and deployment**, set **Source** to **Deploy from a branch**, pick **main** and **/ (root)**, then **Save**.
 4. After a minute or two the site is live at `https://YOUR-USERNAME.github.io/vm-tracker/`.
 
@@ -41,7 +44,7 @@ The app ships with **no data at all**: no sample scans, no sample weights, no na
 
 ## Back up your data
 
-Tap the sliders icon (top right), then **Export Backup**. On iPhone this opens the share sheet, so choose **Save to Files**. Do this regularly: if you delete the app or clear Safari data, the on-device data goes with it. The backup includes scans, AM weights, injections, daily logs, food logs, custom medications and your profile.
+Tap the sliders icon (top right), then **Export Backup**. On iPhone this opens the share sheet, so choose **Save to Files**. Do this regularly: if you delete the app or clear Safari data, the on-device data goes with it. The backup includes scans, AM weights, injections, daily logs, food logs (with their entries), custom medications, size settings and your profile.
 
 ## Updating the app
 
@@ -61,5 +64,6 @@ If you ever want it fully self-contained, download those three libraries into th
 - The Virtual Advisor briefings, diagnostics and weekly scorecard are built from your own logged entries. With no data they show a prompt instead of numbers. They are informational only and are not medical advice.
 - The default medication checklist and starting circuit are defined in `index.html` as `DEFAULT_MEDS` and `DEFAULT_EXERCISES`. Add your own medications with **+ Custom Med**. On the Daily tab the circuit is editable: **Edit** renames or removes a routine, **+ Add routine** creates one, and **Restore defaults** brings back the original four. Once you change the circuit on a device, that device keeps its own list.
 - **Visbody targets and remarks:** tap any tile on the Visbody tab to set a target, which direction is better, and a short remark. Visceral level (9), muscle (protect lean mass) and your onboarding target weight are the only defaults.
-- **Haircut & beard guide** (settings drawer): drawn sketches to compare combinations, plus **My reference photos** for real photos from your camera roll (up to 20, shrunk and kept on the device, included in backups).
-- **Icon:** the artwork is `icons/icon.svg`. If you change the home-screen icon, delete the app from the iPhone and add it again; iOS keeps the old icon until you do.
+- **Size predictor** (shirt icon, top right): Asian sizing for T-shirts, shirt collar and pants from your latest Visbody numbers, with the next size milestone, centimetres to go and an ETA from your recent trend. Pick a fit (Fitted / Regular / Relaxed), and **calibrate** it by typing the pants and T-shirt size you wear today.
+- **Food log:** add each meal or snack as you go and the day total builds up, like water. Or switch to **Enter day total** to type the whole day at once. Chips under the form re-add your usual items in one tap.
+- **Home-screen icon:** the artwork is `icon.svg`. iOS keeps an old icon until the app is removed, so delete the home-screen app and add it again after an icon change. The icon files carry `-v2` in their names so Safari fetches fresh copies. If you ever change the artwork again, bump the suffix to `-v3` in `index.html`, `sw.js` and the file names.
