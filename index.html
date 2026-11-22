@@ -4,12 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>VM Tracker</title>
+  <script>
+    /* Apply the saved appearance before first paint so there is no dark flash in light mode. */
+    (function () {
+      try {
+        var p = JSON.parse(localStorage.getItem('vmt_prefs') || '{}');
+        var t = p.theme || 'dark';
+        var light = t === 'light' || (t === 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches);
+        if (light) document.documentElement.classList.add('light');
+      } catch (e) { /* ignore */ }
+    })();
+  </script>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#0f172a">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="VM Tracker">
-  <meta name="color-scheme" content="dark">
+  <meta name="color-scheme" content="dark light">
   <meta name="description" content="Personal Visbody scan and Mounjaro tracker. Works offline once installed.">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon-v2.png">
@@ -143,6 +154,84 @@
     input[type="checkbox"] { accent-color: var(--accent-color, #06b6d4); }
     #goalBar { transition: width 0.6s ease; }
 
+
+    /* ==========================================================================
+       v8.1 — Light / dark appearance
+       Tailwind classes in the markup are written for the dark look. In light mode the same classes are
+       remapped below, so every screen (including ones built from JavaScript) is readable in both modes.
+       ========================================================================== */
+    .accent-cyan { --accent-text: #06b6d4; }
+    .accent-emerald { --accent-text: #10b981; }
+    .accent-violet { --accent-text: #8b5cf6; }
+    .accent-amber { --accent-text: #f59e0b; }
+    .accent-rose { --accent-text: #f43f5e; }
+    html.light .accent-cyan { --accent-text: #0e7490; }
+    html.light .accent-emerald { --accent-text: #047857; }
+    html.light .accent-violet { --accent-text: #6d28d9; }
+    html.light .accent-amber { --accent-text: #b45309; }
+    html.light .accent-rose { --accent-text: #be123c; }
+    .text-accent { color: var(--accent-text, var(--accent-color, #06b6d4)); }
+    body .text-cyan-400 { color: var(--accent-text, #06b6d4); }
+    body .hover\:text-cyan-300:hover { color: var(--accent-text, #06b6d4); filter: brightness(1.2); }
+
+    html.light, html.light body { background: #f1f5f9; color: #0f172a; color-scheme: light; }
+    html.light #app { background: #f1f5f9; }
+    /* iOS draws white status-bar text over the app (black-translucent), so keep that strip dark in light mode */
+    html.light body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top, 0px); background: #0f172a; z-index: 45; pointer-events: none; }
+    html.light ::-webkit-scrollbar-track { background: rgba(226, 232, 240, 0.8); }
+    html.light ::-webkit-scrollbar-thumb { background: #cbd5e1; }
+    html.light .glass-card { background: rgba(255, 255, 255, 0.94); border: 1px solid #e2e8f0; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05); }
+    html.light .glass-nav { background: rgba(255, 255, 255, 0.94); border-top: 1px solid #e2e8f0; }
+    html.light .bg-gradient-to-r { background-image: linear-gradient(to right, #ffffff, #ecfeff); }
+
+    /* text */
+    html.light .text-white { color: #0f172a; }
+    html.light :is(.bg-cyan-600, .bg-cyan-500, .bg-emerald-600, .bg-emerald-500, .bg-rose-500, .bg-amber-500, .bg-violet-500, .bg-accent).text-white { color: #ffffff; }
+    html.light .text-slate-100, html.light .text-slate-200 { color: #1e293b; }
+    html.light .text-slate-300 { color: #334155; }
+    html.light .text-slate-400 { color: #475569; }
+    html.light .text-slate-500 { color: #64748b; }
+    html.light .text-slate-600 { color: #94a3b8; }
+    html.light .hover\:text-white:hover, html.light .hover\:text-slate-200:hover { color: #0f172a; }
+    html.light .text-cyan-300 { color: #0e7490; }
+    html.light .text-emerald-400, html.light .text-emerald-300 { color: #047857; }
+    html.light .text-emerald-200 { color: #065f46; }
+    html.light .text-rose-400, html.light .text-rose-300 { color: #be123c; }
+    html.light .text-rose-200 { color: #9f1239; }
+    html.light .hover\:text-rose-400:hover { color: #be123c; }
+    html.light .text-amber-400 { color: #b45309; }
+    html.light .hover\:text-amber-300:hover, html.light .text-amber-300, html.light .text-amber-300\/90 { color: #92400e; }
+    html.light .text-amber-200 { color: #78350f; }
+    html.light .text-indigo-400, html.light .text-indigo-300 { color: #4338ca; }
+    html.light .text-violet-400 { color: #6d28d9; }
+    html.light .text-sky-400 { color: #0369a1; }
+
+    /* surfaces */
+    html.light .bg-slate-950, html.light .bg-slate-950\/80 { background-color: #e2e8f0; }
+    html.light .bg-slate-900, html.light .bg-slate-900\/90, html.light .bg-slate-900\/80, html.light .bg-slate-900\/60 { background-color: #f8fafc; }
+    html.light .bg-slate-800, html.light .bg-slate-800\/80, html.light .bg-slate-800\/70, html.light .bg-slate-800\/60, html.light .bg-slate-800\/40 { background-color: #f1f5f9; }
+    html.light .bg-slate-700, html.light .bg-slate-700\/80, html.light .hover\:bg-slate-700:hover { background-color: #e2e8f0; }
+    html.light .bg-slate-600 { background-color: #cbd5e1; }
+    html.light .bg-slate-950 > .bg-slate-800 { background-color: #ffffff; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.14); }
+    html.light #settingsDrawer, html.light #onboardingModal, html.light #addMedModal, html.light #exerciseModal, html.light #targetModal { background-color: rgba(15, 23, 42, 0.45); }
+    html.light .drawer-panel { background-color: #f8fafc; }
+    html.light .border-slate-700, html.light .border-slate-700\/80 { border-color: #cbd5e1; }
+    html.light .border-slate-800, html.light .border-slate-800\/80, html.light .divide-slate-800 > * { border-color: #e2e8f0; }
+    html.light .border-white\/20 { border-color: rgba(15, 23, 42, 0.2); }
+    html.light .ring-white { --tw-ring-color: #0f172a; }
+    html.light input[type="checkbox"] { border-color: #94a3b8; }
+
+    /* tinted status panels */
+    html.light .bg-emerald-950, html.light .bg-emerald-950\/80, html.light .bg-emerald-950\/20 { background-color: #ecfdf5; }
+    html.light .border-emerald-800\/60, html.light .border-emerald-800\/50, html.light .border-emerald-700\/70 { border-color: #6ee7b7; }
+    html.light .bg-cyan-950, html.light .bg-cyan-950\/80, html.light .bg-cyan-950\/20 { background-color: #ecfeff; }
+    html.light .border-cyan-800\/60, html.light .border-cyan-700\/50 { border-color: #67e8f9; }
+    html.light .bg-rose-950\/60 { background-color: #fff1f2; }
+    html.light .bg-rose-900\/60 { background-color: #ffe4e6; }
+    html.light .border-rose-800\/60, html.light .border-rose-800\/70, html.light .border-rose-900\/60, html.light .border-rose-700\/70 { border-color: #fda4af; }
+    html.light .bg-amber-950\/60, html.light .bg-amber-950\/40 { background-color: #fffbeb; }
+    html.light .border-amber-800\/80, html.light .border-amber-800\/60, html.light .border-amber-700\/70 { border-color: #fcd34d; }
+
     @media (prefers-reduced-motion: reduce) {
       * { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
     }
@@ -196,7 +285,7 @@
         <div>
           <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-1.5">
             <span>Visbody & Mounjaro</span>
-            <span class="text-xs font-normal text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded-full border border-cyan-800/60">v8.0</span>
+            <span class="text-xs font-normal text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded-full border border-cyan-800/60">v8.1</span>
           </h1>
           <p id="headerSubtitle" class="text-xs text-slate-400">Personal tracker</p>
         </div>
@@ -209,6 +298,9 @@
         </div>
         <button aria-label="Open size predictor" onclick="toggleSettingsDrawer(true)" class="p-2.5 rounded-xl bg-slate-800/80 text-amber-400 hover:text-amber-300 hover:bg-slate-700 transition touch-target">
           <i class="fa-solid fa-shirt text-base"></i>
+        </button>
+        <button id="themeQuickBtn" type="button" aria-label="Switch light or dark mode" onclick="toggleThemeQuick()" class="p-2.5 rounded-xl bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700 transition touch-target">
+          <i id="themeQuickIcon" class="fa-solid fa-sun text-base"></i>
         </button>
         <button id="openSettingsBtn" aria-label="Open settings" onclick="toggleSettingsDrawer(true)" class="p-2.5 rounded-xl bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700 transition touch-target">
           <i class="fa-solid fa-sliders text-base"></i>
@@ -737,7 +829,7 @@
           <!-- Exercise Checklist -->
           <div class="space-y-2">
             <div class="flex items-center justify-between gap-2">
-              <h4 class="text-xs font-semibold text-slate-300">Target Core & Posture Circuit</h4>
+              <h4 class="text-xs font-semibold text-slate-300">Target Core & Posture Circuit <span id="exerciseDayBadge" class="hidden ml-1 text-[10px] font-medium text-amber-400 bg-amber-950/60 px-1.5 py-0.5 rounded-full border border-amber-800/60">this day only</span></h4>
               <div class="flex items-center gap-4 text-xs font-medium">
                 <button type="button" id="exerciseEditBtn" onclick="toggleExerciseEdit()" class="py-1 text-slate-300 hover:text-white">Edit</button>
                 <button type="button" onclick="openExerciseModal()" class="py-1 text-cyan-400 hover:text-cyan-300">+ Add routine</button>
@@ -746,9 +838,12 @@
             <div id="exerciseChecklist" class="space-y-2">
               <!-- Populated via JS -->
             </div>
-            <div id="exerciseEditBar" class="hidden flex items-center justify-between gap-2 text-[11px] text-slate-400">
-              <span>Tap the pencil to rename a routine or the bin to remove it.</span>
-              <button type="button" onclick="restoreDefaultExercises()" class="flex-none text-amber-400 underline">Restore defaults</button>
+            <div id="exerciseEditBar" class="hidden space-y-2 text-[11px] text-slate-400">
+              <p>Changes here apply to <strong class="text-slate-200">this day only</strong>. Other days keep their own routines. Tap the pencil to rename or the bin to remove.</p>
+              <div class="flex items-center justify-between gap-3">
+                <button type="button" onclick="setCircuitAsDefault()" class="text-cyan-400 underline">Use as default for new days</button>
+                <button type="button" onclick="resetDayCircuit()" class="text-amber-400 underline">Reset this day to default</button>
+              </div>
             </div>
           </div>
         </div>
@@ -772,12 +867,39 @@
               <input type="date" id="foodLogDate" onchange="loadFoodLogForDate()" class="bg-slate-800 border border-slate-700 text-white text-xs rounded-xl px-3 py-2 w-full sm:w-auto">
             </div>
 
+            <!-- Protein: editable daily target (set from your doctor's advice) -->
+            <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 space-y-2">
+              <div class="flex items-baseline justify-between gap-2">
+                <span class="text-xs font-semibold text-slate-300 flex items-center gap-1.5"><i class="fa-solid fa-drumstick-bite text-rose-400"></i> Protein</span>
+                <span class="text-xs text-slate-400"><span id="foodTotalProtein" class="text-base font-bold text-white">&ndash;</span> <span id="proteinTargetLabel">/ 100 g</span></span>
+              </div>
+              <div class="h-1.5 rounded-full bg-slate-800 overflow-hidden"><div id="proteinBar" class="h-full rounded-full bg-rose-400" style="width:0%"></div></div>
+              <div class="flex items-center justify-between gap-2 text-[11px] text-slate-400">
+                <span id="proteinRemaining"></span>
+                <button type="button" onclick="toggleTargetsEditor()" class="flex-none text-cyan-400 underline">Edit targets</button>
+              </div>
+              <div id="targetsEditor" class="hidden pt-2 border-t border-slate-800 space-y-2">
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label for="targetProteinInput" class="text-[11px] text-slate-400 block mb-1">Protein target (g/day)</label>
+                    <input type="number" inputmode="decimal" step="1" min="0" id="targetProteinInput" placeholder="e.g. 100" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+                  </div>
+                  <div>
+                    <label for="targetCalFloorInput" class="text-[11px] text-slate-400 block mb-1">Calorie floor (kcal/day)</label>
+                    <input type="number" inputmode="numeric" step="10" min="0" id="targetCalFloorInput" placeholder="Blank = scan BMR" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+                  </div>
+                </div>
+                <p id="targetsHint" class="text-[11px] text-slate-500"></p>
+                <button type="button" onclick="saveFoodTargets()" class="w-full bg-slate-800 hover:bg-slate-700 text-cyan-400 font-semibold text-xs py-2 rounded-xl border border-slate-700">Save targets</button>
+              </div>
+            </div>
+
             <!-- Day totals (sum of everything logged today) -->
             <div class="grid grid-cols-3 gap-2 text-center">
               <div class="p-2.5 bg-slate-800/80 rounded-xl border border-slate-700">
                 <div class="text-[10px] text-slate-400">Calories</div>
                 <div id="foodTotalCal" class="text-base font-bold text-white">&ndash;</div>
-                <div class="text-[10px] text-slate-500">kcal</div>
+                <div id="foodCalSub" class="text-[10px] text-slate-500">kcal</div>
               </div>
               <div class="p-2.5 bg-slate-800/80 rounded-xl border border-slate-700">
                 <div class="text-[10px] text-slate-400">Fat</div>
@@ -801,8 +923,9 @@
 
               <div id="foodAddPane" class="space-y-2">
                 <input type="text" id="foodItemLabel" maxlength="40" placeholder="What was it? (optional, e.g. Lunch)" onkeydown="if(event.key==='Enter'){event.preventDefault();addFoodEntry();}" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
-                <div class="grid grid-cols-3 gap-2">
+                <div class="grid grid-cols-2 gap-2">
                   <input type="number" inputmode="numeric" min="0" id="foodItemCal" placeholder="kcal" aria-label="Calories to add" onkeydown="if(event.key==='Enter'){event.preventDefault();addFoodEntry();}" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+                  <input type="number" inputmode="decimal" step="0.1" min="0" id="foodItemProtein" placeholder="protein g" aria-label="Protein to add in grams" onkeydown="if(event.key==='Enter'){event.preventDefault();addFoodEntry();}" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
                   <input type="number" inputmode="decimal" step="0.1" min="0" id="foodItemFat" placeholder="fat g" aria-label="Fat to add in grams" onkeydown="if(event.key==='Enter'){event.preventDefault();addFoodEntry();}" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
                   <input type="number" inputmode="decimal" step="0.1" min="0" id="foodItemSugar" placeholder="sugar g" aria-label="Added sugar to add in grams" onkeydown="if(event.key==='Enter'){event.preventDefault();addFoodEntry();}" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
                 </div>
@@ -813,8 +936,9 @@
 
               <div id="foodTotalPane" class="hidden space-y-2">
                 <p class="text-[11px] text-slate-400">Already know the whole day? Type the totals. This replaces anything added above for this date.</p>
-                <div class="grid grid-cols-3 gap-2">
+                <div class="grid grid-cols-2 gap-2">
                   <input type="number" inputmode="numeric" min="0" id="foodDirCal" placeholder="kcal" aria-label="Total calories for the day" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+                  <input type="number" inputmode="decimal" step="0.1" min="0" id="foodDirProtein" placeholder="protein g" aria-label="Total protein for the day in grams" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
                   <input type="number" inputmode="decimal" step="0.1" min="0" id="foodDirFat" placeholder="fat g" aria-label="Total fat for the day in grams" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
                   <input type="number" inputmode="decimal" step="0.1" min="0" id="foodDirSugar" placeholder="sugar g" aria-label="Total added sugar for the day in grams" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
                 </div>
@@ -874,7 +998,7 @@
                 <button type="button" id="foodRange-30" onclick="setFoodRange(30)" class="px-3 py-1 rounded-md text-slate-400">30 days</button>
               </div>
             </div>
-            <div id="foodSummaryTiles" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
+            <div id="foodSummaryTiles" class="grid grid-cols-2 sm:grid-cols-5 gap-2"></div>
             <div class="h-52 w-full relative">
               <canvas id="chartFoodTrend"></canvas>
             </div>
@@ -1044,8 +1168,9 @@
 
             <div class="text-[11px] font-semibold text-slate-300 pt-1">Calibrate to what fits you now</div>
             <div class="grid grid-cols-2 gap-2">
-              <input type="number" inputmode="decimal" step="1" min="24" max="50" id="sizeCalPants" placeholder="Pants waist (in), e.g. 34" aria-label="Pants waist size that fits you now, in inches" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
-              <select id="sizeCalTop" aria-label="T-shirt size that fits you now" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+              <input type="number" inputmode="decimal" step="1" min="24" max="50" id="sizeCalPants" placeholder="Pants (in), e.g. 34" aria-label="Pants waist size that fits you now, in inches" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+              <input type="number" inputmode="decimal" step="1" min="24" max="50" id="sizeCalJeans" placeholder="Jeans (in), e.g. 33" aria-label="Jeans waist size that fits you now, in inches" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+              <select id="sizeCalTop" aria-label="T-shirt size that fits you now" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full col-span-2">
                 <option value="">T-shirt size now</option>
                 <option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option><option>2XL</option><option>3XL</option><option>4XL</option><option>5XL</option>
               </select>
@@ -1066,6 +1191,16 @@
           <div class="flex justify-between items-center">
             <span class="text-xs text-slate-300">Web Audio SFX (Chimes)</span>
             <input type="checkbox" id="settingSfxToggle" checked onchange="savePreferences()" class="w-4 h-4 rounded text-cyan-600 focus:ring-0 bg-slate-800 border-slate-700">
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-xs text-slate-300 block">Appearance</label>
+            <div class="flex bg-slate-950 p-0.5 rounded-lg border border-slate-800 text-[11px] font-semibold">
+              <button type="button" id="themeBtn-dark" onclick="setTheme('dark')" class="flex-1 py-1.5 rounded-md text-slate-400"><i class="fa-solid fa-moon mr-1"></i>Dark</button>
+              <button type="button" id="themeBtn-light" onclick="setTheme('light')" class="flex-1 py-1.5 rounded-md text-slate-400"><i class="fa-solid fa-sun mr-1"></i>Light</button>
+              <button type="button" id="themeBtn-auto" onclick="setTheme('auto')" class="flex-1 py-1.5 rounded-md text-slate-400"><i class="fa-solid fa-circle-half-stroke mr-1"></i>Auto</button>
+            </div>
+            <p class="text-[10px] text-slate-500">Auto follows your iPhone's light or dark setting.</p>
           </div>
 
           <div class="space-y-1">
@@ -1406,11 +1541,11 @@
     /* ---- Profile & preferences (previously lost on every reload) ---- */
     const DEFAULT_PROFILE = { name: '', height: '', startWeight: '', targetWeight: '' };
     let profile = { ...DEFAULT_PROFILE };
-    let prefs = { sfx: true, accent: 'accent-cyan', fit: 'regular', sizeCal: null };
+    let prefs = { sfx: true, accent: 'accent-cyan', fit: 'regular', sizeCal: null, theme: 'dark', proteinTarget: 100, calorieFloor: null };
 
     function loadProfileAndPrefs() {
       profile = { ...DEFAULT_PROFILE, ...(LS.get('vmt_profile', {}) || {}) };
-      prefs = { sfx: true, accent: 'accent-cyan', fit: 'regular', sizeCal: null, ...(LS.get('vmt_prefs', {}) || {}) };
+      prefs = { sfx: true, accent: 'accent-cyan', fit: 'regular', sizeCal: null, theme: 'dark', proteinTarget: 100, calorieFloor: null, ...(LS.get('vmt_prefs', {}) || {}) };
       delete prefs.hair; delete prefs.beard; // removed with the haircut guide
     }
 
@@ -1420,8 +1555,44 @@
       const sfx = document.getElementById('settingSfxToggle');
       if (sfx) sfx.checked = !!prefs.sfx;
       applyAccent(prefs.accent);
+      applyTheme();
       renderSizePredictor();
     }
+
+    /* ---- Light / dark appearance (v8.1) ---- */
+    const systemPrefersLight = () => !!(window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches);
+    const resolvedTheme = () => (prefs.theme === 'light' || (prefs.theme === 'auto' && systemPrefersLight())) ? 'light' : 'dark';
+
+    function applyTheme() {
+      const light = resolvedTheme() === 'light';
+      document.documentElement.classList.toggle('light', light);
+      document.documentElement.style.colorScheme = light ? 'light' : 'dark';
+      const setMeta = (name, val) => { const m = document.querySelector(`meta[name="${name}"]`); if (m) m.setAttribute('content', val); };
+      setMeta('theme-color', light ? '#f1f5f9' : '#0f172a');
+      if (window.Chart) {
+        Chart.defaults.color = light ? '#475569' : '#94a3b8';
+        Chart.defaults.borderColor = light ? 'rgba(71, 85, 105, 0.18)' : 'rgba(148, 163, 184, 0.14)';
+      }
+      ['dark', 'light', 'auto'].forEach(m => {
+        const b = document.getElementById(`themeBtn-${m}`);
+        if (b) b.className = `flex-1 py-1.5 rounded-md ${prefs.theme === m ? 'bg-slate-800 text-cyan-400' : 'text-slate-400'}`;
+      });
+      const icon = document.getElementById('themeQuickIcon');
+      if (icon) icon.className = `fa-solid ${light ? 'fa-moon' : 'fa-sun'} text-base`;
+    }
+    function setTheme(mode) {
+      playSfx('click');
+      prefs.theme = ['dark', 'light', 'auto'].includes(mode) ? mode : 'dark';
+      LS.set('vmt_prefs', prefs);
+      applyTheme();
+      renderActiveTab(); // charts pick up the new colours
+    }
+    function toggleThemeQuick() { setTheme(resolvedTheme() === 'light' ? 'dark' : 'light'); }
+    try {
+      matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
+        if (prefs.theme === 'auto') { applyTheme(); renderActiveTab(); }
+      });
+    } catch (e) { /* older browsers */ }
 
     function savePreferences() {
       const sfx = document.getElementById('settingSfxToggle');
@@ -1650,8 +1821,31 @@
     /* ==========================================================================
        5. NAVIGATION & TAB SWITCHING
        ========================================================================== */
+    // Put a tab back the way it opens fresh: first sub-page, edit modes off, panels closed.
+    function resetTabView(tabId) {
+      if (tabId === 'tab-visbody' && document.getElementById('visPage-1')) switchVisbodySubTab(1, true);
+      if (tabId === 'tab-food') { switchFoodSubTab('intake', true); switchFoodMode('add', true); }
+      if (tabId === 'tab-dailylog' && exerciseEditMode) { exerciseEditMode = false; renderExerciseChecklist(currentExerciseTicks()); }
+      if (tabId === 'tab-advisor') { const c = document.getElementById('diagnosticOutputCard'); if (c) c.classList.add('hidden'); }
+    }
+
+    function renderActiveTab() {
+      const tabId = appState.activeTab;
+      if (tabId === 'tab-dashboard') renderDashboard();
+      if (tabId === 'tab-visbody') renderVisbodyView();
+      if (tabId === 'tab-mounjaro') renderMounjaroView();
+      if (tabId === 'tab-dailylog') loadDailyLogForSelectedDate();
+      if (tabId === 'tab-food') loadFoodLogForDate();
+      if (tabId === 'tab-advisor') renderAdvisorTab();
+    }
+
     function switchTab(tabId) {
       playSfx('click');
+      const main = document.getElementById('mainScrollContainer');
+      const previous = appState.activeTab;
+      const sameTab = previous === tabId && !document.getElementById(tabId).classList.contains('hidden');
+      // Leaving a tab resets it, so coming back always starts at the top of its first view.
+      if (previous && previous !== tabId) resetTabView(previous);
       appState.activeTab = tabId;
 
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -1667,14 +1861,18 @@
         activeNavBtn.classList.add('text-cyan-400');
       }
 
-      if (tabId === 'tab-dashboard') renderDashboard();
-      if (tabId === 'tab-visbody') renderVisbodyView();
-      if (tabId === 'tab-mounjaro') renderMounjaroView();
-      if (tabId === 'tab-dailylog') loadDailyLogForSelectedDate();
-      if (tabId === 'tab-food') loadFoodLogForDate();
-      if (tabId === 'tab-advisor') renderAdvisorTab();
+      // Jump to the top straight away (a smooth scroll gets cut short when the new tab changes height).
+      // Tapping the tab you are already on scrolls up smoothly instead.
+      if (sameTab) main.scrollTo({ top: 0, behavior: 'smooth' });
+      else main.scrollTop = 0;
 
-      document.getElementById('mainScrollContainer').scrollTo({ top: 0, behavior: 'smooth' });
+      renderActiveTab();
+
+      // Charts and async loads change the page height after the first paint, so pin the top again.
+      if (!sameTab) {
+        requestAnimationFrame(() => { main.scrollTop = 0; });
+        setTimeout(() => { if (appState.activeTab === tabId) main.scrollTop = 0; }, 120);
+      }
     }
 
     /* ==========================================================================
@@ -2007,8 +2205,8 @@
       document.getElementById('visPage5Details').innerHTML = hint + tile('Glute Alignment Type', fv(scan.gluteType), 'text-cyan-400 text-sm', 'p-3', 'gluteType', null);
     }
 
-    function switchVisbodySubTab(pageNum) {
-      playSfx('click');
+    function switchVisbodySubTab(pageNum, quiet) {
+      if (!quiet) playSfx('click');
       for (let i = 1; i <= 5; i++) {
         document.getElementById(`visPage-${i}`).classList.add('hidden');
         document.getElementById(`visSubTab-${i}`).classList.remove('bg-slate-800', 'text-cyan-400');
@@ -2718,6 +2916,7 @@
       if (seq !== dailyLoadSeq) return; // a newer date was picked while this one was loading
 
       renderMedsChecklist(rec.meds || {});
+      dayCircuit = Array.isArray(rec.circuit) ? rec.circuit.map(e => ({ ...e })) : null;
       renderExerciseChecklist(rec.exercises || {});
       document.getElementById('dailyIsWorkoutDay').checked = !!rec.isWorkoutDay;
       document.getElementById('dailySteps').value = rec.steps ?? '';
@@ -2799,14 +2998,19 @@
       loadDailyLogForSelectedDate();
     }
 
-    /* ---- Editable core & posture circuit (v7.3) ---- */
+    /* ---- Editable core & posture circuit (v8.1: every day keeps its own list) ----
+       `vmt_exercises` is now only the DEFAULT list that new days start from. The first time you change the circuit
+       on a day, that day gets its own copy (saved as `circuit` in its daily log). Other days are never touched. */
     let exerciseEditMode = false;
+    let dayCircuit = null; // the selected day's own list, or null while that day follows the default list
 
-    function getExercises() {
+    function getDefaultExercises() {
       const saved = LS.get('vmt_exercises', null);
       return Array.isArray(saved) ? saved : DEFAULT_EXERCISES.map(e => ({ ...e }));
     }
-    function setExercises(list) { LS.set('vmt_exercises', list); }
+    function setDefaultExercises(list) { LS.set('vmt_exercises', list); }
+    // the list shown for the selected day
+    function getExercises() { return dayCircuit || getDefaultExercises(); }
 
     function currentExerciseTicks() {
       const state = {};
@@ -2814,6 +3018,15 @@
       return state;
     }
     function refreshExercises() { renderExerciseChecklist(currentExerciseTicks()); }
+
+    // Edit this day's list (copying the default first if the day has no list of its own) and save the day.
+    function editDayCircuit(mutate) {
+      const list = getExercises().map(e => ({ ...e }));
+      mutate(list);
+      dayCircuit = list;
+      refreshExercises();
+      saveDailyLogState();
+    }
 
     function renderExerciseChecklist(state = {}) {
       const container = document.getElementById('exerciseChecklist');
@@ -2823,9 +3036,11 @@
       if (editBtn) editBtn.innerText = exerciseEditMode ? 'Done' : 'Edit';
       const bar = document.getElementById('exerciseEditBar');
       if (bar) bar.classList.toggle('hidden', !exerciseEditMode);
+      const badge = document.getElementById('exerciseDayBadge');
+      if (badge) badge.classList.toggle('hidden', !dayCircuit);
 
       if (!list.length) {
-        container.innerHTML = '<p class="text-[11px] text-slate-500">No routines yet. Tap “+ Add routine” to create one.</p>';
+        container.innerHTML = '<p class="text-[11px] text-slate-500">No routines for this day. Tap “+ Add routine” to create one.</p>';
         return;
       }
 
@@ -2860,7 +3075,7 @@
       document.getElementById('exerciseId').value = ex ? ex.id : '';
       document.getElementById('exerciseName').value = ex ? ex.name : '';
       document.getElementById('exerciseTarget').value = ex ? (ex.target || '') : '';
-      document.getElementById('exerciseModalTitle').innerText = ex ? 'Edit routine' : 'Add routine';
+      document.getElementById('exerciseModalTitle').innerText = ex ? 'Edit routine (this day only)' : 'Add routine (this day only)';
       document.getElementById('exerciseModal').classList.remove('hidden');
       setTimeout(() => document.getElementById('exerciseName').focus(), 50);
     }
@@ -2871,31 +3086,49 @@
       if (!name) return;
       const target = document.getElementById('exerciseTarget').value.trim();
       const id = document.getElementById('exerciseId').value;
-      const list = getExercises();
-      if (id) {
-        const ex = list.find(x => x.id === id);
-        if (ex) { ex.name = name; ex.target = target; }
-      } else {
-        list.push({ id: `ex_${Date.now()}`, name, target });
-      }
-      setExercises(list);
+      editDayCircuit(list => {
+        if (id) {
+          const ex = list.find(x => x.id === id);
+          if (ex) { ex.name = name; ex.target = target; }
+        } else {
+          list.push({ id: `ex_${Date.now()}`, name, target });
+        }
+      });
       closeExerciseModal();
       playSfx('chime');
-      refreshExercises();
-      showToast(id ? 'Routine updated' : 'Routine added');
+      showToast(id ? 'Routine updated for this day' : 'Routine added for this day');
     }
     function deleteExercise(id) {
       const ex = getExercises().find(x => x.id === id);
-      if (!ex || !confirm(`Remove “${ex.name}” from the circuit? Past ticks stay in your history.`)) return;
-      setExercises(getExercises().filter(x => x.id !== id));
+      if (!ex || !confirm(`Remove “${ex.name}” from this day's circuit? Other days are not affected.`)) return;
       playSfx('click');
-      refreshExercises();
+      editDayCircuit(list => { const i = list.findIndex(x => x.id === id); if (i >= 0) list.splice(i, 1); });
     }
-    function restoreDefaultExercises() {
-      if (!confirm('Replace your circuit with the original four routines?')) return;
-      try { localStorage.removeItem('vmt_exercises'); } catch (err) { /* ignore */ }
+    // Back to the default list for this day only (its ticks for routines still on the default list are kept)
+    function resetDayCircuit() {
+      if (!dayCircuit) { showToast('This day already follows your default list.'); return; }
+      if (!confirm('Reset this day to your default routines? Other days are not affected.')) return;
+      dayCircuit = null;
       playSfx('click');
       refreshExercises();
+      saveDailyLogState();
+    }
+    // Make this day's list the starting list for new days. Days already logged keep what they had.
+    async function setCircuitAsDefault() {
+      if (!confirm('Use this day’s routines as the default for new days? Days you have already logged keep their own routines.')) return;
+      const date = document.getElementById('dailyLogDateInput').value;
+      try {
+        const old = getDefaultExercises();
+        const all = await dbGetAll('dailyLogs');
+        const tx = db.transaction('dailyLogs', 'readwrite');
+        all.forEach(r => {
+          if (r.date !== date && !Array.isArray(r.circuit)) { r.circuit = old.map(e => ({ ...e })); tx.objectStore('dailyLogs').put(r); }
+        });
+        await txDone(tx);
+        setDefaultExercises(getExercises().map(e => ({ ...e })));
+        playSfx('chime');
+        showToast('Saved as the default for new days');
+      } catch (err) { showToast("Couldn't update the default list", 'error'); }
     }
 
     // Previously this only flashed "Saved ✓" and stored nothing. It now writes to the existing `dailyLogs` store.
@@ -2921,6 +3154,7 @@
           distance: distRaw === '' ? null : Number(distRaw),
           meds: keepMeds,
           exercises: keepEx,
+          ...(dayCircuit ? { circuit: dayCircuit } : {}),
           updatedAt: Date.now()
         });
         const toast = document.getElementById('dailySaveToast');
@@ -2963,7 +3197,7 @@
        calories/fat/sugar are always the day's totals (base total + every entry), so charts and the advisor keep working. */
     const SUGAR_CAP_G = 20;
     let foodEntries = [];
-    let foodBase = { calories: null, fat: null, sugar: null };
+    let foodBase = { calories: null, protein: null, fat: null, sugar: null };
     let foodMode = 'add';
 
     function foodSum(key) {
@@ -2972,12 +3206,75 @@
       if (!vals.length && !hasBase) return null;
       return Math.round(((hasBase ? foodBase[key] : 0) + vals.reduce((a, b) => a + b, 0)) * 10) / 10;
     }
-    const foodTotals = () => ({ calories: foodSum('calories'), fat: foodSum('fat'), sugar: foodSum('sugar') });
+    const foodTotals = () => ({ calories: foodSum('calories'), protein: foodSum('protein'), fat: foodSum('fat'), sugar: foodSum('sugar') });
     const fmtFood = v => v === null ? '\u2013' : Number(v).toLocaleString(undefined, { maximumFractionDigits: 1 });
+
+    /* ---- Daily targets (v8.1): protein from your doctor's advice, calorie floor from your Visbody BMR ---- */
+    const proteinTarget = () => (isNum(prefs.proteinTarget) && prefs.proteinTarget > 0 ? prefs.proteinTarget : 100);
+    function latestScanBmr() {
+      const sc = (appState.visbodyScans || []).filter(x => isNum(x.bmr));
+      return sc.length ? Math.round(sc[sc.length - 1].bmr) : null;
+    }
+    // { value, source } where source is 'set by you' or 'scan BMR'; null when neither exists
+    function calorieFloorInfo() {
+      if (isNum(prefs.calorieFloor) && prefs.calorieFloor > 0) return { value: Math.round(prefs.calorieFloor), source: 'set by you' };
+      const bmr = latestScanBmr();
+      return bmr ? { value: bmr, source: 'scan BMR' } : null;
+    }
+    function toggleTargetsEditor() {
+      playSfx('click');
+      const box = document.getElementById('targetsEditor');
+      const open = box.classList.contains('hidden');
+      box.classList.toggle('hidden', !open);
+      if (open) {
+        document.getElementById('targetProteinInput').value = proteinTarget();
+        document.getElementById('targetCalFloorInput').value = isNum(prefs.calorieFloor) && prefs.calorieFloor > 0 ? prefs.calorieFloor : '';
+        const bmr = latestScanBmr();
+        document.getElementById('targetsHint').innerText = bmr
+          ? `Leave the calorie floor blank to use your latest Visbody BMR (${bmr.toLocaleString()} kcal). The protein target is saved with each day you log, so earlier days keep the target they had.`
+          : 'Leave the calorie floor blank to use the BMR from your Visbody scans once you add one. The protein target is saved with each day you log, so earlier days keep the target they had.';
+      }
+    }
+    function saveFoodTargets() {
+      const p = parseFloat(document.getElementById('targetProteinInput').value);
+      const fRaw = document.getElementById('targetCalFloorInput').value;
+      const f = fRaw === '' ? null : parseFloat(fRaw);
+      if (!(p > 0 && p <= 400)) { showToast('Enter a protein target between 1 and 400 g.', 'warn'); return; }
+      if (f !== null && !(f >= 500 && f <= 6000)) { showToast('Calorie floor should be between 500 and 6,000 kcal, or blank.', 'warn'); return; }
+      prefs.proteinTarget = Math.round(p * 10) / 10;
+      prefs.calorieFloor = f === null ? null : Math.round(f);
+      LS.set('vmt_prefs', prefs);
+      playSfx('chime');
+      document.getElementById('targetsEditor').classList.add('hidden');
+      renderFoodDay();
+      saveFoodLogForDate(true); // stamps this day with the new target; earlier days keep theirs
+      showToast('Targets saved');
+    }
 
     function renderFoodDay() {
       const t = foodTotals();
       document.getElementById('foodTotalCal').innerText = fmtFood(t.calories);
+
+      // protein vs the editable target
+      const pt = proteinTarget();
+      const pEl = document.getElementById('foodTotalProtein');
+      const pHit = isNum(t.protein) && t.protein >= pt;
+      pEl.innerText = fmtFood(t.protein);
+      pEl.className = `text-base font-bold ${pHit ? 'text-emerald-400' : 'text-white'}`;
+      document.getElementById('proteinTargetLabel').innerText = `/ ${fmtFood(pt)} g`;
+      const pBar = document.getElementById('proteinBar');
+      pBar.style.width = `${Math.min(100, ((t.protein || 0) / pt) * 100)}%`;
+      pBar.className = `h-full rounded-full ${pHit ? 'bg-emerald-500' : 'bg-rose-400'}`;
+      document.getElementById('proteinRemaining').innerText = !isNum(t.protein)
+        ? `Target ${fmtFood(pt)} g a day`
+        : (pHit ? `Target reached${t.protein > pt ? ` (+${fmtFood(t.protein - pt)} g)` : ''}` : `${fmtFood(pt - t.protein)} g to go`);
+
+      // calories vs the floor (editable, otherwise your Visbody BMR)
+      const fl = calorieFloorInfo();
+      const calSub = document.getElementById('foodCalSub');
+      if (calSub) calSub.innerText = !fl ? 'kcal'
+        : (isNum(t.calories) ? (t.calories >= fl.value ? `floor ${fl.value.toLocaleString()} reached` : `${(fl.value - t.calories).toLocaleString()} to floor ${fl.value.toLocaleString()}`)
+          : `floor ${fl.value.toLocaleString()} kcal`);
       document.getElementById('foodTotalFat').innerText = fmtFood(t.fat);
       const sugarEl = document.getElementById('foodTotalSugar');
       sugarEl.innerText = fmtFood(t.sugar);
@@ -2988,18 +3285,20 @@
 
       // Prefill the day-total boxes with what is logged so far
       document.getElementById('foodDirCal').value = t.calories ?? '';
+      document.getElementById('foodDirProtein').value = t.protein ?? '';
       document.getElementById('foodDirFat').value = t.fat ?? '';
       document.getElementById('foodDirSugar').value = t.sugar ?? '';
 
       const list = document.getElementById('foodEntryList');
       const parts = [];
-      if (isNum(foodBase.calories) || isNum(foodBase.fat) || isNum(foodBase.sugar)) {
+      if (isNum(foodBase.calories) || isNum(foodBase.protein) || isNum(foodBase.fat) || isNum(foodBase.sugar)) {
         parts.push({ label: 'Day total entered', time: '', vals: foodBase, base: true });
       }
       foodEntries.forEach(e => parts.push({ label: e.label || 'Added', time: e.t ? new Date(e.t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '', vals: e, id: e.id }));
       list.innerHTML = parts.length ? parts.map(p => {
         const bits = [];
         if (isNum(p.vals.calories)) bits.push(`${fmtFood(p.vals.calories)} kcal`);
+        if (isNum(p.vals.protein)) bits.push(`${fmtFood(p.vals.protein)} g protein`);
         if (isNum(p.vals.fat)) bits.push(`${fmtFood(p.vals.fat)} g fat`);
         if (isNum(p.vals.sugar)) bits.push(`${fmtFood(p.vals.sugar)} g sugar`);
         return `<div class="flex items-center gap-2 p-2 bg-slate-800/60 rounded-lg border border-slate-800 text-[11px]">
@@ -3011,8 +3310,8 @@
       renderFoodRecent();
     }
 
-    function switchFoodMode(mode) {
-      playSfx('click');
+    function switchFoodMode(mode, quiet) {
+      if (!quiet) playSfx('click');
       foodMode = mode;
       document.getElementById('foodAddPane').classList.toggle('hidden', mode !== 'add');
       document.getElementById('foodTotalPane').classList.toggle('hidden', mode !== 'total');
@@ -3034,13 +3333,14 @@
     function addFoodEntry(prefill) {
       const label = prefill ? prefill.label : (document.getElementById('foodItemLabel').value || '').trim();
       const cal = prefill ? prefill.calories : readFoodNum('foodItemCal', 5000);
+      const protein = prefill ? (prefill.protein ?? null) : readFoodNum('foodItemProtein', 500);
       const fat = prefill ? prefill.fat : readFoodNum('foodItemFat', 500);
       const sugar = prefill ? prefill.sugar : readFoodNum('foodItemSugar', 500);
-      if ([cal, fat, sugar].some(Number.isNaN)) { showToast('Check the numbers. They must be 0 or more and realistic for one entry.', 'warn'); return; }
-      if (cal === null && fat === null && sugar === null) { showToast('Type calories, fat or sugar first.', 'warn'); return; }
+      if ([cal, protein, fat, sugar].some(Number.isNaN)) { showToast('Check the numbers. They must be 0 or more and realistic for one entry.', 'warn'); return; }
+      if (cal === null && protein === null && fat === null && sugar === null) { showToast('Type calories, protein, fat or sugar first.', 'warn'); return; }
       playSfx('click');
-      foodEntries.push({ id: `f_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`, t: Date.now(), label, calories: cal, fat, sugar });
-      if (!prefill) ['foodItemLabel', 'foodItemCal', 'foodItemFat', 'foodItemSugar'].forEach(id => { document.getElementById(id).value = ''; });
+      foodEntries.push({ id: `f_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`, t: Date.now(), label, calories: cal, protein, fat, sugar });
+      if (!prefill) ['foodItemLabel', 'foodItemCal', 'foodItemProtein', 'foodItemFat', 'foodItemSugar'].forEach(id => { document.getElementById(id).value = ''; });
       renderFoodDay();
       saveFoodLogForDate(true);
     }
@@ -3051,18 +3351,18 @@
       saveFoodLogForDate(true);
     }
     function removeFoodBase() {
-      foodBase = { calories: null, fat: null, sugar: null };
+      foodBase = { calories: null, protein: null, fat: null, sugar: null };
       renderFoodDay();
       saveFoodLogForDate(true);
     }
 
     function saveDirectFoodTotal() {
-      const cal = readFoodNum('foodDirCal', 20000), fat = readFoodNum('foodDirFat', 2000), sugar = readFoodNum('foodDirSugar', 2000);
-      if ([cal, fat, sugar].some(Number.isNaN)) { showToast('Check the numbers. They must be 0 or more.', 'warn'); return; }
-      if (cal === null && fat === null && sugar === null) { showToast('Type at least one total first.', 'warn'); return; }
+      const cal = readFoodNum('foodDirCal', 20000), protein = readFoodNum('foodDirProtein', 1000), fat = readFoodNum('foodDirFat', 2000), sugar = readFoodNum('foodDirSugar', 2000);
+      if ([cal, protein, fat, sugar].some(Number.isNaN)) { showToast('Check the numbers. They must be 0 or more.', 'warn'); return; }
+      if (cal === null && protein === null && fat === null && sugar === null) { showToast('Type at least one total first.', 'warn'); return; }
       if (foodEntries.length && !confirm(`This replaces the ${foodEntries.length} item${foodEntries.length > 1 ? 's' : ''} added for this day with your totals. Continue?`)) return;
       foodEntries = [];
-      foodBase = { calories: cal, fat, sugar };
+      foodBase = { calories: cal, protein, fat, sugar };
       playSfx('chime');
       renderFoodDay();
       saveFoodLogForDate(true);
@@ -3090,7 +3390,7 @@
         b.type = 'button';
         b.className = 'px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700 text-[11px] text-slate-300 hover:text-white';
         b.textContent = `${e.label}${isNum(e.calories) ? ` \u00b7 ${fmtFood(e.calories)}` : ''}`;
-        b.onclick = () => { addFoodEntry({ label: e.label, calories: e.calories ?? null, fat: e.fat ?? null, sugar: e.sugar ?? null }); showToast(`Added ${e.label}`); };
+        b.onclick = () => { addFoodEntry({ label: e.label, calories: e.calories ?? null, protein: e.protein ?? null, fat: e.fat ?? null, sugar: e.sugar ?? null }); showToast(`Added ${e.label}`); };
         host.appendChild(b);
       });
     }
@@ -3105,11 +3405,11 @@
 
       if (rec && Array.isArray(rec.entries)) {
         foodEntries = rec.entries.map(e => ({ ...e }));
-        foodBase = { calories: rec.baseCalories ?? null, fat: rec.baseFat ?? null, sugar: rec.baseSugar ?? null };
+        foodBase = { calories: rec.baseCalories ?? null, protein: rec.baseProtein ?? null, fat: rec.baseFat ?? null, sugar: rec.baseSugar ?? null };
       } else {
         // days saved before v8 held a single typed total: keep it as the day total
         foodEntries = [];
-        foodBase = { calories: rec?.calories ?? null, fat: rec?.fat ?? null, sugar: rec?.sugar ?? null };
+        foodBase = { calories: rec?.calories ?? null, protein: rec?.protein ?? null, fat: rec?.fat ?? null, sugar: rec?.sugar ?? null };
       }
       currentWaterMl = rec?.water || 0;
       updateWaterDisplay();
@@ -3118,8 +3418,8 @@
       renderFoodTrendChart();
     }
 
-    function switchFoodSubTab(type) {
-      playSfx('click');
+    function switchFoodSubTab(type, quiet) {
+      if (!quiet) playSfx('click');
       if (type === 'intake') {
         document.getElementById('foodView-intake').classList.remove('hidden');
         document.getElementById('foodView-summary').classList.add('hidden');
@@ -3158,11 +3458,14 @@
         await dbPut('foodLogs', {
           date,
           calories: t.calories,
+          protein: t.protein,
+          proteinTarget: proteinTarget(),
           fat: t.fat,
           sugar: t.sugar,
           water: currentWaterMl,
           entries: foodEntries,
           baseCalories: foodBase.calories,
+          baseProtein: foodBase.protein,
           baseFat: foodBase.fat,
           baseSugar: foodBase.sugar,
           updatedAt: Date.now()
@@ -3193,7 +3496,7 @@
       labels.forEach((label, i) => {
         const date = addDaysStr(monday, i);
         const rec = byDate.get(date);
-        const logged = !!rec && (rec.calories != null || rec.fat != null || rec.sugar != null || rec.water > 0);
+        const logged = !!rec && (rec.calories != null || rec.protein != null || rec.fat != null || rec.sugar != null || rec.water > 0);
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.onclick = () => openFoodDay(date);
@@ -3213,6 +3516,7 @@
     const FOOD_METRICS = {
       sugar: { label: 'Added sugar', unit: 'g', color: '#f59e0b', target: 20, targetColor: '#f43f5e' },
       calories: { label: 'Calories', unit: 'kcal', color: '#06b6d4', target: null },
+      protein: { label: 'Protein', unit: 'g', color: '#fb7185', target: 100, targetColor: '#10b981' },
       fat: { label: 'Dietary fat', unit: 'g', color: '#a78bfa', target: null },
       water: { label: 'Water', unit: 'ml', color: '#38bdf8', target: WATER_TARGET_ML, targetColor: '#10b981' }
     };
@@ -3241,17 +3545,21 @@
       const n = foodSummary.days;
       const days = Array.from({ length: n }, (_, i) => addDaysStr(today, i - (n - 1)));
       const valueOf = (d, key) => { const v = byDate.get(d)?.[key]; return isNum(v) && (key !== 'water' || v > 0) ? v : null; };
+      // each day is judged against the protein target it was logged with (days saved before v8.1 use today's)
+      FOOD_METRICS.protein.target = proteinTarget();
+      const protTarget = d => { const t = byDate.get(d)?.proteinTarget; return isNum(t) && t > 0 ? t : proteinTarget(); };
 
       // Tiles: average per logged day for every metric; the active one is highlighted.
-      const keyOf = { sugar: 'sugar', calories: 'calories', fat: 'fat', water: 'water' };
+      const keyOf = { sugar: 'sugar', calories: 'calories', protein: 'protein', fat: 'fat', water: 'water' };
       const tiles = Object.entries(FOOD_METRICS).map(([id, m]) => {
         const vals = days.map(d => valueOf(d, keyOf[id])).filter(v => v !== null);
         const avg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
         let sub = vals.length ? `${vals.length} day${vals.length === 1 ? '' : 's'} logged` : 'No data';
         if (vals.length && id === 'sugar') sub = `${vals.filter(v => v > m.target).length} of ${vals.length} over cap`;
         if (vals.length && id === 'water') sub = `${vals.filter(v => v >= m.target).length} of ${vals.length} on target`;
+        if (vals.length && id === 'protein') sub = `${days.filter(d => { const v = valueOf(d, 'protein'); return v !== null && v >= protTarget(d); }).length} of ${vals.length} on target`;
         const active = foodSummary.metric === id;
-        const shown = avg === null ? '—' : (id === 'sugar' || id === 'fat' ? avg.toFixed(1) : Math.round(avg).toLocaleString());
+        const shown = avg === null ? '—' : (id === 'sugar' || id === 'fat' || id === 'protein' ? avg.toFixed(1) : Math.round(avg).toLocaleString());
         return `<button type="button" onclick="setFoodMetric('${id}')" aria-pressed="${active}" class="p-2.5 rounded-xl border text-left ${active ? 'bg-slate-800 border-accent' : 'bg-slate-900/60 border-slate-700'}">
           <div class="text-[10px] text-slate-400">${m.label}</div>
           <div class="text-base font-black text-white leading-tight">${shown} <span class="text-[10px] font-semibold text-slate-400">${m.unit}/day</span></div>
@@ -3267,21 +3575,24 @@
       const empty = document.getElementById('foodTrendEmpty');
       if (empty) empty.classList.toggle('hidden', logged.length > 0);
 
-      const barColor = v => {
+      const barColor = (v, d) => {
         if (v === null) return m.color;
+        if (foodSummary.metric === 'protein') return v >= protTarget(d) ? '#10b981' : '#fb7185';
         if (foodSummary.metric === 'sugar') return v > m.target ? '#f43f5e' : '#f59e0b';
         if (foodSummary.metric === 'water') return v >= m.target ? '#10b981' : '#38bdf8';
         return m.color;
       };
       const labels = days.map(d => n <= 7 ? `${WEEKDAYS[parseLocalDate(d).getDay()]} ${Number(d.slice(8))}` : shortDate(d));
 
-      const datasets = [{ type: 'bar', label: m.label, data, backgroundColor: data.map(barColor), borderRadius: 4, maxBarThickness: 28 }];
+      const datasets = [{ type: 'bar', label: m.label, data, backgroundColor: data.map((v, i) => barColor(v, days[i])), borderRadius: 4, maxBarThickness: 28 }];
       let caption = '';
       if (m.target != null) {
-        datasets.push({ type: 'line', label: 'Target', data: Array(n).fill(m.target), borderColor: m.targetColor, borderDash: [5, 5], pointRadius: 0, borderWidth: 1.5 });
+        datasets.push({ type: 'line', label: 'Target', data: foodSummary.metric === 'protein' ? days.map(protTarget) : Array(n).fill(m.target), borderColor: m.targetColor, borderDash: [5, 5], pointRadius: 0, borderWidth: 1.5, stepped: foodSummary.metric === 'protein' ? 'middle' : false });
         caption = foodSummary.metric === 'sugar'
           ? 'Dashed line is the 20 g daily cap. Red bars went over it.'
-          : 'Dashed line is the 2,500 ml daily target. Green bars reached it.';
+          : (foodSummary.metric === 'protein'
+            ? 'Dashed line is your protein target for each day. Green bars reached it.'
+            : 'Dashed line is the 2,500 ml daily target. Green bars reached it.');
       } else if (logged.length > 1) {
         const avg = logged.reduce((a, b) => a + b, 0) / logged.length;
         datasets.push({ type: 'line', label: 'Average', data: Array(n).fill(Math.round(avg * 10) / 10), borderColor: '#94a3b8', borderDash: [5, 5], pointRadius: 0, borderWidth: 1.5 });
@@ -3405,6 +3716,8 @@
         title.innerText = "Diagnostic: Monday–Sunday Nutrition Optimization";
         body.innerHTML =
           li(`<strong>BMR Anchor:</strong> ${latestScan && isNum(latestScan.bmr) ? `${Math.round(latestScan.bmr).toLocaleString()} kcal/day from your latest scan.` : 'Add a BMR value to a Visbody scan to anchor your calorie target.'}`) +
+          li(`<strong>Calorie floor:</strong> ${(() => { const fl = calorieFloorInfo(); return fl ? `${fl.value.toLocaleString()} kcal/day (${fl.source}). Your doctor's advice comes first; edit it under Food, Edit targets.` : 'Add a scan with a BMR value, or set a floor under Food, Edit targets.'; })()}`) +
+          li(`<strong>Protein:</strong> Aim for ${fmtFood(proteinTarget())} g a day. This is the target you set from your doctor's advice and you can change it any time on the Food tab.`) +
           li(`<strong>Sugar Cap:</strong> Keep added sugar ≤ 20g daily.`) +
           li(`<strong>Water:</strong> Aim for 2.5 L or more per day.`);
       } else if (type === 'wardrobe') {
@@ -3450,7 +3763,7 @@
       const items = [];
       // A week with nothing logged at all has no score, rather than a misleading 0.
       if (!week.some(d => food.has(d) || daily.has(d)) && !ams.some(a => week.includes(a.date))) return { items: [], score: null };
-      const foodLogged = d => { const r = food.get(d); return !!r && (r.calories != null || r.fat != null || r.sugar != null || (r.water || 0) > 0); };
+      const foodLogged = d => { const r = food.get(d); return !!r && (r.calories != null || r.protein != null || r.fat != null || r.sugar != null || (r.water || 0) > 0); };
 
       // Today only counts once it is already a success, so a half-finished day never drags the week down.
       {
@@ -3480,6 +3793,22 @@
         });
       }
       {
+        const tgt = d => { const t = food.get(d)?.proteinTarget; return isNum(t) && t > 0 ? t : proteinTarget(); };
+        const has = d => isNum(food.get(d)?.protein);
+        const pass = d => has(d) && food.get(d).protein >= tgt(d);
+        // like water, today only counts once the target is already met
+        const logged = elapsed.filter(d => has(d) && (d < today || pass(d)));
+        const ok = logged.filter(pass).length;
+        const avg = elapsed.filter(has).length ? elapsed.filter(has).reduce((a, d) => a + food.get(d).protein, 0) / elapsed.filter(has).length : null;
+        if (logged.length) items.push({
+          id: 'protein', label: 'Protein', icon: 'fa-drumstick-bite', color: 'text-rose-400', weight: 15,
+          ratio: ratioOf(ok, logged.length), value: `${ok} / ${logged.length} days`,
+          detail: `Target ${fmtFood(proteinTarget())} g a day (as set on the Food tab).${avg !== null ? ` Average on logged days: ${avg.toFixed(1)} g.` : ''}`,
+          tips: ['Build each meal around a protein source first, and log it as you go so you can see how far you are from the target.',
+                 'Close. A protein-rich snack or one larger portion at your lightest meal usually closes the gap.']
+        });
+      }
+      {
         const eligible = elapsed.filter(d => d < today || foodLogged(d));
         const hit = eligible.filter(foodLogged).length;
         items.push({
@@ -3492,13 +3821,14 @@
       }
       if (exercises.length && (!isCurrent || weekDone || pastDays > 0)) {
         const doneMap = d => daily.get(d)?.exercises || {};
-        const full = elapsed.filter(d => exercises.every(e => doneMap(d)[e.id])).length;
-        const partial = elapsed.filter(d => { const k = exercises.filter(e => doneMap(d)[e.id]).length; return k > 0 && k < exercises.length; }).length;
+        const exFor = d => daily.get(d)?.circuit || exercises; // each day is judged against its own routines
+        const full = elapsed.filter(d => { const l = exFor(d); return l.length > 0 && l.every(e => doneMap(d)[e.id]); }).length;
+        const partial = elapsed.filter(d => { const l = exFor(d); const k = l.filter(e => doneMap(d)[e.id]).length; return k > 0 && k < l.length; }).length;
         const needed = weekDone ? SCORE_TARGETS.circuitDays : Math.max(1, Math.ceil(SCORE_TARGETS.circuitDays * pastDays / 7));
         items.push({
           id: 'circuit', label: 'Core & posture circuit', icon: 'fa-person-running', color: 'text-indigo-400', weight: 20,
           ratio: Math.min(1, (full + 0.5 * partial) / needed), value: `${full} full day${full === 1 ? '' : 's'}`,
-          detail: `Goal ${SCORE_TARGETS.circuitDays} full circuit days a week (${exercises.length} routine${exercises.length === 1 ? '' : 's'}).${partial ? ` ${partial} partial day${partial === 1 ? '' : 's'} count half.` : ''}`,
+          detail: `Goal ${SCORE_TARGETS.circuitDays} full circuit days a week (${exercises.length} routine${exercises.length === 1 ? '' : 's'} by default).${partial ? ` ${partial} partial day${partial === 1 ? '' : 's'} count half.` : ''}`,
           tips: [`Pick ${SCORE_TARGETS.circuitDays} circuit days now and put them in your calendar. On a busy day, even two routines keeps the habit alive.`,
                  'Almost there. Choose your next circuit day today so it does not slip.']
         });
@@ -3585,7 +3915,7 @@
         food: new Map(foods.map(f => [f.date, f])),
         daily: new Map(dailies.map(d => [d.date, d])),
         ams: appState.amScaleLogs, shots: appState.mjShots,
-        exercises: getExercises(), meds: [...DEFAULT_MEDS, ...getCustomMeds()]
+        exercises: getDefaultExercises(), meds: [...DEFAULT_MEDS, ...getCustomMeds()]
       };
       const monday = addDaysStr(mondayOf(localDateStr()), scoreWeekOffset * 7);
       const cur = scoreWeek(monday, ctx);
@@ -3681,6 +4011,7 @@
     const FIT_TOP_SHIFT = { fitted: 0, regular: 0, relaxed: 1 };       // sizes up from the body chart
     const FIT_PANTS_EASE = { fitted: 0.5, regular: 2.5, relaxed: 5 };  // cm added to the waist measurement
     const FIT_COLLAR_EASE = { fitted: 1.5, regular: 2, relaxed: 3 };   // cm added to the neck measurement
+const FIT_JEANS_EASE = { fitted: 0, regular: 1.5, relaxed: 3.5 };  // cm added to the waist (denim sits a little snugger than chinos)
 
     const sizeLo = (k, i) => SIZE_SCALE[i][k][0] * IN_CM;
     const sizeHi = (k, i) => SIZE_SCALE[i][k][1] * IN_CM;
@@ -3723,7 +4054,7 @@
       const chest = measureLatest('chest'), neck = measureLatest('neck'), hip = measureLatest('hip');
       const waist = measureLatest(['midWaist', 'lowWaist', 'highWaist']);
       const last = SIZE_SCALE.length - 1;
-      const out = { fit, cal, chest, neck, hip, waist, top: null, shirt: null, pants: null, notes: [], lines: [] };
+      const out = { fit, cal, chest, neck, hip, waist, top: null, shirt: null, pants: null, jeans: null, notes: [], lines: [] };
 
       if (chest) {
         const i = sizeIdx('chest', chest.v);
@@ -3760,6 +4091,14 @@
           toGo: Math.round((waist.v - thrLo + 0.05) * 10) / 10, nextAt: Math.round((thrLo - 0.05) * 10) / 10,
           pct: clampN((waist.v - thrLo) / IN_CM, 0, 1), calibrated: !!(cal && isNum(cal.pantsOff))
         };
+        const joff = cal && isNum(cal.jeansOff) ? cal.jeansOff : FIT_JEANS_EASE[fit];
+        const jlab = Math.round((waist.v + joff) / IN_CM);
+        const jthr = (jlab - 0.5) * IN_CM - joff;
+        out.jeans = {
+          label: jlab, cm: Math.round(jlab * IN_CM), next: jlab - 1,
+          toGo: Math.round((waist.v - jthr + 0.05) * 10) / 10, nextAt: Math.round((jthr - 0.05) * 10) / 10,
+          pct: clampN((waist.v - jthr) / IN_CM, 0, 1), calibrated: !!(cal && isNum(cal.jeansOff))
+        };
         if (hip) {
           const wi = sizeIdx('waist', waist.v), hi = sizeIdx('hip', hip.v);
           if (hi > wi) out.notes.push({ icon: 'fa-circle-info', cls: 'text-amber-300', text: `Your hips measure as ${SIZE_SCALE[hi].s} while your waist measures as ${SIZE_SCALE[wi].s}. Pick a regular or straight cut rather than slim or skinny so the seat and thighs are not tight.` });
@@ -3772,6 +4111,7 @@
       const near = [];
       if (out.top && out.top.toGo !== null && out.top.toGo <= 3) near.push(`tops (${out.top.toGo} cm)`);
       if (out.pants && out.pants.toGo <= 3) near.push(`pants (${out.pants.toGo} cm)`);
+      if (out.jeans && out.jeans.toGo <= 3) near.push(`jeans (${out.jeans.toGo} cm)`);
       if (out.shirt && out.shirt.collar && out.shirt.toGo <= 1.5) near.push(`collars (${out.shirt.toGo} cm)`);
       if (near.length) out.notes.push({ icon: 'fa-bag-shopping', cls: 'text-emerald-300', text: `You are close to dropping a size in ${near.join(' and ')}. Hold off on big wardrobe purchases, or buy stretch or adjustable pieces.` });
       if (!cal) out.notes.push({ icon: 'fa-sliders', cls: 'text-slate-400', text: 'Predictions use average ease. Calibrate to what fits you today (below) for a much more accurate projection.' });
@@ -3780,6 +4120,7 @@
       if (out.top) out.lines.push(`<strong>T-shirts:</strong> ${out.top.label} now.${out.top.next ? ` ${out.top.next} at chest \u2264 ${out.top.nextAt} cm (${out.top.toGo} cm to go${paceNote(out.top.toGo, 'chest')}).` : ''}`);
       if (out.shirt && out.shirt.collar) out.lines.push(`<strong>Shirt collar:</strong> ${out.shirt.collar} cm (${out.shirt.inches}\u2033). Next size down at neck \u2264 ${out.shirt.nextAt} cm.`);
       if (out.pants) out.lines.push(`<strong>Pants:</strong> ${out.pants.label}\u2033 now. ${out.pants.next}\u2033 at waist \u2264 ${out.pants.nextAt} cm (${out.pants.toGo} cm to go${paceNote(out.pants.toGo, waist.key)}).`);
+      if (out.jeans) out.lines.push(`<strong>Jeans:</strong> ${out.jeans.label}\u2033 now. ${out.jeans.next}\u2033 at waist \u2264 ${out.jeans.nextAt} cm (${out.jeans.toGo} cm to go${paceNote(out.jeans.toGo, waist.key)}).`);
       out.notes.filter(n => n.icon !== 'fa-sliders').forEach(n => out.lines.push(esc(n.text)));
       return out;
     }
@@ -3796,6 +4137,8 @@
       });
       const calPants = document.getElementById('sizeCalPants'), calTop = document.getElementById('sizeCalTop');
       if (document.activeElement !== calPants && z.cal && isNum(z.cal.pantsIn)) calPants.value = z.cal.pantsIn;
+      const calJeans = document.getElementById('sizeCalJeans');
+      if (calJeans && document.activeElement !== calJeans && z.cal && isNum(z.cal.jeansIn)) calJeans.value = z.cal.jeansIn;
       if (calTop && z.cal && z.cal.topSize) calTop.value = z.cal.topSize;
 
       const dates = [z.chest, z.waist, z.neck, z.hip].filter(Boolean).map(m => m.date).sort();
@@ -3842,6 +4185,12 @@
           `About ${p.cm} cm \u00b7 ${p.calibrated ? 'calibrated to your pants' : `${FIT_LABEL[z.fit].toLowerCase()} ease`} \u00b7 from waist ${Math.round(z.waist.v * 10) / 10} cm`,
           `Next: ${p.next}\u2033 at waist \u2264 ${p.nextAt} cm \u00b7 ${p.toGo} cm to go${paceNote(p.toGo, z.waist.key)}`, p.pct);
       } else html += card('fa-ruler-vertical', 'text-amber-400', 'Pants / Chinos', '\u2013', 'Add a waist measurement to a scan.', '', null);
+      if (z.jeans) {
+        const j = z.jeans;
+        html += card('fa-ruler-combined', 'text-sky-400', 'Jeans', `${j.label}\u2033`,
+          `About ${j.cm} cm \u00b7 ${j.calibrated ? 'calibrated to your jeans' : `${FIT_LABEL[z.fit].toLowerCase()} ease`} \u00b7 from waist ${Math.round(z.waist.v * 10) / 10} cm`,
+          `Next: ${j.next}\u2033 at waist \u2264 ${j.nextAt} cm \u00b7 ${j.toGo} cm to go${paceNote(j.toGo, z.waist.key)}`, j.pct);
+      } else html += card('fa-ruler-combined', 'text-sky-400', 'Jeans', '\u2013', 'Add a waist measurement to a scan.', '', null);
       cards.innerHTML = html;
 
       document.getElementById('sizeNotes').innerHTML = z.notes.map(n => `<div class="flex gap-2 text-[11px] text-slate-300 leading-snug"><i class="fa-solid ${n.icon} ${n.cls} mt-0.5 flex-none"></i><span>${esc(n.text)}</span></div>`).join('');
@@ -3857,15 +4206,19 @@
     }
     function calibrateSizes() {
       const pantsIn = parseFloat(document.getElementById('sizeCalPants').value);
+      const jeansIn = parseFloat(document.getElementById('sizeCalJeans').value);
       const topSize = document.getElementById('sizeCalTop').value;
       const next = { ...(prefs.sizeCal || {}) };
-      if (!(pantsIn > 0) && !topSize) { showToast('Type your pants size or pick a T-shirt size first.', 'warn'); return; }
-      if (pantsIn > 0) {
+      if (!(pantsIn > 0) && !(jeansIn > 0) && !topSize) { showToast('Type your pants or jeans size, or pick a T-shirt size first.', 'warn'); return; }
+      if (pantsIn > 0 || jeansIn > 0) {
         const waist = measureLatest(['midWaist', 'lowWaist', 'highWaist']);
         if (!waist) { showToast('Add a scan with a waist measurement first.', 'warn'); return; }
-        const off = pantsIn * IN_CM - waist.v;
-        if (pantsIn < 24 || pantsIn > 50 || off < -6 || off > 14) { showToast(`A ${pantsIn}\u2033 pair does not fit a ${Math.round(waist.v)} cm waist. Check the size.`, 'warn'); return; }
-        next.pantsIn = pantsIn; next.pantsOff = off;
+        for (const [label, inches, keyIn, keyOff] of [['pants', pantsIn, 'pantsIn', 'pantsOff'], ['jeans', jeansIn, 'jeansIn', 'jeansOff']]) {
+          if (!(inches > 0)) continue;
+          const off = inches * IN_CM - waist.v;
+          if (inches < 24 || inches > 50 || off < -6 || off > 14) { showToast(`A ${inches}\u2033 pair of ${label} does not fit a ${Math.round(waist.v)} cm waist. Check the size.`, 'warn'); return; }
+          next[keyIn] = inches; next[keyOff] = off;
+        }
       }
       if (topSize) {
         const chest = measureLatest('chest');
@@ -3884,6 +4237,7 @@
       prefs.sizeCal = null;
       LS.set('vmt_prefs', prefs);
       document.getElementById('sizeCalPants').value = '';
+      document.getElementById('sizeCalJeans').value = '';
       document.getElementById('sizeCalTop').value = '';
       renderSizePredictor();
     }
@@ -3915,6 +4269,8 @@
         customExercises: LS.get('vmt_exercises', null),
         visTargets: getVisTargetMap(),
         sizeSettings: { fit: prefs.fit, sizeCal: prefs.sizeCal },
+        nutritionTargets: { proteinTarget: prefs.proteinTarget, calorieFloor: prefs.calorieFloor },
+        appearance: prefs.theme,
         profile
       };
     }
@@ -3991,6 +4347,13 @@
             if (imported.sizeSettings.sizeCal && typeof imported.sizeSettings.sizeCal === 'object') prefs.sizeCal = imported.sizeSettings.sizeCal;
             LS.set('vmt_prefs', prefs);
           }
+          if (imported.nutritionTargets && typeof imported.nutritionTargets === 'object') {
+            const nt = imported.nutritionTargets;
+            if (isNum(nt.proteinTarget) && nt.proteinTarget > 0) prefs.proteinTarget = nt.proteinTarget;
+            prefs.calorieFloor = isNum(nt.calorieFloor) && nt.calorieFloor > 0 ? nt.calorieFloor : null;
+            LS.set('vmt_prefs', prefs);
+          }
+          if (['dark', 'light', 'auto'].includes(imported.appearance)) { prefs.theme = imported.appearance; LS.set('vmt_prefs', prefs); }
           if (imported.profile && typeof imported.profile === 'object') {
             profile = { ...DEFAULT_PROFILE, ...imported.profile };
             LS.set('vmt_profile', profile);

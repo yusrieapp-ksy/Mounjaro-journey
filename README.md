@@ -3,13 +3,21 @@
 A single-page tracker that installs on an iPhone home screen, runs full-screen, and works offline.
 Everything you enter stays on your device (IndexedDB and localStorage). Nothing is sent to a server.
 
+## What's new in v8.1
+
+- **Tabs reset when you leave them.** Coming back to a tab always starts at the top of its first view (Visbody goes back to page 1, Food back to Food Intake Entry, edit modes close). Tapping the tab you are already on scrolls it to the top.
+- **Workouts are saved per day.** Editing, adding or removing a routine on the Daily tab changes **that day only**. Past days keep exactly the routines they were logged with. A small *this day only* tag shows when a day has its own list. In **Edit** mode, *Use as default for new days* makes the current list the starting list for future days (days already logged are frozen first, so history never changes), and *Reset this day to default* undoes a day's changes.
+- **Protein on the Food tab.** Enter protein per item or in the day total. A progress bar shows grams logged against your daily target. Tap **Edit targets** to change the protein target (default 100 g) and an optional **calorie floor** (leave blank to use the BMR from your latest Visbody scan). Each day keeps the protein target it was logged with, so changing it later does not rewrite earlier days. Protein also appears in the Intake Trend, the weekly scorecard and the Nutrition diagnostic.
+- **Jeans in the size predictor.** A new Jeans card (waist in inches, with its own fit allowance and its own calibration box) sits next to Pants / Chinos.
+- **Light and dark mode.** Settings, **Appearance**: Dark, Light or Auto (follows the iPhone). The sun/moon button in the header switches quickly. Charts and every screen follow the mode. In light mode a thin dark strip sits behind the iPhone status bar so the clock and battery stay readable.
+
 ## Files
 
 | File | Purpose |
 | --- | --- |
 | `index.html` | The whole app |
 | `manifest.webmanifest` | Name, colours and icons for installing |
-| `sw.js` | Offline support (service worker) |
+| `sw.js` | Offline support (service worker). Version `v8.1.0` |
 | `apple-touch-icon-v2.png`, `apple-touch-icon-167-v2.png`, `apple-touch-icon-152-v2.png` | The icon iOS uses for Add to Home Screen |
 | `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `favicon-32.png`, `icon.svg` | Manifest, browser tab and source artwork |
 
@@ -44,7 +52,7 @@ The app ships with **no data at all**: no sample scans, no sample weights, no na
 
 ## Back up your data
 
-Tap the sliders icon (top right), then **Export Backup**. On iPhone this opens the share sheet, so choose **Save to Files**. Do this regularly: if you delete the app or clear Safari data, the on-device data goes with it. The backup includes scans, AM weights, injections, daily logs, food logs (with their entries), custom medications, size settings and your profile.
+Tap the sliders icon (top right), then **Export Backup**. On iPhone this opens the share sheet, so choose **Save to Files**. Do this regularly: if you delete the app or clear Safari data, the on-device data goes with it. The backup includes scans, AM weights, injections, daily logs (with each day's own workout list), food logs (with their entries and protein), custom medications, size settings, protein and calorie targets, light/dark choice and your profile.
 
 ## Updating the app
 
@@ -62,8 +70,8 @@ If you ever want it fully self-contained, download those three libraries into th
 
 - **Visbody PDF upload:** the Upload PDF button reads the text inside the official 5-page Visbody report (composition, posture, circumferences, spine, glute shape) and saves it as a scan for the report's test date. An existing scan on that date is updated, and anything the PDF doesn't contain (shoulder width, 3D link) is kept as it was. Everything happens on the device. The first use needs a connection to download the PDF reader (pdf.js, loaded from cdnjs and cached for offline use). If a required number can't be found, what was read is filled into the **Add a Visbody Scan** form for you to finish. The overall spine score is a graphic in the PDF, so it is calculated as the average of the cervical, thoracic and lumbar scores. Posture values (forward head, rounded shoulders, pelvic shift) are in **cm**, as printed on the report.
 - The Virtual Advisor briefings, diagnostics and weekly scorecard are built from your own logged entries. With no data they show a prompt instead of numbers. They are informational only and are not medical advice.
-- The default medication checklist and starting circuit are defined in `index.html` as `DEFAULT_MEDS` and `DEFAULT_EXERCISES`. Add your own medications with **+ Custom Med**. On the Daily tab the circuit is editable: **Edit** renames or removes a routine, **+ Add routine** creates one, and **Restore defaults** brings back the original four. Once you change the circuit on a device, that device keeps its own list.
+- The default medication checklist and starting circuit are defined in `index.html` as `DEFAULT_MEDS` and `DEFAULT_EXERCISES`. Add your own medications with **+ Custom Med**. On the Daily tab the circuit is editable **per day**: **Edit** renames or removes a routine, **+ Add routine** creates one, and **Reset this day to default** goes back to the default list, all for the selected date only. Use **Use as default for new days** to change the list future days start from.
 - **Visbody targets and remarks:** tap any tile on the Visbody tab to set a target, which direction is better, and a short remark. Visceral level (9), muscle (protect lean mass) and your onboarding target weight are the only defaults.
-- **Size predictor** (shirt icon, top right): Asian sizing for T-shirts, shirt collar and pants from your latest Visbody numbers, with the next size milestone, centimetres to go and an ETA from your recent trend. Pick a fit (Fitted / Regular / Relaxed), and **calibrate** it by typing the pants and T-shirt size you wear today.
-- **Food log:** add each meal or snack as you go and the day total builds up, like water. Or switch to **Enter day total** to type the whole day at once. Chips under the form re-add your usual items in one tap.
+- **Size predictor** (shirt icon, top right): Asian sizing for T-shirts, shirt collar, pants and jeans from your latest Visbody numbers, with the next size milestone, centimetres to go and an ETA from your recent trend. Pick a fit (Fitted / Regular / Relaxed), and **calibrate** it by typing the pants, jeans and T-shirt size you wear today.
+- **Food log:** add each meal or snack as you go (calories, protein, fat, sugar) and the day total builds up, like water. Or switch to **Enter day total** to type the whole day at once. Chips under the form re-add your usual items in one tap.
 - **Home-screen icon:** the artwork is `icon.svg`. iOS keeps an old icon until the app is removed, so delete the home-screen app and add it again after an icon change. The icon files carry `-v2` in their names so Safari fetches fresh copies. If you ever change the artwork again, bump the suffix to `-v3` in `index.html`, `sw.js` and the file names.
