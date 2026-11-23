@@ -3,6 +3,17 @@
 A single-page tracker that installs on an iPhone home screen, runs full-screen, and works offline.
 Everything you enter stays on your device (IndexedDB and localStorage). Nothing is sent to a server.
 
+## What's new in v8.4
+
+- **One Daily targets card** under Added sugar. Tap **Edit all** to change protein, sugar, fat, and the calorie minimum and maximum in one panel. Every limit is labelled **auto** (calculated from your scan BMR, activity and deficit), **set by you** or **default**, and each auto-capable field has **Reset to auto**. The panel shows when each target was last changed.
+- **Undo** instead of confirm: deleting a food entry or day total shows "Undo" for a few seconds.
+- **Pinned status bar** (kcal, P, F, S) stays at the top of the Food tab, and a **+** button jumps to the add form when it is off-screen.
+- **Sounds:** distinct tones for add, water and undo, plus alert tones for protein target reached and going over a limit (own toggle in Settings). Needs the iPhone ring/silent switch on ring.
+- **Motion:** bars animate, numbers count up, tabs fade in, and reaching the protein target pulses the number. All of it respects iPhone Reduce Motion.
+- **Swipes:** swipe a food entry left to delete (with undo) or right to save it as a meal. Swipe the Food or Daily page sideways to change the day.
+- **Doctor summary** (Settings): weight trend, latest Visbody numbers, injections, 7-day intake and steps vs targets, and the targets themselves. Print / PDF or share as text.
+- **Streak:** a "n-day streak" badge on Today at a glance counts consecutive days with food or water logged.
+
 ## What's new in v8.3
 
 - **Today at a glance** on the Dashboard: calories, protein, fat, sugar and water against your limits, plus your 7-day protein average. Tap it to open Food.

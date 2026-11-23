@@ -232,6 +232,28 @@
     html.light .bg-amber-950\/60, html.light .bg-amber-950\/40 { background-color: #fffbeb; }
     html.light .border-amber-800\/80, html.light .border-amber-800\/60, html.light .border-amber-700\/70 { border-color: #fcd34d; }
 
+
+    /* ---- v8.4: motion, doctor summary ---- */
+    @keyframes tabIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+    .tab-content:not(.hidden) { animation: tabIn 0.2s ease both; }
+    @keyframes pulseOnce { 0% { transform: scale(1); } 40% { transform: scale(1.18); text-shadow: 0 0 12px currentColor; } 100% { transform: scale(1); } }
+    .pulse-once { display: inline-block; animation: pulseOnce 0.7s ease; }
+    #proteinBar, #calBar, #fatBar, #sugarBar, #waterBar { transition: width 0.6s ease; }
+    .dr-sheet { position: fixed; inset: 0; z-index: 70; background: #fff; color: #0f172a; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 16px 32px; font-family: -apple-system, system-ui, sans-serif; }
+    .dr-bar { display: flex; gap: 8px; margin-bottom: 12px; }
+    .dr-bar button { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #cbd5e1; background: #f1f5f9; color: #0f172a; font-weight: 600; font-size: 13px; }
+    .dr h1 { font-size: 18px; margin: 0 0 2px; }
+    .dr h2 { font-size: 13px; margin: 14px 0 4px; border-bottom: 1px solid #cbd5e1; padding-bottom: 2px; }
+    .dr table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .dr td, .dr th { padding: 3px 4px; text-align: left; border-bottom: 1px solid #e2e8f0; white-space: normal; }
+    .dr p { font-size: 11px; color: #475569; margin: 4px 0; }
+    @media print {
+      body.printing > *:not(#doctorSheet) { display: none !important; }
+      body.printing .dr-sheet { position: static; overflow: visible; padding: 0; }
+      body.printing .dr-bar, body.printing .dr-safe { display: none; }
+      html.printing-root, body.printing { height: auto; overflow: visible; background: #fff; }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       * { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
     }
@@ -285,7 +307,7 @@
         <div>
           <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-1.5">
             <span>Visbody & Mounjaro</span>
-            <span class="text-xs font-normal text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded-full border border-cyan-800/60">v8.3</span>
+            <span class="text-xs font-normal text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded-full border border-cyan-800/60">v8.4</span>
           </h1>
           <p id="headerSubtitle" class="text-xs text-slate-400">Personal tracker</p>
         </div>
@@ -322,7 +344,7 @@
         </div>
 
         <button type="button" onclick="switchTab('tab-food')" class="glass-card w-full text-left p-3.5 rounded-2xl border border-slate-800 space-y-2">
-          <div class="flex items-center justify-between"><h2 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-bullseye text-cyan-400"></i> Today at a glance</h2><span class="text-[11px] text-cyan-400">Open Food</span></div>
+          <div class="flex items-center justify-between"><h2 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-bullseye text-cyan-400"></i> Today at a glance <span id="glanceStreak" class="hidden ml-1 text-[10px] font-semibold text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded-full border border-amber-800/60"></span></h2><span class="text-[11px] text-cyan-400">Open Food</span></div>
           <div id="glanceGrid" class="grid grid-cols-5 gap-1.5 text-center"></div>
           <p id="glanceNote" class="text-[11px] text-slate-400"></p>
         </button>
@@ -875,6 +897,7 @@
 
         <!-- SUB-TAB 1: FOOD INTAKE -->
         <div id="foodView-intake" class="space-y-4">
+          <div id="foodPinned" class="glass-card sticky top-0 z-20 flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl border border-slate-800 text-[11px]"></div>
           <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-4">
             <div class="flex flex-wrap items-center justify-between gap-3">
               <h3 class="text-sm font-bold text-white flex items-center gap-2 min-w-0">
@@ -892,25 +915,9 @@
               <div class="h-1.5 rounded-full bg-slate-800 overflow-hidden"><div id="proteinBar" class="h-full rounded-full bg-rose-400" style="width:0%"></div></div>
               <div class="flex items-center justify-between gap-2 text-[11px] text-slate-400">
                 <span id="proteinRemaining"></span>
-                <button type="button" onclick="toggleTargetsEditor()" class="flex-none text-cyan-400 underline">Edit targets</button>
+                
               </div>
-              <div id="targetsEditor" class="hidden pt-2 border-t border-slate-800 space-y-2">
-                <div class="grid grid-cols-2 gap-2">
-                  <div><label for="targetProteinInput" class="text-[11px] text-slate-400 block mb-1">Protein target (g/day)</label><input type="number" inputmode="decimal" step="any" min="0" id="targetProteinInput" placeholder="e.g. 100"  class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"></div>
-                  <div><label for="targetSugarMaxInput" class="text-[11px] text-slate-400 block mb-1">Added sugar max (g/day)</label><input type="number" inputmode="decimal" step="any" min="0" id="targetSugarMaxInput" placeholder="e.g. 20"  class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"></div>
-                  <div><label for="targetFatMaxInput" class="text-[11px] text-slate-400 block mb-1">Fat max (g/day)</label><input type="number" inputmode="decimal" step="any" min="0" id="targetFatMaxInput" placeholder="Blank = suggested"  class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"></div>
-                  <div><label for="targetCalFloorInput" class="text-[11px] text-slate-400 block mb-1">Calorie minimum</label><input type="number" inputmode="decimal" step="any" min="0" id="targetCalFloorInput" placeholder="Blank = scan BMR"  class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"></div>
-                  <div class="col-span-2"><label for="targetCalMaxInput" class="text-[11px] text-slate-400 block mb-1">Calorie maximum</label><input type="number" inputmode="decimal" step="any" min="0" id="targetCalMaxInput" placeholder="Blank = suggested"  class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"></div>
-                  <div><label for="targetActivity" class="text-[11px] text-slate-400 block mb-1">Activity level</label>
-                    <select id="targetActivity" onchange="updateTargetsHint()" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><option value="1.2">Sedentary</option><option value="1.375">Light (1-3 days/wk)</option><option value="1.55">Moderate (3-5 days/wk)</option><option value="1.725">Very active</option></select></div>
-                  <div><label for="targetDeficit" class="text-[11px] text-slate-400 block mb-1">Daily deficit (kcal)</label><input type="number" inputmode="decimal" step="any" min="0" id="targetDeficit" placeholder="e.g. 500" onchange="updateTargetsHint()" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"></div>
-                </div>
-                <p id="targetsHint" class="text-[11px] text-slate-500"></p>
-                <div class="flex gap-2">
-                  <button type="button" onclick="useTargetSuggestion()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold py-2 rounded-xl border border-slate-700">Fill from suggestion</button>
-                  <button type="button" onclick="saveFoodTargets()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-cyan-400 font-semibold text-xs py-2 rounded-xl border border-slate-700">Save targets</button>
-                </div>
-              </div>
+              
             </div>
 
             <!-- Calories (min and max), fat max and sugar max, each with its own bar and alert -->
@@ -921,6 +928,7 @@
               </div>
               <div class="relative h-2 rounded-full bg-slate-800 overflow-hidden"><div id="calBar" class="h-full rounded-full" style="width:0%"></div><div id="calMinMark" class="hidden absolute inset-y-0 w-0.5 bg-slate-500"></div><div id="calMaxMark" class="hidden absolute inset-y-0 w-0.5 bg-slate-500"></div></div>
               <div id="foodCalSub" class="text-[11px] text-slate-400"></div>
+              <div id="calSrc" class="text-[10px] text-slate-500"></div>
             </div>
             <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 space-y-2">
               <div class="flex items-baseline justify-between gap-2">
@@ -929,6 +937,7 @@
               </div>
               <div class="relative h-2 rounded-full bg-slate-800 overflow-hidden"><div id="fatBar" class="h-full rounded-full" style="width:0%"></div></div>
               <div id="fatSub" class="text-[11px] text-slate-400"></div>
+              <div id="fatSrc" class="text-[10px] text-slate-500"></div>
             </div>
             <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 space-y-2">
               <div class="flex items-baseline justify-between gap-2">
@@ -937,6 +946,34 @@
               </div>
               <div class="relative h-2 rounded-full bg-slate-800 overflow-hidden"><div id="sugarBar" class="h-full rounded-full" style="width:0%"></div></div>
               <div id="sugarSub" class="text-[11px] text-slate-400"></div>
+              <div id="sugarSrc" class="text-[10px] text-slate-500"></div>
+            </div>
+
+            <!-- One place to edit every target -->
+            <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 space-y-2">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-xs font-semibold text-slate-300 flex items-center gap-1.5"><i class="fa-solid fa-sliders text-cyan-400"></i> Daily targets</span>
+                <button type="button" onclick="toggleTargetsEditor()" class="text-xs text-cyan-400 underline">Edit all</button>
+              </div>
+              <div id="targetsSummary" class="text-[11px] text-slate-400 space-y-0.5"></div>
+              <div id="targetsEditor" class="hidden pt-2 border-t border-slate-800 space-y-2">
+                <div class="grid grid-cols-2 gap-2">
+                  <div><label for="targetProteinInput" class="text-[11px] text-slate-400 block mb-1">Protein target (g/day)</label><input type="number" inputmode="decimal" step="any" min="0" id="targetProteinInput" placeholder="e.g. 100" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"></div>
+                  <div><label for="targetSugarMaxInput" class="text-[11px] text-slate-400 block mb-1">Added sugar max (g/day)</label><input type="number" inputmode="decimal" step="any" min="0" id="targetSugarMaxInput" placeholder="e.g. 20" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"></div>
+                  <div><label for="targetFatMaxInput" class="text-[11px] text-slate-400 block mb-1">Fat max (g/day) <button type="button" onclick="resetTargetAuto('targetFatMaxInput')" class="text-[10px] text-cyan-400 underline">Reset to auto</button></label><input type="number" inputmode="decimal" step="any" min="0" id="targetFatMaxInput" placeholder="Blank = auto" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"></div>
+                  <div><label for="targetCalFloorInput" class="text-[11px] text-slate-400 block mb-1">Calorie minimum <button type="button" onclick="resetTargetAuto('targetCalFloorInput')" class="text-[10px] text-cyan-400 underline">Reset to auto</button></label><input type="number" inputmode="decimal" step="any" min="0" id="targetCalFloorInput" placeholder="Blank = scan BMR" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"></div>
+                  <div class="col-span-2"><label for="targetCalMaxInput" class="text-[11px] text-slate-400 block mb-1">Calorie maximum <button type="button" onclick="resetTargetAuto('targetCalMaxInput')" class="text-[10px] text-cyan-400 underline">Reset to auto</button></label><input type="number" inputmode="decimal" step="any" min="0" id="targetCalMaxInput" placeholder="Blank = auto" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"></div>
+                  <div><label for="targetActivity" class="text-[11px] text-slate-400 block mb-1">Activity level</label>
+                    <select id="targetActivity" onchange="updateTargetsHint()" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><option value="1.2">Sedentary</option><option value="1.375">Light (1-3 days/wk)</option><option value="1.55">Moderate (3-5 days/wk)</option><option value="1.725">Very active</option></select></div>
+                  <div><label for="targetDeficit" class="text-[11px] text-slate-400 block mb-1">Daily deficit (kcal)</label><input type="number" inputmode="decimal" step="any" min="0" id="targetDeficit" placeholder="e.g. 500" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"></div>
+                </div>
+                <p id="targetsHint" class="text-[11px] text-slate-500"></p>
+                <p id="targetsAudit" class="text-[10px] text-slate-500"></p>
+                <div class="flex gap-2">
+                  <button type="button" onclick="useTargetSuggestion()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold py-2 rounded-xl border border-slate-700">Fill from suggestion</button>
+                  <button type="button" onclick="saveFoodTargets()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-cyan-400 font-semibold text-xs py-2 rounded-xl border border-slate-700">Save targets</button>
+                </div>
+              </div>
             </div>
 
             <!-- Add as you go, or type the whole day at once -->
@@ -957,6 +994,7 @@
                 <button type="button" onclick="addFoodEntry()" class="w-full bg-slate-800 hover:bg-slate-700 text-cyan-400 font-semibold text-xs py-2 rounded-xl border border-slate-700">+ Add to today</button>
                 <div id="foodRecent" class="flex flex-wrap gap-1.5"></div>
                 <div id="foodEntryList" class="space-y-1.5"></div>
+                <p class="text-[10px] text-slate-500">Swipe an entry left to delete, or right to save it as a meal. Swipe the page sideways to change the day.</p>
               </div>
 
               <div id="foodTotalPane" class="hidden space-y-2">
@@ -1226,6 +1264,11 @@
             <input type="checkbox" id="settingSfxToggle" checked onchange="savePreferences()" class="w-4 h-4 rounded text-cyan-600 focus:ring-0 bg-slate-800 border-slate-700">
           </div>
 
+          <div class="flex justify-between items-center">
+            <span class="text-xs text-slate-300">Alert sounds (limit over, target reached)</span>
+            <input type="checkbox" id="settingSfxAlerts" checked onchange="savePreferences()" class="w-4 h-4 rounded text-cyan-600 focus:ring-0 bg-slate-800 border-slate-700">
+          </div>
+
           <div class="space-y-1">
             <label class="text-xs text-slate-300 block">Appearance</label>
             <div class="flex bg-slate-950 p-0.5 rounded-lg border border-slate-800 text-[11px] font-semibold">
@@ -1262,6 +1305,12 @@
               <input type="file" accept=".json" onchange="importJsonBackup(event)" class="hidden">
             </label>
           </div>
+        </div>
+
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-2">
+          <h3 class="text-xs font-bold text-white flex items-center gap-2"><i class="fa-solid fa-file-medical text-cyan-400"></i> Doctor summary</h3>
+          <p class="text-[11px] text-slate-400">One page with your weight trend, latest Visbody numbers, injections, last 7 days of intake against your targets, and the targets themselves. Print it or share it as text.</p>
+          <button type="button" onclick="openDoctorSummary()" class="w-full bg-slate-800 hover:bg-slate-700 text-xs text-cyan-400 font-semibold py-2 rounded-xl border border-slate-700">Open summary</button>
         </div>
 
         <div class="glass-card p-4 rounded-2xl border border-rose-900/60 space-y-2">
@@ -1423,6 +1472,14 @@
     </form>
   </div>
 
+  <div id="doctorSheet" class="dr-sheet" style="display:none">
+    <div class="dr-safe" style="height:env(safe-area-inset-top,0px);background:#0f172a;margin:0 -16px 12px"></div>
+    <div class="dr-bar"><button type="button" onclick="printDoctorSummary()">Print / PDF</button><button type="button" onclick="shareDoctorSummary()">Share text</button><button type="button" onclick="closeDoctorSummary()">Close</button></div>
+    <div id="doctorBody" class="dr"></div>
+  </div>
+
+  <button id="foodFab" type="button" onclick="scrollToFoodForm()" aria-label="Add a food entry" style="display:none;bottom:calc(env(safe-area-inset-bottom) + 5.75rem)" class="fixed right-4 z-40 w-12 h-12 rounded-full bg-cyan-600 text-white shadow-xl shadow-cyan-600/30 items-center justify-center"><i class="fa-solid fa-plus"></i></button>
+
   <!-- TOASTS (replace blocking alert popups) -->
   <div id="toastHost" aria-live="polite" class="fixed left-0 right-0 z-[60] pointer-events-none flex justify-center px-4" style="bottom: calc(env(safe-area-inset-bottom) + 5.25rem);"></div>
 
@@ -1505,9 +1562,33 @@
     // Resume inside the gesture itself (capture phase, before the button's own handler plays its sound).
     ['touchend', 'click'].forEach(ev => document.addEventListener(ev, wakeAudio, { capture: true, passive: true }));
 
+    // v8.4: distinct short tones (add, water, undo, plus the alert pair: goal reached, over a limit)
+    function playTone(type) {
+      if ((type === 'goal' || type === 'over') && prefs.sfxAlerts === false) return;
+      try {
+        const ctx = getAudioCtx(); if (!ctx) return;
+        wakeAudio();
+        const t0 = ctx.currentTime;
+        const notes = {
+          add: [[520, 0, 0.06, 'sine', 0.12], [780, 0.05, 0.08, 'sine', 0.1]],
+          goal: [[523.25, 0, 0.12, 'triangle', 0.12], [659.25, 0.11, 0.12, 'triangle', 0.12], [783.99, 0.22, 0.28, 'triangle', 0.12]],
+          over: [[196, 0, 0.22, 'sawtooth', 0.06], [165, 0.2, 0.3, 'sawtooth', 0.06]],
+          water: [[900, 0, 0.05, 'sine', 0.1], [420, 0.04, 0.16, 'sine', 0.12]],
+          undo: [[400, 0, 0.07, 'sine', 0.1], [300, 0.06, 0.1, 'sine', 0.08]]
+        }[type];
+        notes.forEach(([f, d, len, wave, vol]) => {
+          const o = ctx.createOscillator(), g = ctx.createGain();
+          o.type = wave; o.frequency.setValueAtTime(f, t0 + d);
+          g.gain.setValueAtTime(vol, t0 + d); g.gain.exponentialRampToValueAtTime(0.001, t0 + d + len);
+          o.connect(g); g.connect(ctx.destination); o.start(t0 + d); o.stop(t0 + d + len + 0.02);
+        });
+      } catch (e) { /* audio unavailable */ }
+    }
+
     function playSfx(type = 'click') {
       const toggle = document.getElementById('settingSfxToggle');
       if (toggle && !toggle.checked) return;
+      if (['add', 'goal', 'over', 'water', 'undo'].includes(type)) { playTone(type); return; }
 
       try {
         const ctx = getAudioCtx();
@@ -1590,11 +1671,11 @@
     /* ---- Profile & preferences (previously lost on every reload) ---- */
     const DEFAULT_PROFILE = { name: '', height: '', startWeight: '', targetWeight: '' };
     let profile = { ...DEFAULT_PROFILE };
-    let prefs = { sfx: true, accent: 'accent-cyan', fit: 'regular', sizeCal: null, theme: 'dark', proteinTarget: 100, calorieFloor: null, sugarMax: 20, fatMax: null, calorieMax: null, activity: 1.55, deficit: 500, waterTarget: 2500, stepTarget: 8000, lastBackup: null, backupSnooze: null, meals: [] };
+    let prefs = { sfx: true, accent: 'accent-cyan', fit: 'regular', sizeCal: null, theme: 'dark', proteinTarget: 100, calorieFloor: null, sugarMax: 20, fatMax: null, calorieMax: null, activity: 1.55, deficit: 500, waterTarget: 2500, stepTarget: 8000, lastBackup: null, backupSnooze: null, meals: [], targetsAt: {}, sfxAlerts: true };
 
     function loadProfileAndPrefs() {
       profile = { ...DEFAULT_PROFILE, ...(LS.get('vmt_profile', {}) || {}) };
-      prefs = { sfx: true, accent: 'accent-cyan', fit: 'regular', sizeCal: null, theme: 'dark', proteinTarget: 100, calorieFloor: null, sugarMax: 20, fatMax: null, calorieMax: null, activity: 1.55, deficit: 500, waterTarget: 2500, stepTarget: 8000, lastBackup: null, backupSnooze: null, meals: [], ...(LS.get('vmt_prefs', {}) || {}) };
+      prefs = { sfx: true, accent: 'accent-cyan', fit: 'regular', sizeCal: null, theme: 'dark', proteinTarget: 100, calorieFloor: null, sugarMax: 20, fatMax: null, calorieMax: null, activity: 1.55, deficit: 500, waterTarget: 2500, stepTarget: 8000, lastBackup: null, backupSnooze: null, meals: [], targetsAt: {}, sfxAlerts: true, ...(LS.get('vmt_prefs', {}) || {}) };
       delete prefs.hair; delete prefs.beard; // removed with the haircut guide
     }
 
@@ -1603,6 +1684,8 @@
       if (sub) sub.innerHTML = profile.name ? `Prepared by <span class="font-medium text-slate-200">${esc(profile.name)}</span>` : 'Personal tracker';
       const sfx = document.getElementById('settingSfxToggle');
       if (sfx) sfx.checked = !!prefs.sfx;
+      const sfxAl = document.getElementById('settingSfxAlerts');
+      if (sfxAl) sfxAl.checked = prefs.sfxAlerts !== false;
       applyAccent(prefs.accent);
       applyTheme();
       renderGoalLabels();
@@ -1647,6 +1730,8 @@
     function savePreferences() {
       const sfx = document.getElementById('settingSfxToggle');
       if (sfx) prefs.sfx = sfx.checked;
+      const al = document.getElementById('settingSfxAlerts');
+      if (al) prefs.sfxAlerts = al.checked;
       LS.set('vmt_prefs', prefs);
     }
 
@@ -1848,6 +1933,8 @@
       initScanForm();
       switchTab('tab-dashboard');
       registerServiceWorker();
+      initSwipes();
+      updateFab();
     };
 
     async function loadAllData() {
@@ -1923,6 +2010,7 @@
         requestAnimationFrame(() => { main.scrollTop = 0; });
         setTimeout(() => { if (appState.activeTab === tabId) main.scrollTop = 0; }, 120);
       }
+      updateFab();
     }
 
     /* ==========================================================================
@@ -3258,7 +3346,7 @@
       const ml = Math.round(Number(input.value));
       if (!isFinite(ml) || ml <= 0) { showToast('Type an amount in ml first.', 'warn'); return; }
       if (ml > 5000) { showToast('That is too much for one entry (max 5,000 ml).', 'warn'); return; }
-      playSfx('click');
+      playSfx('water');
       currentWaterMl = Math.max(0, currentWaterMl + sign * ml);
       updateWaterDisplay();
       input.value = '';
@@ -3316,12 +3404,49 @@
       const f = calorieFloorInfo(), c = calMaxInfo(), fm = fatMaxInfo();
       return { calMin: f ? f.value : null, calMax: c ? c.value : null, protein: proteinTarget(), fat: fm ? fm.value : null, sugar: sugarMax() };
     }
+    const pulseEl = id => { const e = document.getElementById(id); if (!e) return; e.classList.remove('pulse-once'); void e.offsetWidth; e.classList.add('pulse-once'); };
     function checkLimitCrossing(b, a) {
       const L = limitsNow(), msgs = [];
       const chk = (k, max, label, unit) => { if (max && isNum(a[k]) && a[k] > max && !(isNum(b[k]) && b[k] > max)) msgs.push(`${label} is over your limit by ${fmtFood(a[k] - max)} ${unit}`); };
       chk('sugar', L.sugar, 'Added sugar', 'g'); chk('fat', L.fat, 'Fat', 'g'); chk('calories', L.calMax, 'Calories', 'kcal');
-      if (msgs.length) showToast(msgs.join('. ') + '.', 'warn');
+      const reached = isNum(a.protein) && a.protein >= L.protein && !(isNum(b.protein) && b.protein >= L.protein);
+      if (msgs.length) { playSfx('over'); showToast(msgs.join('. ') + '.', 'warn'); }
+      else if (reached) { playSfx('goal'); showToast('Protein target reached \u2713'); setTimeout(() => pulseEl('foodTotalProtein'), 50); }
     }
+    const reduceMotion = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+    function countUp(id, to) {
+      const el = document.getElementById(id); if (!el || !isNum(to)) return;
+      const from = isNum(el._v) ? el._v : 0; el._v = to;
+      if (reduceMotion() || from === to) { el.innerText = fmtFood(to); return; }
+      el.innerText = fmtFood(from);
+      const t0 = performance.now();
+      const step = n => { const k = Math.min(1, (n - t0) / 450); el.innerText = fmtFood(k < 1 ? Math.round((from + (to - from) * k) * 10) / 10 : to); if (k < 1) requestAnimationFrame(step); };
+      requestAnimationFrame(step);
+    }
+    function targetSrc(x) { return x ? (x.source === 'set by you' ? 'set by you' : 'auto') : ''; }
+    function renderTargetsSummary() {
+      const el = document.getElementById('targetsSummary'); if (!el) return;
+      const f = calorieFloorInfo(), c = calMaxInfo(), fm = fatMaxInfo(), at = prefs.targetsAt || {};
+      const own = k => (at[k] ? 'set by you' : 'default');
+      const tag = s => (s ? `<span class="ml-1.5 text-[10px] ${s === 'auto' ? 'text-cyan-400' : s === 'default' ? 'text-slate-500' : 'text-amber-400'}">${s}</span>` : '');
+      const row = (l, v, s) => `<div class="flex justify-between gap-2"><span>${l}</span><span class="text-slate-300">${v}${tag(s)}</span></div>`;
+      el.innerHTML = row('Calorie minimum', f ? `${f.value.toLocaleString()} kcal` : 'not set', targetSrc(f))
+        + row('Calorie maximum', c ? `${c.value.toLocaleString()} kcal` : 'not set', targetSrc(c))
+        + row('Fat max', fm ? `${fmtFood(fm.value)} g` : 'not set', targetSrc(fm))
+        + row('Added sugar max', `${fmtFood(sugarMax())} g`, own('sugarMax'))
+        + row('Protein target', `${fmtFood(proteinTarget())} g`, own('proteinTarget'));
+      const put = (id, t) => { const e = document.getElementById(id); if (e) e.innerText = t; };
+      put('calSrc', `minimum ${targetSrc(f) || 'not set'} \u00b7 maximum ${targetSrc(c) || 'not set'}`);
+      put('fatSrc', `maximum ${targetSrc(fm) || 'not set'}`);
+      put('sugarSrc', `maximum ${own('sugarMax')}`);
+    }
+    function renderTargetsAudit() {
+      const el = document.getElementById('targetsAudit'); if (!el) return;
+      const at = prefs.targetsAt || {}, names = { proteinTarget: 'protein', sugarMax: 'sugar', fatMax: 'fat', calorieFloor: 'calorie min', calorieMax: 'calorie max' };
+      const bits = Object.keys(names).filter(k => at[k]).map(k => `${names[k]} ${shortDate(at[k])}`);
+      el.innerText = bits.length ? `Last changed: ${bits.join(' \u00b7 ')}` : 'No target changed yet.';
+    }
+    function resetTargetAuto(inputId) { document.getElementById(inputId).value = ''; updateTargetsHint(); }
     function renderLimitCards(t) {
       const L = limitsNow();
       const date = document.getElementById('foodLogDate').value;
@@ -3350,6 +3475,18 @@
       };
       lim('foodTotalFat', 'fatBar', 'fatSub', 'fatLabel', t.fat, L.fat, 'bg-violet-500');
       lim('foodTotalSugar', 'sugarBar', 'sugarSub', 'sugarLabel', t.sugar, L.sugar, 'bg-amber-400');
+      renderTargetsSummary();
+      ['foodTotalCal', 'foodTotalFat', 'foodTotalSugar'].forEach((id, i) => countUp(id, [t.calories, t.fat, t.sugar][i]));
+      countUp('foodTotalProtein', t.protein);
+      const pin = document.getElementById('foodPinned');
+      if (pin) {
+        const chip = (v, label, cls) => `<span><b class="${cls}">${fmtFood(v)}</b> <span class="text-slate-500">${label}</span></span>`;
+        pin.innerHTML = chip(t.calories, 'kcal', L.calMax && isNum(t.calories) && t.calories > L.calMax ? 'text-rose-400' : 'text-white')
+          + chip(t.protein, 'P', isNum(t.protein) && t.protein >= L.protein ? 'text-emerald-400' : 'text-white')
+          + chip(t.fat, 'F', L.fat && isNum(t.fat) && t.fat > L.fat ? 'text-rose-400' : 'text-white')
+          + chip(t.sugar, 'S', isNum(t.sugar) && t.sugar > L.sugar ? 'text-rose-400' : 'text-white');
+      }
+      updateFab();
     }
 
     const tgt = id => document.getElementById(id);
@@ -3376,7 +3513,7 @@
       tgt('targetProteinInput').value = proteinTarget(); tgt('targetSugarMaxInput').value = sugarMax();
       tgt('targetFatMaxInput').value = val(prefs.fatMax); tgt('targetCalFloorInput').value = val(prefs.calorieFloor); tgt('targetCalMaxInput').value = val(prefs.calorieMax);
       tgt('targetActivity').value = String(activityFactor()); tgt('targetDeficit').value = deficitKcal();
-      updateTargetsHint();
+      updateTargetsHint(); renderTargetsAudit();
     }
     function saveFoodTargets() {
       const num = id => { const r = tgt(id).value; return r === '' ? null : parseFloat(r); };
@@ -3389,7 +3526,10 @@
       if (cm !== null && !(cm >= 500 && cm <= 8000)) { showToast('Calorie maximum should be 500 to 8,000 kcal, or blank.', 'warn'); return; }
       if (cf !== null && cm !== null && cm <= cf) { showToast('The maximum must be higher than the minimum.', 'warn'); return; }
       if (def !== null && !(def >= 0 && def <= 2000)) { showToast('Deficit should be 0 to 2,000 kcal.', 'warn'); return; }
+      const oldP = { ...prefs };
       Object.assign(prefs, { proteinTarget: Math.round(p * 10) / 10, sugarMax: sg, fatMax: fm, calorieFloor: cf === null ? null : Math.round(cf), calorieMax: cm === null ? null : Math.round(cm), activity: parseFloat(tgt('targetActivity').value) || 1.55, deficit: def === null ? 500 : def });
+      prefs.targetsAt = { ...(prefs.targetsAt || {}) };
+      ['proteinTarget', 'sugarMax', 'fatMax', 'calorieFloor', 'calorieMax', 'activity', 'deficit'].forEach(k => { if (oldP[k] !== prefs[k]) prefs.targetsAt[k] = localDateStr(); });
       LS.set('vmt_prefs', prefs);
       playSfx('chime');
       tgt('targetsEditor').classList.add('hidden');
@@ -3427,6 +3567,11 @@
         + cell('Water', water, `of ${waterTarget().toLocaleString()} ml`, water !== null && water >= waterTarget() ? 'text-emerald-400' : 'text-white');
       const days = Array.from({ length: 7 }, (_, i) => addDaysStr(today, -i)).map(d => logs.find(l => l.date === d)).filter(r => r && isNum(r.protein));
       const hit = days.filter(r => r.protein >= (isNum(r.proteinTarget) && r.proteinTarget > 0 ? r.proteinTarget : L.protein)).length;
+      const was = d => { const r = logs.find(l => l.date === d); return !!r && (r.calories != null || r.protein != null || r.fat != null || r.sugar != null || r.water > 0); };
+      let sd = was(today) ? today : addDaysStr(today, -1), streak = 0;
+      while (was(sd) && streak < 400) { streak++; sd = addDaysStr(sd, -1); }
+      const stEl = document.getElementById('glanceStreak');
+      if (stEl) { stEl.classList.toggle('hidden', streak < 2); stEl.innerHTML = `<i class="fa-solid fa-fire"></i> ${streak}-day streak`; }
       document.getElementById('glanceNote').innerText = days.length ? `7-day protein average: ${fmtFood(days.reduce((a, r) => a + r.protein, 0) / days.length)} g (${hit} of ${days.length} logged days on target)` : 'Log protein on the Food tab to see your 7-day average here.';
     }
 
@@ -3448,6 +3593,94 @@
       host.innerHTML = '<div class="grid grid-cols-4 gap-x-2 gap-y-1.5 text-[11px] items-center"><div></div><div class="text-slate-400 text-right">This week</div><div class="text-slate-400 text-right">Last week</div><div class="text-slate-400 text-right">Target</div>'
         + rows.map(([lab, key, tg, judge]) => { const a = avgFor(mon, key), b = avgFor(addDaysStr(mon, -7), key);
           return `<div class="text-slate-300 font-medium">${lab}</div><div class="text-right font-bold ${a === null ? 'text-slate-500' : cls[judge(a)]}">${f(a)}</div><div class="text-right text-slate-300">${f(b)}</div><div class="text-right text-slate-400">${tg}</div>`; }).join('') + '</div>';
+    }
+
+    /* ---- floating add button, swipe gestures (v8.4) ---- */
+    let fabObs = null, formVisible = false;
+    function updateFab() {
+      const f = document.getElementById('foodFab'); if (!f) return;
+      if (!fabObs && 'IntersectionObserver' in window) {
+        const target = document.getElementById('foodItemLabel');
+        if (target) { fabObs = new IntersectionObserver(es => { formVisible = es[0].isIntersecting; updateFab(); }, { root: document.getElementById('mainScrollContainer'), threshold: 0.1 }); fabObs.observe(target); }
+      }
+      const show = appState.activeTab === 'tab-food' && !document.getElementById('foodView-intake').classList.contains('hidden') && !formVisible;
+      f.style.display = show ? 'flex' : 'none';
+    }
+    function scrollToFoodForm() {
+      playSfx('click');
+      const i = document.getElementById('foodItemLabel');
+      if (document.getElementById('foodAddPane').classList.contains('hidden')) switchFoodMode('add', true);
+      i.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'center' });
+      setTimeout(() => i.focus({ preventScroll: true }), 350);
+    }
+    function initSwipes() {
+      const main = document.getElementById('mainScrollContainer'); let g = null;
+      main.addEventListener('touchstart', e => {
+        const t = e.touches[0];
+        g = (e.touches.length === 1 && t.clientX > 24) ? { x: t.clientX, y: t.clientY, t: Date.now(), row: e.target.closest('[data-eid]'), skip: !!e.target.closest('input,select,textarea,canvas,.overflow-x-auto,#foodRecent') } : null;
+      }, { passive: true });
+      main.addEventListener('touchend', e => {
+        if (!g) return;
+        const t = e.changedTouches[0], dx = t.clientX - g.x, dy = t.clientY - g.y, s = g; g = null;
+        if (Math.abs(dy) > 45 || Date.now() - s.t > 700) return;
+        if (s.row) { const id = s.row.dataset.eid; if (id) { if (dx < -70) removeFoodEntry(id); else if (dx > 70) saveMealFromEntry(id); } return; }
+        if (s.skip || Math.abs(dx) < 90) return;
+        const step = dx < 0 ? 1 : -1;
+        if (appState.activeTab === 'tab-food' && !document.getElementById('foodView-intake').classList.contains('hidden')) {
+          const i = document.getElementById('foodLogDate'); i.value = addDaysStr(i.value || localDateStr(), step);
+          playSfx('click'); loadFoodLogForDate(); showToast(shortDate(i.value, true));
+        } else if (appState.activeTab === 'tab-dailylog') { playSfx('click'); changeDailyLogDate(step); }
+      }, { passive: true });
+    }
+
+    /* ---- doctor summary (v8.4) ---- */
+    let doctorText = '';
+    async function openDoctorSummary() {
+      toggleSettingsDrawer(false);
+      const [foods, dailies] = await Promise.all([dbGetAll('foodLogs'), dbGetAll('dailyLogs')]);
+      const L = limitsNow(), today = localDateStr(), fv = v => (isNum(v) ? String(Math.round(v * 10) / 10) : '\u2013');
+      const sgn = (a, b) => (isNum(a) && isNum(b) ? `${b - a > 0 ? '+' : ''}${(Math.round((b - a) * 10) / 10)}` : '');
+      const secs = [];
+      const am = appState.amScaleLogs.slice(-8);
+      secs.push({ t: 'AM fasted weight (latest 8)', head: ['Date', 'kg', 'Change'], rows: am.map((a, i) => [a.date, fv(a.amWeight), i ? sgn(am[i - 1].amWeight, a.amWeight) : '']) });
+      const sc = appState.visbodyScans, cur = sc[sc.length - 1], prev = sc[sc.length - 2];
+      const mets = [['Weight (kg)', 'weight'], ['Body fat mass (kg)', 'bfm'], ['Body fat %', 'pbf'], ['Skeletal muscle (kg)', 'smm'], ['Visceral fat level', 'vfl'], ['BMR (kcal)', 'bmr'], ['Mid waist (cm)', 'midWaist'], ['Hip (cm)', 'hip']];
+      secs.push({ t: `Visbody scan${cur ? ` (${cur.date}${prev ? ` vs ${prev.date}` : ''})` : ''}`, head: ['Measure', 'Previous', 'Latest', 'Change'], rows: cur ? mets.map(([l, k]) => [l, prev ? fv(prev[k]) : '\u2013', fv(cur[k]), prev ? sgn(prev[k], cur[k]) : '']) : [] });
+      secs.push({ t: 'Mounjaro injections (latest 6)', head: ['Date', 'Dose', 'Site'], rows: appState.mjShots.slice(-6).map(x => [x.dateTime.slice(0, 10), `${x.dose} mg`, mjSiteLabel(x.site)]) });
+      const days7 = Array.from({ length: 7 }, (_, i) => addDaysStr(today, -i));
+      const recs = days7.map(d => foods.find(l => l.date === d)).filter(Boolean);
+      const avg = (k, ok = v => isNum(v)) => { const v = recs.map(r => r[k]).filter(ok); return v.length ? { a: v.reduce((x, y) => x + y, 0) / v.length, n: v.length } : null; };
+      const line = (lab, k, tg, ok) => { const r = avg(k, ok); return [lab, r ? `${Math.round(r.a).toLocaleString()} (${r.n} d)` : '\u2013', tg]; };
+      const st = dailies.filter(r => days7.includes(r.date) && isNum(r.steps));
+      secs.push({ t: 'Last 7 days: daily average vs target', head: ['Item', 'Average', 'Target'], rows: [
+        line('Calories (kcal)', 'calories', `${L.calMin ? L.calMin.toLocaleString() : '\u2013'} to ${L.calMax ? L.calMax.toLocaleString() : '\u2013'}`),
+        line('Protein (g)', 'protein', `\u2265 ${fmtFood(L.protein)}`), line('Fat (g)', 'fat', L.fat ? `\u2264 ${fmtFood(L.fat)}` : '\u2013'),
+        line('Added sugar (g)', 'sugar', `\u2264 ${fmtFood(L.sugar)}`), line('Water (ml)', 'water', `\u2265 ${waterTarget().toLocaleString()}`, v => isNum(v) && v > 0),
+        ['Steps', st.length ? `${Math.round(st.reduce((a, r) => a + r.steps, 0) / st.length).toLocaleString()} (${st.length} d)` : '\u2013', `\u2265 ${stepGoal().toLocaleString()}`]] });
+      const f = calorieFloorInfo(), c = calMaxInfo(), fm = fatMaxInfo();
+      secs.push({ t: 'Current targets', head: ['Target', 'Value', 'Source'], rows: [
+        ['Calorie minimum', f ? `${f.value.toLocaleString()} kcal` : '\u2013', targetSrc(f)], ['Calorie maximum', c ? `${c.value.toLocaleString()} kcal` : '\u2013', targetSrc(c)],
+        ['Fat max', fm ? `${fmtFood(fm.value)} g` : '\u2013', targetSrc(fm)], ['Added sugar max', `${fmtFood(sugarMax())} g`, (prefs.targetsAt || {}).sugarMax ? 'set by you' : 'default'],
+        ['Protein target', `${fmtFood(proteinTarget())} g`, (prefs.targetsAt || {}).proteinTarget ? 'set by you' : 'default']] });
+      const who = [profile.name, profile.height ? `${profile.height} cm` : '', profile.startWeight ? `start ${profile.startWeight} kg` : '', profile.targetWeight ? `target ${profile.targetWeight} kg` : ''].filter(Boolean).join(' \u00b7 ');
+      const note = 'Self-reported data from the VM Tracker app. Informational only, not medical advice.';
+      doctorText = [`Health summary, ${today}`, who, ''].concat(...secs.map(x => [x.t, ...x.rows.map(r => '  ' + r.filter(v => v !== '').join(' | ')), ''])).concat(note).join('\n');
+      document.getElementById('doctorBody').innerHTML = `<h1>Health summary</h1><p>${esc(today)}${who ? ' \u00b7 ' + esc(who) : ''}</p>`
+        + secs.map(x => `<h2>${esc(x.t)}</h2>` + (x.rows.length ? `<table><tr>${x.head.map(h => `<th>${esc(h)}</th>`).join('')}</tr>${x.rows.map(r => `<tr>${r.map(v => `<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</table>` : '<p>No data yet.</p>')).join('')
+        + `<p style="margin-top:14px">${note}</p>`;
+      document.getElementById('doctorSheet').style.display = 'block';
+      document.getElementById('doctorSheet').scrollTop = 0;
+    }
+    function closeDoctorSummary() { document.getElementById('doctorSheet').style.display = 'none'; }
+    function printDoctorSummary() {
+      document.body.classList.add('printing');
+      window.addEventListener('afterprint', () => document.body.classList.remove('printing'), { once: true });
+      setTimeout(() => document.body.classList.remove('printing'), 60000);
+      window.print();
+    }
+    async function shareDoctorSummary() {
+      try { if (navigator.share) { await navigator.share({ title: 'Health summary', text: doctorText }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+      try { await navigator.clipboard.writeText(doctorText); showToast('Summary copied'); } catch (e) { showToast("Couldn't share the summary", 'error'); }
     }
 
     function renderFoodDay() {
@@ -3502,7 +3735,7 @@
         if (isNum(p.vals.protein)) bits.push(`${fmtFood(p.vals.protein)} g protein`);
         if (isNum(p.vals.fat)) bits.push(`${fmtFood(p.vals.fat)} g fat`);
         if (isNum(p.vals.sugar)) bits.push(`${fmtFood(p.vals.sugar)} g sugar`);
-        return `<div class="flex items-center gap-2 p-2 bg-slate-800/60 rounded-lg border border-slate-800 text-[11px]">
+        return `<div data-eid="${p.base ? '' : p.id}" class="flex items-center gap-2 p-2 bg-slate-800/60 rounded-lg border border-slate-800 text-[11px]">
           <div class="min-w-0 flex-1"><div class="text-slate-200 truncate">${esc(p.label)}${p.time ? ` <span class="text-slate-500">${esc(p.time)}</span>` : ''}</div>
           <div class="text-slate-400">${bits.join(' \u00b7 ') || '&ndash;'}</div></div>
           ${p.base ? '' : `<button type="button" aria-label="Save as a meal" onclick="saveMealFromEntry('${p.id}')" class="flex-none p-1.5 text-slate-500 hover:text-amber-400"><i class="fa-solid fa-star text-[11px]"></i></button>`}
@@ -3541,7 +3774,7 @@
       const sugar = prefill ? prefill.sugar : readFoodNum('foodItemSugar', 500);
       if ([cal, protein, fat, sugar].some(Number.isNaN)) { showToast('Check the numbers. They must be 0 or more and realistic for one entry.', 'warn'); return; }
       if (cal === null && protein === null && fat === null && sugar === null) { showToast('Type calories, protein, fat or sugar first.', 'warn'); return; }
-      playSfx('click');
+      playSfx('add');
       const before = foodTotals();
       foodEntries.push({ id: `f_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`, t: Date.now(), label, calories: cal, protein, fat, sugar });
       if (!prefill) ['foodItemLabel', 'foodItemCal', 'foodItemProtein', 'foodItemFat', 'foodItemSugar'].forEach(id => { document.getElementById(id).value = ''; });
@@ -3577,15 +3810,35 @@
       closeFoodEdit(); playSfx('chime'); renderFoodDay(); saveFoodLogForDate(true); checkLimitCrossing(before, foodTotals()); showToast('Entry updated');
     }
 
+    const foodDate = () => document.getElementById('foodLogDate').value;
+    function showUndoToast(msg, undo) {
+      const host = document.getElementById('toastHost'); if (!host) return;
+      host.innerHTML = '';
+      const t = document.createElement('div');
+      t.className = 'glass-card pointer-events-auto max-w-sm rounded-2xl border border-slate-700 px-4 py-2.5 text-xs font-medium shadow-xl flex items-center gap-4 text-slate-200';
+      const sp = document.createElement('span'); sp.textContent = msg;
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'text-cyan-400 font-bold'; b.textContent = 'Undo';
+      b.onclick = () => { clearTimeout(toastTimer); host.innerHTML = ''; undo(); };
+      t.append(sp, b); host.appendChild(t);
+      clearTimeout(toastTimer); toastTimer = setTimeout(() => { host.innerHTML = ''; }, 5500);
+    }
     function removeFoodEntry(id) {
-      foodEntries = foodEntries.filter(e => e.id !== id);
-      renderFoodDay();
-      saveFoodLogForDate(true);
+      const i = foodEntries.findIndex(e => e.id === id); if (i < 0) return;
+      const [gone] = foodEntries.splice(i, 1), date = foodDate();
+      playSfx('click'); renderFoodDay(); saveFoodLogForDate(true);
+      showUndoToast(`Removed ${gone.label || 'entry'}`, () => {
+        if (foodDate() !== date) { showToast('Open that day to restore it.', 'warn'); return; }
+        foodEntries.splice(Math.min(i, foodEntries.length), 0, gone); playSfx('undo'); renderFoodDay(); saveFoodLogForDate(true);
+      });
     }
     function removeFoodBase() {
+      const old = { ...foodBase }, date = foodDate();
       foodBase = { calories: null, protein: null, fat: null, sugar: null };
-      renderFoodDay();
-      saveFoodLogForDate(true);
+      playSfx('click'); renderFoodDay(); saveFoodLogForDate(true);
+      showUndoToast('Removed day total', () => {
+        if (foodDate() !== date) { showToast('Open that day to restore it.', 'warn'); return; }
+        foodBase = old; playSfx('undo'); renderFoodDay(); saveFoodLogForDate(true);
+      });
     }
 
     function saveDirectFoodTotal() {
@@ -3665,6 +3918,7 @@
 
     function switchFoodSubTab(type, quiet) {
       if (!quiet) playSfx('click');
+      setTimeout(updateFab, 0);
       if (type === 'intake') {
         document.getElementById('foodView-intake').classList.remove('hidden');
         document.getElementById('foodView-summary').classList.add('hidden');
@@ -3682,7 +3936,7 @@
     }
 
     function addWater(ml) {
-      playSfx('click');
+      playSfx('water');
       currentWaterMl += ml;
       updateWaterDisplay();
       saveFoodLogForDate(true);
@@ -4525,7 +4779,7 @@ const RISE_NAME = { navel: 'navel waist', below: 'low waist', hip: 'upper hip' }
         customExercises: LS.get('vmt_exercises', null),
         visTargets: getVisTargetMap(),
         sizeSettings: { fit: prefs.fit, sizeCal: prefs.sizeCal },
-        nutritionTargets: { proteinTarget: prefs.proteinTarget, calorieFloor: prefs.calorieFloor, sugarMax: prefs.sugarMax, fatMax: prefs.fatMax, calorieMax: prefs.calorieMax, activity: prefs.activity, deficit: prefs.deficit, waterTarget: prefs.waterTarget, stepTarget: prefs.stepTarget },
+        nutritionTargets: { proteinTarget: prefs.proteinTarget, calorieFloor: prefs.calorieFloor, sugarMax: prefs.sugarMax, fatMax: prefs.fatMax, calorieMax: prefs.calorieMax, activity: prefs.activity, deficit: prefs.deficit, waterTarget: prefs.waterTarget, stepTarget: prefs.stepTarget, targetsAt: prefs.targetsAt },
         savedMeals: prefs.meals,
         appearance: prefs.theme,
         profile
@@ -4611,6 +4865,7 @@ const RISE_NAME = { navel: 'navel waist', below: 'low waist', hip: 'upper hip' }
             if (isNum(nt.proteinTarget) && nt.proteinTarget > 0) prefs.proteinTarget = nt.proteinTarget;
             prefs.calorieFloor = isNum(nt.calorieFloor) && nt.calorieFloor > 0 ? nt.calorieFloor : null;
             ['sugarMax', 'fatMax', 'calorieMax', 'activity', 'deficit', 'waterTarget', 'stepTarget'].forEach(k => { if (nt[k] === null || isNum(nt[k])) prefs[k] = nt[k]; });
+            if (nt.targetsAt && typeof nt.targetsAt === 'object') prefs.targetsAt = nt.targetsAt;
             LS.set('vmt_prefs', prefs);
           }
           if (Array.isArray(imported.savedMeals)) { prefs.meals = imported.savedMeals; LS.set('vmt_prefs', prefs); }
