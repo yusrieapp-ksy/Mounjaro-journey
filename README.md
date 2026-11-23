@@ -3,6 +3,21 @@
 A single-page tracker that installs on an iPhone home screen, runs full-screen, and works offline.
 Everything you enter stays on your device (IndexedDB and localStorage). Nothing is sent to a server.
 
+## What's new in v8.3
+
+- **Today at a glance** on the Dashboard: calories, protein, fat, sugar and water against your limits, plus your 7-day protein average. Tap it to open Food.
+- **Saved meals and editable entries.** Tap the star on a food entry to save it as a meal (one-tap chip with its protein). Tap the pencil to edit an entry's name or numbers.
+- **Backup reminder** on the Dashboard when you have data and have not exported for 14 days (or ever). Tap Later to hide it for 3 days.
+- **Weight chart trend line**: the average of your last three AM weights. Weigh-ins are weekly, so a 7-day window would hold one point; three entries smooths real noise.
+- **Editable water and steps goals.** Tap "Goal ... edit" on the Food water card and "Steps goal ... edit" on the Daily tab.
+- **Weekly averages vs targets** on the Food summary tab: this week and last week against your current targets.
+
+## What's new in v8.2
+
+- **Size predictor knows where you wear your trousers.** Pick Navel, Below belly or Upper hip for pants and jeans, and the app calibrates and counts down against the matching Visbody measurement (mid waist, low waist or hip). Calibration now accepts large gaps between a scan measurement and the label size.
+- **Separate Calories, Fat and Added sugar cards on the Food tab**, each with its own bar. Fat and sugar have a maximum and turn red with an "Over by" message (and a pop-up when an entry pushes you over). Calories have a minimum (your scan BMR) and a maximum, with both marked on the bar.
+- **Editable limits.** Edit targets sets protein, sugar max, fat max, calorie minimum and calorie maximum. Leave the fat or calorie maximum blank to follow the suggestion: scan BMR x activity level - daily deficit (fat is 30% of that maximum). It updates with each new scan. Each day keeps the limits it was logged with.
+
 ## What's new in v8.1
 
 - **Tabs reset when you leave them.** Coming back to a tab always starts at the top of its first view (Visbody goes back to page 1, Food back to Food Intake Entry, edit modes close). Tapping the tab you are already on scrolls it to the top.
