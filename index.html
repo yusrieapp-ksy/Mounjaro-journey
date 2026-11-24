@@ -311,7 +311,7 @@
         <div>
           <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-1.5">
             <span>Visbody & Mounjaro</span>
-            <span class="text-xs font-normal text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded-full border border-cyan-800/60">v8.7</span>
+            <span class="text-xs font-normal text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded-full border border-cyan-800/60">v8.8</span>
           </h1>
           <p id="headerSubtitle" class="text-xs text-slate-400">Personal tracker</p>
         </div>
@@ -348,6 +348,8 @@
         </div>
 
         <div id="apptChip" class="hidden glass-card p-3 rounded-2xl border border-slate-800 flex items-center gap-2 text-xs text-slate-300"><i class="fa-solid fa-calendar-check text-cyan-400"></i><span id="apptChipText"></span></div>
+
+        <div id="prepCard" class="hidden relative overflow-hidden rounded-2xl border border-cyan-800/50 bg-gradient-to-br from-cyan-950/50 via-slate-900/70 to-slate-900/60 p-4 space-y-3"></div>
 
         <button type="button" onclick="switchTab('tab-food')" class="glass-card w-full text-left p-3.5 rounded-2xl border border-slate-800 space-y-2">
           <div class="flex items-center justify-between"><h2 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-bullseye text-cyan-400"></i> Today at a glance <span id="glanceStreak" class="hidden ml-1 text-[10px] font-semibold text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded-full border border-amber-800/60"></span></h2><span class="text-[11px] text-cyan-400">Open Food</span></div>
@@ -882,6 +884,7 @@
             <p class="text-[11px] leading-relaxed text-amber-300/90">
               Muscle soreness logged today. Distinguish post-kettlebell DOMS from statin-induced muscle fatigue. Hydrate well (2.5L+) and report persistent bilateral thigh weakness.
             </p>
+            <p id="soreNote" class="hidden text-[11px] font-semibold text-amber-300"></p>
           </div>
         </div>
 
@@ -896,7 +899,7 @@
             </div>
             <label class="flex items-center gap-2 cursor-pointer">
               <span class="text-xs font-semibold text-slate-300">Lifting Day</span>
-              <input type="checkbox" id="dailyIsWorkoutDay" onchange="saveDailyLogState()" class="w-4 h-4 rounded text-cyan-600 focus:ring-0 bg-slate-800 border-slate-700">
+              <input type="checkbox" id="dailyIsWorkoutDay" onchange="onLiftToggle()" class="w-4 h-4 rounded text-cyan-600 focus:ring-0 bg-slate-800 border-slate-700">
             </label>
           </div>
 
@@ -965,8 +968,8 @@
               <div class="h-1.5 rounded-full bg-slate-800 overflow-hidden"><div id="proteinBar" class="h-full rounded-full bg-rose-400" style="width:0%"></div></div>
               <div class="flex items-center justify-between gap-2 text-[11px] text-slate-400">
                 <span id="proteinRemaining"></span>
-                
               </div>
+              <div id="proteinSuggest" class="hidden"></div>
               
             </div>
 
@@ -976,8 +979,10 @@
                 <span class="text-xs font-semibold text-slate-300 flex items-center gap-1.5"><i class="fa-solid fa-fire text-amber-400"></i> Calories</span>
                 <span class="text-xs text-slate-400"><span id="foodTotalCal" class="text-base font-bold text-white">&ndash;</span> <span id="calRangeLabel"></span></span>
               </div>
-              <div class="relative h-2 rounded-full bg-slate-800 overflow-hidden"><div id="calBar" class="h-full rounded-full" style="width:0%"></div><div id="calMinMark" class="hidden absolute inset-y-0 w-0.5 bg-slate-500"></div><div id="calMaxMark" class="hidden absolute inset-y-0 w-0.5 bg-slate-500"></div></div>
+              <div class="relative h-3 rounded-full bg-slate-800 overflow-hidden"><div id="calZones" class="absolute inset-0 flex"></div><div id="calBar" class="absolute inset-y-0 left-0 rounded-full" style="width:0%"></div><div id="calMinMark" class="hidden absolute inset-y-0 w-0.5 bg-white/70"></div><div id="calMaxMark" class="hidden absolute inset-y-0 w-0.5 bg-white/70"></div><div id="calMaintMark" class="hidden absolute inset-y-0 w-0.5 bg-white/70"></div></div>
               <div id="foodCalSub" class="text-[11px] text-slate-400"></div>
+              <div id="calLegend" class="flex flex-wrap gap-x-3 gap-y-1 text-[10px]"></div>
+              <div id="foodTdeeInfo" class="text-[10px] text-slate-500"></div>
               <div id="calSrc" class="text-[10px] text-slate-500"></div>
             </div>
             <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 space-y-2">
@@ -1015,7 +1020,7 @@
                   <div><label for="targetCalFloorInput" class="text-[11px] text-slate-400 block mb-1">Calorie minimum <button type="button" onclick="resetTargetAuto('targetCalFloorInput')" class="text-[10px] text-cyan-400 underline">Reset to auto</button></label><input type="number" inputmode="decimal" step="any" min="0" id="targetCalFloorInput" placeholder="Blank = scan BMR" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"></div>
                   <div class="col-span-2"><label for="targetCalMaxInput" class="text-[11px] text-slate-400 block mb-1">Calorie maximum <button type="button" onclick="resetTargetAuto('targetCalMaxInput')" class="text-[10px] text-cyan-400 underline">Reset to auto</button></label><input type="number" inputmode="decimal" step="any" min="0" id="targetCalMaxInput" placeholder="Blank = auto" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"></div>
                   <div><label for="targetActivity" class="text-[11px] text-slate-400 block mb-1">Activity level</label>
-                    <select id="targetActivity" onchange="updateTargetsHint()" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><option value="1.2">Sedentary</option><option value="1.375">Light (1-3 days/wk)</option><option value="1.55">Moderate (3-5 days/wk)</option><option value="1.725">Very active</option></select></div>
+                    <select id="targetActivity" onchange="updateTargetsHint()" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><option value="auto">Auto (steps + lifting day)</option><option value="1.2">Sedentary</option><option value="1.375">Light (1-3 days/wk)</option><option value="1.55">Moderate (3-5 days/wk)</option><option value="1.725">Very active</option></select></div>
                   <div><label for="targetDeficit" class="text-[11px] text-slate-400 block mb-1">Daily deficit (kcal)</label><input type="number" inputmode="decimal" step="any" min="0" id="targetDeficit" placeholder="e.g. 500" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"></div>
                 </div>
                 <p id="targetsHint" class="text-[11px] text-slate-500"></p>
@@ -1050,6 +1055,7 @@
                 </div>
                 <button type="button" onclick="addFoodEntry()" class="w-full bg-slate-800 hover:bg-slate-700 text-cyan-400 font-semibold text-xs py-2 rounded-xl border border-slate-700">+ Add to today</button>
                 <div id="mealMultRow" style="display:none" class="items-center gap-1.5 text-[11px] text-slate-400"><span>Saved meal portion</span><button type="button" data-mult="0.5" onclick="setFoodMult(0.5)">0.5×</button><button type="button" data-mult="1" onclick="setFoodMult(1)">1×</button><button type="button" data-mult="1.5" onclick="setFoodMult(1.5)">1.5×</button><button type="button" data-mult="2" onclick="setFoodMult(2)">2×</button></div>
+                <button type="button" onclick="copyPrevMeals()" class="w-full flex items-center justify-center gap-2 text-xs font-semibold py-2 rounded-xl border border-dashed border-slate-600 bg-slate-800/40 text-slate-300 active:bg-slate-800"><i class="fa-solid fa-clone text-cyan-400"></i> Copy yesterday's meals</button>
                 <div id="foodRecent" class="flex flex-wrap gap-1.5"></div>
                 <div id="foodMealSplit" class="hidden space-y-1"></div>
                 <div id="foodEntryList" class="space-y-1.5"></div>
@@ -1132,6 +1138,7 @@
               <canvas id="chartFoodTrend"></canvas>
             </div>
             <p id="foodChartCaption" class="text-[11px] text-slate-400"></p>
+            <div id="foodInjRow" class="hidden flex flex-wrap items-center gap-2 text-[10px]"><button type="button" id="foodInjBtn" onclick="toggleFoodInj()" class="font-semibold px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-300 text-[11px]"></button><span id="foodInjLegend" class="flex flex-wrap items-center gap-x-3 gap-y-1 text-slate-400"></span></div>
             <p id="foodTrendEmpty" class="hidden text-[11px] text-slate-500">No entries in this period yet. Log intake on the Food Intake Entry tab and it will appear here.</p>
           </div>
         </div>
@@ -1575,12 +1582,31 @@
       <p class="text-[11px] text-slate-400">Stays on this phone. Every field is optional, and each one says where it is used.</p>
       <div class="text-[11px] font-semibold text-slate-300 pt-1">You</div>
       <div class="grid grid-cols-2 gap-2"><div><label for="profName" class="text-[11px] text-slate-400 block mb-1">Name</label><input type="text" maxlength="30" id="profName" placeholder="Optional" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><p class="text-[10px] text-slate-500 mt-1">Shown in the header.</p></div><div><label for="profHeight" class="text-[11px] text-slate-400 block mb-1">Height (cm)</label><input type="number" step="0.1" inputmode="decimal" id="profHeight" placeholder="e.g. 170" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><p class="text-[10px] text-slate-500 mt-1">BMI and waist-to-height ratio.</p></div></div>
+      <div class="text-[11px] font-semibold text-slate-300 pt-1">Body profile &amp; goal mode</div>
+      <div class="grid grid-cols-2 gap-2">
+        <div><label for="profSex" class="text-[11px] text-slate-400 block mb-1">Sex</label><select id="profSex" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><option value="">Not set</option><option value="male">Male</option><option value="female">Female</option></select><p class="text-[10px] text-slate-500 mt-1">Only used to estimate BMR when there is no scan. Never read from a PDF.</p></div>
+        <div><label for="profBirthYear" class="text-[11px] text-slate-400 block mb-1">Birth year</label><input type="number" inputmode="numeric" id="profBirthYear" placeholder="e.g. 1992" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><p id="profAgeNote" class="text-[10px] text-slate-500 mt-1">Age is worked out for you.</p></div>
+      </div>
+      <div>
+        <div class="text-[11px] text-slate-400 block mb-1">Goal mode</div>
+        <input type="hidden" id="profGoalMode" value="cut">
+        <div class="grid grid-cols-3 gap-1.5" role="group" aria-label="Goal mode">
+          <button type="button" data-gm="cut" onclick="pickGoalMode('cut')" class="gm-btn py-2.5 rounded-xl border text-xs font-semibold"><i class="fa-solid fa-arrow-trend-down block text-sm mb-0.5"></i>Cut</button>
+          <button type="button" data-gm="recomp" onclick="pickGoalMode('recomp')" class="gm-btn py-2.5 rounded-xl border text-xs font-semibold"><i class="fa-solid fa-dumbbell block text-sm mb-0.5"></i>Lean recomp</button>
+          <button type="button" data-gm="maintenance" onclick="pickGoalMode('maintenance')" class="gm-btn py-2.5 rounded-xl border text-xs font-semibold"><i class="fa-solid fa-scale-balanced block text-sm mb-0.5"></i>Maintain</button>
+        </div>
+        <p id="goalModeHint" class="text-[10px] text-slate-500 mt-1.5"></p>
+      </div>
       <div class="text-[11px] font-semibold text-slate-300 pt-1">Weight goal</div>
       <div class="grid grid-cols-2 gap-2"><div><label for="profStartWeight" class="text-[11px] text-slate-400 block mb-1">Start weight (kg)</label><input type="number" step="0.1" inputmode="decimal" id="profStartWeight" placeholder="e.g. 100" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><p class="text-[10px] text-slate-500 mt-1">Progress and 5 kg milestones.</p></div><div><label for="profTargetWeight" class="text-[11px] text-slate-400 block mb-1">Target weight (kg)</label><input type="number" step="0.1" inputmode="decimal" id="profTargetWeight" placeholder="e.g. 85" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><p class="text-[10px] text-slate-500 mt-1">Goal projection.</p></div><div><label for="profStartDate" class="text-[11px] text-slate-400 block mb-1">Program start date</label><input type="date"  id="profStartDate" placeholder="" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><p class="text-[10px] text-slate-500 mt-1">Counts "Week N".</p></div><div><label for="profTargetDate" class="text-[11px] text-slate-400 block mb-1">Target date</label><input type="date"  id="profTargetDate" placeholder="" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><p class="text-[10px] text-slate-500 mt-1">Shows the weekly pace you need.</p></div></div>
       <div class="text-[11px] font-semibold text-slate-300 pt-1">Body goals</div>
       <div class="grid grid-cols-2 gap-2"><div><label for="profTargetWaist" class="text-[11px] text-slate-400 block mb-1">Target waist (cm, navel)</label><input type="number" step="0.1" inputmode="decimal" id="profTargetWaist" placeholder="e.g. 100" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><p class="text-[10px] text-slate-500 mt-1">Projected from your scans.</p></div><div><label for="profTargetBf" class="text-[11px] text-slate-400 block mb-1">Target body fat (%)</label><input type="number" step="0.1" inputmode="decimal" id="profTargetBf" placeholder="e.g. 25" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><p class="text-[10px] text-slate-500 mt-1">Projected from your scans.</p></div></div>
       <div class="text-[11px] font-semibold text-slate-300 pt-1">Clinic</div>
       <div class="grid grid-cols-2 gap-2"><div><label for="profNextAppt" class="text-[11px] text-slate-400 block mb-1">Next appointment</label><input type="date"  id="profNextAppt" placeholder="" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><p class="text-[10px] text-slate-500 mt-1">Countdown on the Dashboard.</p></div><div><label for="profApptNote" class="text-[11px] text-slate-400 block mb-1">Appointment note</label><input type="text" maxlength="60" id="profApptNote" placeholder="e.g. Dose review" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"></div><div><label for="profPlanDate" class="text-[11px] text-slate-400 block mb-1">Planned dose change on</label><input type="date"  id="profPlanDate" placeholder="" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><p class="text-[10px] text-slate-500 mt-1">Used in the level curve.</p></div><div><label for="profPlanDose" class="text-[11px] text-slate-400 block mb-1">Planned new dose</label><select id="profPlanDose" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><option value="">None</option><option value="2.5">2.5 mg</option><option value="5">5 mg</option><option value="7.5">7.5 mg</option><option value="10">10 mg</option><option value="12.5">12.5 mg</option><option value="15">15 mg</option></select></div></div>
+      <div class="grid grid-cols-1 gap-2">
+        <div><label for="profNextApptTime" class="text-[11px] text-slate-400 block mb-1">Appointment time</label><input type="time" id="profNextApptTime" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><p class="text-[10px] text-slate-500 mt-1">Times your last meal and water in the pre-scan checklist.</p></div>
+        <div><label for="profPrepList" class="text-[11px] text-slate-400 block mb-1">Pre-scan checklist</label><textarea id="profPrepList" rows="3" maxlength="400" placeholder="One item per line. Leave blank for the default list." class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"></textarea><p class="text-[10px] text-slate-500 mt-1">Appears on the Dashboard in the 24 hours before your appointment.</p></div>
+      </div>
       <div class="text-[11px] font-semibold text-slate-300 pt-1">Habits</div>
       <div><label for="profWeighDay" class="text-[11px] text-slate-400 block mb-1">AM weigh-in day</label><select id="profWeighDay" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option></select><p class="text-[10px] text-slate-500 mt-1">Labels, reminders in the weekly scorecard and the next weigh-in date.</p></div>
       <div class="text-[11px] font-semibold text-slate-300 pt-1">Notes for your doctor</div>
@@ -1588,6 +1614,17 @@
       <p class="text-[10px] text-slate-500">Included in the doctor summary.</p>
       <button type="submit" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs py-3 rounded-xl shadow-lg shadow-cyan-600/30">Save profile</button>
     </form>
+  </div>
+
+  <div id="copyModal" class="sheet-modal fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-end justify-center">
+    <div class="glass-card p-5 border border-slate-800 space-y-3">
+      <div class="flex items-center gap-3"><span class="w-10 h-10 rounded-2xl bg-cyan-500/15 border border-cyan-700/40 flex items-center justify-center"><i class="fa-solid fa-clone text-cyan-300"></i></span><div><h2 class="text-base font-bold text-white">Copy meals</h2><p id="copyModalText" class="text-[11px] text-slate-400"></p></div></div>
+      <div class="grid grid-cols-2 gap-2">
+        <button type="button" onclick="doCopyMeals('merge')" class="bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs py-3 rounded-xl">Add to existing</button>
+        <button type="button" onclick="doCopyMeals('replace')" class="bg-slate-800 border border-slate-700 text-slate-200 font-semibold text-xs py-3 rounded-xl">Replace them</button>
+      </div>
+      <button type="button" onclick="closeCopyModal()" class="w-full text-xs text-slate-400 py-2">Cancel</button>
+    </div>
   </div>
 
   <div id="comboModal" class="sheet-modal fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-end justify-center">
@@ -1611,6 +1648,14 @@
 
 
   <!-- TOASTS (replace blocking alert popups) -->
+  <div id="backupSnack" class="hidden fixed left-0 right-0 z-[55] px-4 flex justify-center pointer-events-none" style="bottom: calc(env(safe-area-inset-bottom) + 9rem);">
+    <div class="glass-card pointer-events-auto w-full max-w-sm rounded-2xl border border-cyan-800/60 px-3.5 py-3 shadow-xl flex items-center gap-3">
+      <span class="w-9 h-9 rounded-xl bg-cyan-500/15 border border-cyan-700/40 flex items-center justify-center flex-none"><i class="fa-solid fa-cloud-arrow-down text-cyan-300"></i></span>
+      <div class="min-w-0 flex-1"><div class="text-xs font-bold text-white">Weigh-in saved</div><div class="text-[11px] text-slate-400">Back up your data to Files or iCloud?</div></div>
+      <button type="button" onclick="hideBackupSnack(); exportJsonBackup()" class="flex-none bg-cyan-600 hover:bg-cyan-500 text-white text-[11px] font-semibold px-3 py-2 rounded-xl">Export JSON</button>
+      <button type="button" onclick="hideBackupSnack()" aria-label="Dismiss" class="flex-none p-1.5 text-slate-500"><i class="fa-solid fa-xmark text-xs"></i></button>
+    </div>
+  </div>
   <div id="toastHost" aria-live="polite" class="fixed left-0 right-0 z-[60] pointer-events-none flex justify-center px-4" style="bottom: calc(env(safe-area-inset-bottom) + 5.25rem);"></div>
 
   <!-- JAVASCRIPT APPLICATION CORE -->
@@ -1793,7 +1838,7 @@
     };
 
     /* ---- Profile & preferences (previously lost on every reload) ---- */
-    const DEFAULT_PROFILE = { name: '', height: '', startWeight: '', targetWeight: '', startDate: '', targetDate: '', targetWaist: '', targetBf: '', nextAppt: '', apptNote: '', plannedDoseDate: '', plannedDose: '', doctorNotes: '', weighDay: 2 };
+    const DEFAULT_PROFILE = { name: '', height: '', startWeight: '', targetWeight: '', startDate: '', targetDate: '', targetWaist: '', targetBf: '', nextAppt: '', apptNote: '', plannedDoseDate: '', plannedDose: '', doctorNotes: '', weighDay: 2, sex: '', birthYear: '', goalMode: 'cut', nextApptTime: '', prepList: '' };
     let profile = { ...DEFAULT_PROFILE };
     let prefs = { sfx: true, accent: 'accent-cyan', fit: 'regular', sizeCal: null, theme: 'dark', proteinTarget: 100, calorieFloor: null, sugarMax: 20, fatMax: null, calorieMax: null, activity: 1.55, deficit: 500, waterTarget: 2500, stepTarget: 8000, lastBackup: null, backupSnooze: null, meals: [], targetsAt: {}, sfxAlerts: true };
 
@@ -2069,10 +2114,11 @@
     };
 
     async function loadAllData() {
-      const tx = db.transaction(["visbodyScans", "amScaleLogs", "mjShots"], "readonly");
+      const tx = db.transaction(["visbodyScans", "amScaleLogs", "mjShots", "dailyLogs"], "readonly");
       appState.visbodyScans = await getAllFromStore(tx.objectStore("visbodyScans"));
       appState.amScaleLogs = await getAllFromStore(tx.objectStore("amScaleLogs"));
       appState.mjShots = await getAllFromStore(tx.objectStore("mjShots"));
+      appState.dailyLogs = await getAllFromStore(tx.objectStore("dailyLogs"));
 
       appState.visbodyScans.sort((a, b) => a.date.localeCompare(b.date));
       appState.amScaleLogs.sort((a, b) => a.date.localeCompare(b.date));
@@ -2368,6 +2414,8 @@
       { id: 'pbf', label: 'Body Fat (%)' },
       { id: 'vfl', label: 'Visceral Fat Level' }
     ];
+    const SEG_PARTS = [['LeftArm', 'L Arm'], ['RightArm', 'R Arm'], ['Trunk', 'Trunk'], ['LeftLeg', 'L Leg'], ['RightLeg', 'R Leg']];
+    const SEG_FIELDS = [...SEG_PARTS.map(([k, l]) => ({ id: 'ln' + k, label: `Lean ${l} (kg)` })), ...SEG_PARTS.map(([k, l]) => ({ id: 'ft' + k, label: `Fat ${l} (kg)` }))];
     const SCAN_OPTIONAL_FIELDS = [
       { id: 'bmi', label: 'BMI' }, { id: 'bmr', label: 'BMR (kcal)' },
       { id: 'neck', label: 'Neck (cm)' }, { id: 'shoulder', label: 'Shoulder (cm)' }, { id: 'chest', label: 'Chest (cm)' },
@@ -2377,7 +2425,8 @@
       { id: 'leftCalf', label: 'Left Calf (cm)' }, { id: 'rightCalf', label: 'Right Calf (cm)' },
       { id: 'pelvicTilt', label: 'Anterior Pelvic Shift (cm)' }, { id: 'headTilt', label: 'Forward Head Posture (cm)' },
       { id: 'roundedShoulderLeft', label: 'L Rounded Shoulder (cm)' }, { id: 'roundedShoulderRight', label: 'R Rounded Shoulder (cm)' },
-      { id: 'spinePainRisk', label: 'Spine Pain Risk (0–100)' }
+      { id: 'spinePainRisk', label: 'Spine Pain Risk (0–100)' },
+      ...SEG_FIELDS
     ];
 
     function initScanForm() {
@@ -2458,6 +2507,24 @@
       renderComparisonTable();
     }
 
+    let segMode = 'lean';
+    function setSegMode(m) { playSfx('click'); segMode = m; renderVisbodyReport(); }
+    const segDiff = (l, r) => (isNum(l) && isNum(r) && l + r > 0 ? ((r - l) / ((l + r) / 2)) * 100 : null);
+    const segTone = p => { const a = Math.abs(p); return a <= 5 ? { t: 'Balanced', c: '#34d399' } : a <= 10 ? { t: 'Slight gap', c: '#fbbf24' } : { t: 'Uneven', c: '#fb7185' }; };
+    function segmentalCard(scan) {
+      const k = segMode === 'lean' ? 'ln' : 'ft', col = segMode === 'lean' ? '#818cf8' : '#fbbf24';
+      const has = SEG_PARTS.some(([p]) => isNum(scan[k + p]));
+      const seg = (id, label) => `<button type="button" onclick="setSegMode('${id}')" class="px-3 py-1 rounded-md ${segMode === id ? 'bg-slate-800 text-cyan-400' : 'text-slate-400'}">${label}</button>`;
+      const row = (label, l, r) => {
+        const p = segDiff(l, r); if (p === null) return '';
+        const mx = Math.max(l, r), tone = segTone(p), side = Math.abs(p) < 0.5 ? 'even' : `${p > 0 ? 'Right' : 'Left'} +${Math.abs(p).toFixed(1)}%`;
+        return `<div class="space-y-1"><div class="flex items-center justify-between text-[11px]"><span class="font-semibold text-slate-300">${label}</span><span class="font-semibold" style="color:${tone.c}">${side} \u00b7 ${tone.t}</span></div><div class="flex items-center gap-2"><span class="w-11 text-right text-xs font-bold text-white tabular-nums">${l.toFixed(2)}</span><div class="flex-1 flex h-3 gap-0.5"><div class="flex-1 flex justify-end"><div class="h-full rounded-l-full" style="width:${l / mx * 100}%;background:${col}"></div></div><div class="flex-1"><div class="h-full rounded-r-full" style="width:${r / mx * 100}%;background:${col};opacity:.6"></div></div></div><span class="w-11 text-xs font-bold text-white tabular-nums">${r.toFixed(2)}</span></div></div>`;
+      };
+      const body = !has ? '<p class="text-[11px] text-slate-500">No segmental data on this scan yet. Upload the Visbody PDF, or fill in the segmental fields when adding a scan.</p>'
+        : `<div class="flex justify-between text-[10px] text-slate-500 px-1"><span>Left</span><span>Right</span></div>${row('Arms', scan[k + 'LeftArm'], scan[k + 'RightArm'])}${row('Legs', scan[k + 'LeftLeg'], scan[k + 'RightLeg'])}${isNum(scan[k + 'Trunk']) ? `<div class="flex justify-between text-[11px] text-slate-400 pt-0.5"><span>Trunk</span><span class="font-semibold text-slate-200">${scan[k + 'Trunk'].toFixed(2)} kg</span></div>` : ''}<p class="text-[10px] text-slate-500">Within 5% is balanced. A dominant side is usually a little bigger.</p>`;
+      return `<div class="col-span-full p-4 rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-800/80 to-slate-900/60 space-y-3"><div class="flex items-center justify-between gap-2"><div class="text-xs font-bold text-white flex items-center gap-2"><i class="fa-solid fa-scale-balanced text-cyan-400"></i> Left vs right balance</div><div class="flex bg-slate-950 p-0.5 rounded-lg border border-slate-800 text-[11px] font-semibold">${seg('lean', 'Lean')}${seg('fat', 'Fat')}</div></div>${body}</div>`;
+    }
+
     function renderVisbodyReport() {
       const date = document.getElementById('visbodyDateSelect').value;
       const scans = appState.visbodyScans;
@@ -2483,13 +2550,13 @@
       const hint = '<p class="col-span-full text-[11px] text-slate-500"><i class="fa-solid fa-bullseye mr-1"></i>Tap any tile to set a target or a remark.</p>';
 
       document.getElementById('visPage1Details').innerHTML = hint + [
-        tile('Weight', fv(scan.weight, ' kg'), T, 'p-3', 'weight', scan.weight),
+        tile('Clinic weight', fv(scan.weight, ' kg'), T, 'p-3', 'weight', scan.weight),
         tile('Fat Mass', fv(scan.bfm, ' kg'), 'text-amber-400 text-sm', 'p-3', 'bfm', scan.bfm),
         tile('SMM', fv(scan.smm, ' kg'), 'text-indigo-400 text-sm', 'p-3', 'smm', scan.smm),
         tile('PBF', fv(scan.pbf, '%'), 'text-cyan-400 text-sm', 'p-3', 'pbf', scan.pbf),
         tile('BMR', fv(scan.bmr, ' kcal'), 'text-emerald-400 text-sm', 'p-3', 'bmr', scan.bmr),
         tile('Visceral Fat', isNum(scan.vfl) ? `Level ${esc(scan.vfl)}` : '—', 'text-rose-400 text-sm', 'p-3', 'vfl', scan.vfl)
-      ].join('');
+      ].join('') + '<p class="col-span-full text-[10px] text-slate-500">Clinic weight is an afternoon reading, so pace and projections use your AM fasted weights.</p>' + segmentalCard(scan);
 
       document.getElementById('visPage2Details').innerHTML = hint + [
         tile('Anterior Pelvic Shift', fv(scan.pelvicTilt, ' cm'), T, 'p-3', 'pelvicTilt', scan.pelvicTilt),
@@ -2797,6 +2864,36 @@
           .replace(/ﬁ/g, 'fi').replace(/ﬂ/g, 'fl').replace(/：/g, ':'));
     }
 
+    // Segmental lean and fat (page 1). Each panel is five numbers laid out like the body figure: arms (top row),
+    // trunk (middle), legs (bottom row). Found by position, so it does not depend on how the text is ordered.
+    function segmentalFromItems(pages) {
+      const out = {};
+      const numRe = /^\d{1,3}(?:\.\d{1,2})?$/;
+      for (const items of pages) {
+        const heads = items.filter(it => /^Segmental\b/.test(it.s.trim()));
+        if (!heads.length) continue;
+        const info = heads.map(h => {
+          const line = items.filter(it => Math.abs(it.y - h.y) <= 4 && it.x >= h.x - 2).sort((a, b) => a.x - b.x).map(it => it.s.trim()).join(' ');
+          return { h, kind: /Fat/i.test(line) ? 'ft' : /Lean/i.test(line) ? 'ln' : null };
+        }).filter(o => o.kind);
+        info.forEach(({ h, kind }) => {
+          const below = info.map(o => o.h.y).filter(y => y < h.y - 10);
+          const floor = Math.max(h.y - 135, below.length ? Math.max(...below) + 4 : -Infinity);
+          const nums = items.filter(it => numRe.test(it.s.trim()) && it.x >= h.x - 8 && it.y < h.y - 4 && it.y > floor)
+            .sort((a, b) => b.y - a.y || a.x - b.x).slice(0, 5);
+          if (nums.length < 5) return;
+          const v = it => parseFloat(it.s);
+          const arms = nums.slice(0, 2).sort((a, b) => a.x - b.x), trunk = nums[2], legs = nums.slice(3, 5).sort((a, b) => a.x - b.x);
+          const vals = [arms[0], arms[1], trunk, legs[0], legs[1]].map(v);
+          if (vals.some(x => !(x > 0 && x < 100))) return;
+          out[kind + 'LeftArm'] = vals[0]; out[kind + 'RightArm'] = vals[1]; out[kind + 'Trunk'] = vals[2];
+          out[kind + 'LeftLeg'] = vals[3]; out[kind + 'RightLeg'] = vals[4];
+        });
+        if (Object.keys(out).length) break;
+      }
+      return out;
+    }
+
     function parseVisbodyReport(pages, fileName = '') {
       const pageLines = pages.map(visbodyItemsToLines);
       const allLines = pageLines.flat();
@@ -2878,6 +2975,9 @@
       const gm = (start >= 0 ? gt.slice(start) : gt).match(/(Square|Pear|Inverted V-?\s?|Round|Peach)\s*Shape/);
       scan.gluteType = gm ? gm[0].replace(/\s+/g, ' ').replace('Inverted V Shape', 'Inverted V-Shape') : null;
       if (scan.hip === null) scan.hip = grab(glute, /Hips: ([\d.]+) ?cm/);
+
+      // Segmental lean and fat. The report's sex, age and height are deliberately never read, so a clinic kiosk typo cannot change your profile.
+      Object.assign(scan, segmentalFromItems(pages));
 
       return scan;
     }
@@ -3241,6 +3341,7 @@
       await loadAllData();
       renderDashboard();
       showToast(hitTarget ? `Target reached: ${weight} kg. Amazing work!` : drop > 0.04 ? `Saved ${weight} kg. Down ${drop.toFixed(1)} kg, well done!` : `Saved AM fasted scale: ${weight} kg`);
+      setTimeout(maybeOfferBackup, 700);
     }
 
     /* ==========================================================================
@@ -3282,13 +3383,14 @@
       const rec = (await dbGet('dailyLogs', dateInput.value)) || {};
       if (seq !== dailyLoadSeq) return; // a newer date was picked while this one was loading
 
-      renderMedsChecklist(rec.meds || {});
+      daySore = isNum(rec.sore) ? rec.sore : null;
+      renderMedsChecklist(rec.meds || {}, !!rec.isWorkoutDay);
       dayCircuit = Array.isArray(rec.circuit) ? rec.circuit.map(e => ({ ...e })) : null;
       renderExerciseChecklist(rec.exercises || {});
       document.getElementById('dailyIsWorkoutDay').checked = !!rec.isWorkoutDay;
       document.getElementById('dailySteps').value = rec.steps ?? '';
       document.getElementById('dailyDistance').value = rec.distance ?? '';
-      document.getElementById('statinWarningCard').classList.toggle('hidden', !(rec.meds && rec.meds.rosuva));
+      updateSoreUI();
     }
 
     function changeDailyLogDate(delta) {
@@ -3302,19 +3404,23 @@
       loadDailyLogForSelectedDate();
     }
 
-    function renderMedsChecklist(state = {}) {
+    let daySore = null;
+    function renderMedsChecklist(state = {}, lifting) {
       const container = document.getElementById('medsChecklist');
       container.innerHTML = '';
       const custom = getCustomMeds();
+      if (lifting === undefined) lifting = !!document.getElementById('dailyIsWorkoutDay').checked;
 
       [...DEFAULT_MEDS, ...custom].forEach(med => {
         const isCustom = custom.some(c => c.id === med.id);
         const item = document.createElement('label');
-        item.className = "p-3 bg-slate-800/80 rounded-xl border border-slate-700 flex justify-between items-center gap-3 text-xs cursor-pointer";
+        item.id = `medrow_${med.id}`;
+        item.className = "p-3 bg-slate-800/80 rounded-xl border border-slate-700 flex justify-between items-center gap-3 text-xs cursor-pointer transition-colors";
         item.innerHTML = `
           <div class="min-w-0">
             <div class="font-bold text-white">${esc(med.name)}</div>
             <div class="text-[11px] text-slate-400">${esc([med.schedule, med.note].filter(Boolean).join(' • '))}</div>
+            ${med.id === 'creatine' ? '<div id="creatineBadge" class="mt-1"></div>' : ''}
           </div>
           <div class="flex items-center gap-2 flex-none">
             ${isCustom ? `<button type="button" onclick="removeCustomMed('${med.id}')" aria-label="Remove ${esc(med.name)}" class="p-1.5 text-slate-500 hover:text-rose-400"><i class="fa-solid fa-xmark"></i></button>` : ''}
@@ -3322,15 +3428,50 @@
           </div>
         `;
         container.appendChild(item);
+        if (med.id === 'rosuva') {
+          const sore = document.createElement('div');
+          sore.className = 'px-3 py-2.5 rounded-xl border border-slate-700/80 bg-slate-900/50 flex items-center gap-3 text-xs';
+          sore.innerHTML = `<i class="fa-solid fa-person-running text-slate-400"></i><div class="min-w-0 flex-1"><div class="font-semibold text-slate-200">Muscle soreness today</div><div id="soreHint" class="text-[10px] text-slate-500">Tap a level, tap again to clear</div></div><div class="flex gap-1.5" role="group" aria-label="Muscle soreness from 1 to 3">${[1, 2, 3].map(n => `<button type="button" data-sore="${n}" onclick="setSore(${n})" aria-label="Soreness ${n} of 3" class="sore-btn w-8 h-8 rounded-lg border text-xs font-bold"></button>`).join('')}</div>`;
+          container.appendChild(sore);
+        }
       });
+      applyCreatineHighlight(lifting);
+      updateSoreUI();
     }
-
+    // Creatine is a lifting-day supplement: it lights up on a lifting day and dims on a rest day.
+    function applyCreatineHighlight(lifting) {
+      const row = document.getElementById('medrow_creatine'), badge = document.getElementById('creatineBadge');
+      if (!row) return;
+      row.className = `p-3 rounded-xl border flex justify-between items-center gap-3 text-xs cursor-pointer transition-colors ${lifting ? 'bg-emerald-950/40 border-emerald-600/60 ring-1 ring-emerald-500/30' : 'bg-slate-800/80 border-slate-700 opacity-70'}`;
+      if (badge) badge.innerHTML = lifting ? '<span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-600/40 rounded-full px-2 py-0.5"><i class="fa-solid fa-bolt"></i> Lifting day: take today</span>' : '<span class="text-[10px] text-slate-500">Rest day</span>';
+    }
+    function onLiftToggle() {
+      const on = document.getElementById('dailyIsWorkoutDay').checked;
+      applyCreatineHighlight(on);
+      if (on) playSfx('add');
+      saveDailyLogState();
+    }
+    const SORE_STYLE = { 1: 'border-emerald-500 bg-emerald-500/20 text-emerald-300', 2: 'border-amber-500 bg-amber-500/20 text-amber-300', 3: 'border-rose-500 bg-rose-500/20 text-rose-300' };
+    const SORE_WORD = { 1: 'Mild', 2: 'Moderate', 3: 'Strong' };
+    function setSore(n) { playSfx('click'); daySore = daySore === n ? null : n; updateSoreUI(); saveDailyLogState(); }
+    function updateSoreUI() {
+      document.querySelectorAll('.sore-btn').forEach(b => {
+        const n = Number(b.dataset.sore), on = daySore !== null && n <= daySore;
+        b.className = `sore-btn w-8 h-8 rounded-lg border text-xs font-bold ${on ? SORE_STYLE[daySore] : 'border-slate-700 bg-slate-800 text-slate-500'}`;
+        b.textContent = n;
+      });
+      const hint = document.getElementById('soreHint'); if (hint) hint.textContent = daySore ? `${SORE_WORD[daySore]} (${daySore} of 3)` : 'Tap a level, tap again to clear';
+      const cb = document.querySelector('[data-med="rosuva"]'), card = document.getElementById('statinWarningCard'), note = document.getElementById('soreNote');
+      if (card) card.classList.toggle('hidden', !((cb && cb.checked) || daySore >= 2));
+      if (note) {
+        const date = document.getElementById('dailyLogDateInput').value, prevRec = date ? dailyRec(addDaysStr(date, -1)) : null;
+        const t = daySore === 3 && prevRec && prevRec.sore === 3 ? 'Strong soreness two days in a row. Please tell your doctor.' : daySore >= 2 ? `Soreness ${daySore} of 3 logged. If it is strong, lasts more than a few days, or comes with weakness or dark urine, tell your doctor.` : '';
+        note.textContent = t; note.classList.toggle('hidden', !t);
+      }
+    }
     function toggleMedState(medId) {
       playSfx('click');
-      if (medId === 'rosuva') {
-        const cb = document.querySelector('[data-med="rosuva"]');
-        document.getElementById('statinWarningCard').classList.toggle('hidden', !(cb && cb.checked));
-      }
+      if (medId === 'rosuva') updateSoreUI();
       saveDailyLogState();
     }
 
@@ -3514,7 +3655,7 @@
       const keepEx = { ...((prev && prev.exercises) || {}), ...exercises };
 
       try {
-        await dbPut('dailyLogs', {
+        const rec = {
           date,
           isWorkoutDay: document.getElementById('dailyIsWorkoutDay').checked,
           steps: stepsRaw === '' ? null : Number(stepsRaw),
@@ -3522,8 +3663,11 @@
           meds: keepMeds,
           exercises: keepEx,
           ...(dayCircuit ? { circuit: dayCircuit } : {}),
+          sore: daySore,
           updatedAt: Date.now()
-        });
+        };
+        await dbPut('dailyLogs', rec);
+        upsertDailyCache(rec);
         const toast = document.getElementById('dailySaveToast');
         toast.classList.remove('hidden');
         setTimeout(() => toast.classList.add('hidden'), 1500);
@@ -3597,37 +3741,106 @@
 
     /* ---- Daily targets (v8.1): protein from your doctor's advice, calorie floor from your Visbody BMR ---- */
     const proteinTarget = () => (isNum(prefs.proteinTarget) && prefs.proteinTarget > 0 ? prefs.proteinTarget : 100);
-    function latestScanBmr() {
-      const sc = (appState.visbodyScans || []).filter(x => isNum(x.bmr));
-      return sc.length ? Math.round(sc[sc.length - 1].bmr) : null;
+    /* ---- v8.8: effective BMR and the adaptive daily calorie engine ---- */
+    const profileAge = () => { const y = parseInt(profile.birthYear, 10), a = y >= 1900 ? new Date().getFullYear() - y : null; return a !== null && a >= 10 && a <= 110 ? a : null; };
+    const goalMode = () => (['cut', 'recomp', 'maintenance'].includes(profile.goalMode) ? profile.goalMode : 'cut');
+    const GOAL_MODE_LABEL = { cut: 'Cut', recomp: 'Lean recomp', maintenance: 'Maintenance' };
+    function latestWeightKg() {
+      const am = (appState.amScaleLogs || []).filter(l => isNum(l.amWeight));
+      if (am.length) return am[am.length - 1].amWeight;
+      const sc = (appState.visbodyScans || []).filter(x => isNum(x.weight));
+      return sc.length ? sc[sc.length - 1].weight : null;
     }
-    // { value, source } where source is 'set by you' or 'scan BMR'; null when neither exists
+    // Priority 1: the BMR measured on your latest Visbody scan. Priority 2: Mifflin-St Jeor from your profile and latest AM weight.
+    // Sex, birth year and height come only from your Profile. A PDF upload never changes them.
+    function getEffectiveBMR() {
+      const sc = (appState.visbodyScans || []).filter(x => isNum(x.bmr));
+      if (sc.length) return { value: Math.round(sc[sc.length - 1].bmr), source: 'scan', date: sc[sc.length - 1].date };
+      const h = Number(profile.height), age = profileAge(), w = latestWeightKg(), sx = profile.sex;
+      if (h > 0 && age && isNum(w) && (sx === 'male' || sx === 'female')) return { value: Math.round(10 * w + 6.25 * h - 5 * age + (sx === 'male' ? 5 : -161)), source: 'estimate' };
+      return null;
+    }
+    const latestScanBmr = () => { const b = getEffectiveBMR(); return b ? b.value : null; };
+    // { value, source } where source is 'set by you', 'scan BMR' or 'estimated BMR'; null when none exists
     function calorieFloorInfo() {
       if (isNum(prefs.calorieFloor) && prefs.calorieFloor > 0) return { value: Math.round(prefs.calorieFloor), source: 'set by you' };
-      const bmr = latestScanBmr();
-      return bmr ? { value: bmr, source: 'scan BMR' } : null;
+      const b = getEffectiveBMR();
+      return b ? { value: b.value, source: b.source === 'scan' ? 'scan BMR' : 'estimated BMR' } : null;
     }
     const sugarMax = () => (isNum(prefs.sugarMax) && prefs.sugarMax > 0 ? prefs.sugarMax : 20);
-    const activityFactor = () => (isNum(prefs.activity) && prefs.activity >= 1.2 ? prefs.activity : 1.55);
+    const fixedActivity = () => (isNum(prefs.activity) && prefs.activity >= 1.2 ? prefs.activity : 1.55);
     const deficitKcal = () => (isNum(prefs.deficit) && prefs.deficit >= 0 ? prefs.deficit : 500);
-    // Suggested ceiling = scan BMR x activity - deficit, never below the floor + 100. Follows each new scan's BMR.
-    function suggestedCalMax(act = activityFactor(), def = deficitKcal()) {
-      const bmr = latestScanBmr(); if (!bmr) return null;
+    // The Food tab shows the day you picked; every other tab uses today.
+    const limDate = () => { const i = document.getElementById('foodLogDate'); return appState.activeTab === 'tab-food' && i && i.value ? i.value : localDateStr(); };
+    function dailyRec(date) { return (appState.dailyLogs || []).find(r => r.date === date) || null; }
+    function upsertDailyCache(rec) {
+      if (!appState.dailyLogs) appState.dailyLogs = [];
+      const i = appState.dailyLogs.findIndex(r => r.date === rec.date);
+      if (i >= 0) appState.dailyLogs[i] = rec; else appState.dailyLogs.push(rec);
+    }
+    function typicalSteps(before) {
+      const from = addDaysStr(before, -14);
+      const v = (appState.dailyLogs || []).filter(r => r.date < before && r.date >= from && isNum(r.steps) && r.steps > 0).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 7).map(r => r.steps);
+      return v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : null;
+    }
+    // Rest day 1.25 up to 1.45 on a high-step day, plus 0.10 on a lifting day (so 1.55 at most). Today never drops below your usual steps.
+    function activityMultiplier(date) {
+      const r = dailyRec(date), lifting = !!(r && r.isWorkoutDay);
+      if (prefs.activityMode === 'fixed') return { mult: fixedActivity(), fixed: true, lifting, steps: null };
+      const own = r && isNum(r.steps) && r.steps > 0 ? r.steps : null, typ = typicalSteps(date);
+      let steps = date >= localDateStr() ? (Math.max(own || 0, typ || 0) || null) : (own !== null ? own : typ);
+      const hi = stepGoal(), mid = Math.round(hi * 0.625);
+      const tier = steps === null ? 1 : steps >= hi ? 2 : steps >= mid ? 1 : 0;
+      return { mult: Math.round(([1.25, 1.35, 1.45][tier] + (lifting ? 0.10 : 0)) * 100) / 100, fixed: false, lifting, steps, tier, ownSteps: own !== null };
+    }
+    function activityFactor() {
+      if (prefs.activityMode === 'fixed') return fixedActivity();
+      const t = localDateStr(), ms = Array.from({ length: 14 }, (_, i) => activityMultiplier(addDaysStr(t, -(i + 1))).mult);
+      return Math.round(ms.reduce((a, b) => a + b, 0) / ms.length * 100) / 100;
+    }
+    // Maintenance (TDEE) and the daily target for one date, by goal mode. BMR (or your own floor) is the minimum.
+    function tdeeFor(date = limDate()) {
+      const b = getEffectiveBMR(); if (!b) return null;
+      const am = activityMultiplier(date), mode = goalMode(), fl = calorieFloorInfo();
+      const def = mode === 'cut' ? deficitKcal() : mode === 'recomp' ? 250 : 0;
+      const maint = Math.round(b.value * am.mult / 10) * 10;
+      const target = Math.max((fl ? fl.value : b.value) + 100, Math.round((b.value * am.mult - def) / 10) * 10);
+      return { bmr: b, am, mode, def, maint, target, floor: fl ? fl.value : b.value };
+    }
+    // act and def given: the classic "BMR x activity - deficit" used by the editor. Omitted: today's adaptive target.
+    function suggestedCalMax(act, def, date) {
+      const b = getEffectiveBMR(); if (!b) return null;
+      if (act === undefined || act === null) { const t = tdeeFor(date); return t ? t.target : null; }
       const fl = calorieFloorInfo();
-      return Math.max((fl ? fl.value : 0) + 100, Math.round((bmr * act - def) / 10) * 10);
+      return Math.max((fl ? fl.value : 0) + 100, Math.round((b.value * act - def) / 10) * 10);
     }
-    function calMaxInfo() {
+    function calMaxInfo(date = limDate()) {
       if (isNum(prefs.calorieMax) && prefs.calorieMax > 0) return { value: Math.round(prefs.calorieMax), source: 'set by you' };
-      const v = suggestedCalMax(); return v ? { value: v, source: 'suggested' } : null;
+      const v = suggestedCalMax(undefined, undefined, date); return v ? { value: v, source: 'suggested' } : null;
     }
-    function fatMaxInfo() {
+    function fatMaxInfo(date = limDate()) {
       if (isNum(prefs.fatMax) && prefs.fatMax > 0) return { value: prefs.fatMax, source: 'set by you' };
-      const c = calMaxInfo(); return c ? { value: Math.round(c.value * 0.30 / 9), source: 'suggested' } : null;
+      const c = calMaxInfo(date); return c ? { value: Math.round(c.value * 0.30 / 9), source: 'suggested' } : null;
     }
-    function limitsNow() {
-      const f = calorieFloorInfo(), c = calMaxInfo(), fm = fatMaxInfo();
+    function limitsNow(date = limDate()) {
+      const f = calorieFloorInfo(), c = calMaxInfo(date), fm = fatMaxInfo(date);
       return { calMin: f ? f.value : null, calMax: c ? c.value : null, protein: proteinTarget(), fat: fm ? fm.value : null, sugar: sugarMax() };
     }
+    // Recomp: 1.6 to 2.0 g/kg is offered as a suggestion only. Your doctor's number stays until you choose to change it.
+    function renderProteinSuggest() {
+      const el = document.getElementById('proteinSuggest'); if (!el) return;
+      const w = latestWeightKg(), pt = proteinTarget();
+      if (goalMode() !== 'recomp' || !isNum(w) || prefs.protHide === 'recomp') { el.classList.add('hidden'); return; }
+      const lo = Math.round(w * 1.6), hi = Math.round(w * 2.0);
+      if (pt >= lo) { el.classList.add('hidden'); return; }
+      el.classList.remove('hidden');
+      el.innerHTML = `<div class="rounded-xl border border-indigo-800/50 bg-indigo-950/40 p-2.5 space-y-2"><div class="flex items-start gap-2 text-[11px] text-indigo-200"><i class="fa-solid fa-lightbulb text-indigo-300 mt-0.5"></i><span>Lean recomp suggestion: 1.6 to 2.0 g/kg is about <b>${lo} to ${hi} g</b> at ${Math.round(w * 10) / 10} kg. Your target is ${fmtFood(pt)} g. Ask your doctor before changing it.</span></div><div class="flex gap-2"><button type="button" onclick="applyProteinSuggestion(${lo})" class="flex-1 text-[11px] font-semibold py-1.5 rounded-lg bg-indigo-600/80 text-white">Use ${lo} g</button><button type="button" onclick="hideProteinSuggestion()" class="px-3 text-[11px] py-1.5 rounded-lg bg-slate-800 text-slate-400 border border-slate-700">Not now</button></div></div>`;
+    }
+    function applyProteinSuggestion(v) {
+      prefs.proteinTarget = v; prefs.targetsAt = { ...(prefs.targetsAt || {}), proteinTarget: localDateStr() };
+      LS.set('vmt_prefs', prefs); playSfx('chime'); renderFoodDay(); saveFoodLogForDate(true); showToast(`Protein target set to ${v} g`);
+    }
+    function hideProteinSuggestion() { prefs.protHide = 'recomp'; LS.set('vmt_prefs', prefs); renderProteinSuggest(); }
     const pulseEl = id => { const e = document.getElementById(id); if (!e) return; e.classList.remove('pulse-once'); void e.offsetWidth; e.classList.add('pulse-once'); };
     function checkLimitCrossing(b, a) {
       const L = limitsNow(), msgs = [];
@@ -3681,17 +3894,36 @@
       const bar = (id, pct, color) => { const e = document.getElementById(id); if (e) { e.style.width = `${Math.max(0, Math.min(100, pct))}%`; e.className = `h-full rounded-full ${color}`; } };
       const V = 'text-base font-bold ';
       const cal = isNum(t.calories) ? t.calories : null;
-      const scale = Math.max(L.calMax ? L.calMax * 1.15 : 0, (cal || 0) * 1.05, L.calMin ? L.calMin * 1.3 : 0) || 1;
-      const over = cal !== null && !!L.calMax && cal > L.calMax, under = cal !== null && !!L.calMin && cal < L.calMin;
-      set('foodTotalCal', fmtFood(t.calories), V + (over ? 'text-rose-400' : 'text-white'));
+      const TD = tdeeFor(date);
+      const floorV = L.calMin || 0, tgtV = L.calMax || 0, maintV = TD ? Math.max(TD.maint, tgtV) : tgtV;
+      const scale = Math.max(maintV * 1.12, (cal || 0) * 1.05, floorV * 1.3) || 1;
+      let zone = null;
+      if (cal !== null && (floorV || tgtV)) zone = floorV && cal < floorV ? 0 : (!tgtV || cal <= tgtV) ? 1 : cal <= maintV ? 2 : 3;
+      // amber = under your BMR floor, green = target zone, yellow = above target but under maintenance, red = over maintenance
+      const ZC = ['#f59e0b', '#10b981', '#fde047', '#f43f5e'], MC = ['text-amber-400', 'text-emerald-400', 'text-yellow-300', 'text-rose-400'];
+      set('foodTotalCal', fmtFood(t.calories), V + (zone === 3 ? 'text-rose-400' : zone === 2 ? 'text-yellow-300' : 'text-white'));
       set('calRangeLabel', L.calMin || L.calMax ? `/ ${L.calMin ? L.calMin.toLocaleString() : '\u2013'} to ${L.calMax ? L.calMax.toLocaleString() : '\u2013'} kcal` : 'kcal');
-      bar('calBar', ((cal || 0) / scale) * 100, over ? 'bg-rose-500' : under ? (finished ? 'bg-amber-400' : 'bg-cyan-500') : 'bg-emerald-500');
-      [['calMinMark', L.calMin], ['calMaxMark', L.calMax]].forEach(([id, v]) => { const e = document.getElementById(id); if (e) { e.classList.toggle('hidden', !v); if (v) e.style.left = `${(v / scale) * 100}%`; } });
-      const calMsg = cal === null ? (L.calMin || L.calMax ? 'Marks show your minimum and maximum' : 'Edit targets to set a minimum and maximum')
-        : over ? `\u26a0 Over the maximum by ${fmtFood(cal - L.calMax)} kcal`
-        : under ? (finished ? `Below the minimum by ${fmtFood(L.calMin - cal)} kcal` : `${fmtFood(L.calMin - cal)} kcal to reach the minimum`)
-        : 'Within your range';
-      set('foodCalSub', calMsg, 'text-[11px] ' + (over ? 'text-rose-400' : under && finished ? 'text-amber-400' : 'text-slate-400'));
+      const pc = v => Math.max(0, Math.min(100, (v / scale) * 100));
+      const zEl = document.getElementById('calZones');
+      if (zEl) {
+        const e0 = pc(floorV), e1 = pc(tgtV || floorV), e2 = pc(maintV);
+        zEl.innerHTML = (floorV || tgtV) ? [[0, e0, 0], [e0, e1, 1], [e1, e2, 2], [e2, 100, 3]].map(([a, b, i]) => (b > a ? `<div style="width:${b - a}%;background:${ZC[i]};opacity:.22"></div>` : '')).join('') : '';
+      }
+      const cb = document.getElementById('calBar');
+      if (cb) { cb.style.width = `${pc(cal || 0)}%`; cb.style.background = zone === null ? '#06b6d4' : ZC[zone]; cb.className = 'absolute inset-y-0 left-0 rounded-full transition-all duration-500'; }
+      [['calMinMark', floorV], ['calMaxMark', tgtV], ['calMaintMark', maintV > tgtV ? maintV : 0]].forEach(([id, v]) => { const e = document.getElementById(id); if (e) { e.classList.toggle('hidden', !v); if (v) e.style.left = `${pc(v)}%`; } });
+      const dist = v => fmtFood(Math.abs(v));
+      const calMsg = !(floorV || tgtV) ? 'Add a Visbody scan, or your sex and birth year in Profile, to see your calorie zones'
+        : cal === null ? `Floor ${floorV.toLocaleString()} \u00b7 target ${tgtV.toLocaleString()}${maintV > tgtV ? ` \u00b7 maintenance ${maintV.toLocaleString()}` : ''} kcal`
+        : zone === 0 ? (finished ? `Under your BMR floor by ${dist(floorV - cal)} kcal. Risk of under-fuelling and muscle loss` : `${dist(floorV - cal)} kcal to reach your BMR floor`)
+        : zone === 1 ? (tgtV ? `In the target zone \u00b7 ${dist(tgtV - cal)} kcal left` : 'Above your BMR floor')
+        : zone === 2 ? `Above target by ${dist(cal - tgtV)} kcal \u00b7 still under maintenance`
+        : `Over maintenance by ${dist(cal - maintV)} kcal`;
+      set('foodCalSub', calMsg, 'text-[11px] font-medium ' + (zone === null ? 'text-slate-400' : MC[zone]));
+      const lg = document.getElementById('calLegend');
+      if (lg) lg.innerHTML = (floorV || tgtV) ? [['Under BMR', 0], ['Target zone', 1], ['Above target', 2], ['Over maintenance', 3]].map(([l, i]) => `<span class="inline-flex items-center gap-1 ${zone === i ? 'text-white font-semibold' : 'text-slate-500'}"><span class="w-2 h-2 rounded-full" style="background:${ZC[i]}"></span>${l}</span>`).join('') : '';
+      const ti = document.getElementById('foodTdeeInfo');
+      if (ti) ti.textContent = TD ? `Maintenance ${TD.maint.toLocaleString()} kcal = BMR ${TD.bmr.value.toLocaleString()} (${TD.bmr.source === 'scan' ? 'scan' : 'estimated'}) \u00d7 ${TD.am.mult}${TD.am.fixed ? '' : ` for a ${TD.am.lifting ? 'lifting' : 'rest'} day with ${TD.am.steps ? `${TD.am.steps.toLocaleString()} ${TD.am.ownSteps ? '' : 'usual '}steps` : 'usual steps'}`} \u00b7 ${GOAL_MODE_LABEL[TD.mode]}${TD.def ? `, minus ${TD.def}` : ''}` : '';
       const lim = (vId, bId, sId, lId, v, max, color) => {
         const has = isNum(v), o = has && !!max && v > max;
         set(vId, fmtFood(v), V + (o ? 'text-rose-400' : 'text-white'));
@@ -3712,21 +3944,26 @@
           + chip(t.fat, 'F', L.fat && isNum(t.fat) && t.fat > L.fat ? 'text-rose-400' : 'text-white')
           + chip(t.sugar, 'S', isNum(t.sugar) && t.sugar > L.sugar ? 'text-rose-400' : 'text-white');
       }
+      renderProteinSuggest();
       renderMealSplit();
     }
 
     const tgt = id => document.getElementById(id);
     function updateTargetsHint() {
-      const el = tgt('targetsHint'), bmr = latestScanBmr();
-      if (!bmr) { el.innerText = 'Add a Visbody scan with a BMR to get a suggested calorie maximum. Blank fields follow the suggestion and update with each new scan.'; return; }
-      const act = parseFloat(tgt('targetActivity').value) || 1.55, def = Math.max(0, parseFloat(tgt('targetDeficit').value) || 0);
-      const s = suggestedCalMax(act, def);
-      el.innerText = `Suggestion: BMR ${bmr.toLocaleString()} \u00d7 ${act} = ${Math.round(bmr * act).toLocaleString()} kcal to maintain, minus ${def} = ${s.toLocaleString()} kcal maximum, with about ${Math.round(s * 0.3 / 9)} g fat (30% of calories). Blank fields follow this and update with each new scan. Your doctor's advice comes first.`;
+      const el = tgt('targetsHint'), b = getEffectiveBMR(), sel = tgt('targetActivity').value, auto = sel === 'auto';
+      if (!b) { el.innerText = 'Add a Visbody scan with a BMR, or your sex and birth year in Profile, to get a suggested calorie maximum. Blank fields follow the suggestion.'; return; }
+      if (auto) {
+        const TD = tdeeFor();
+        el.innerText = `Auto: your calorie maximum follows each day's steps and lifting-day flag. Today: BMR ${b.value.toLocaleString()} (${b.source === 'scan' ? 'scan' : 'estimated'}) \u00d7 ${TD.am.mult} = ${TD.maint.toLocaleString()} kcal to maintain, ${TD.def ? `minus ${TD.def} ` : ''}= ${TD.target.toLocaleString()} kcal for ${GOAL_MODE_LABEL[TD.mode]}, with about ${Math.round(TD.target * 0.3 / 9)} g fat (30% of calories). Blank fields follow this. Your doctor's advice comes first.`;
+        return;
+      }
+      const act = parseFloat(sel) || 1.55, def = Math.max(0, parseFloat(tgt('targetDeficit').value) || 0), s = suggestedCalMax(act, def);
+      el.innerText = `Fixed activity: BMR ${b.value.toLocaleString()} \u00d7 ${act} = ${Math.round(b.value * act).toLocaleString()} kcal to maintain, minus ${def} = ${s.toLocaleString()} kcal maximum, with about ${Math.round(s * 0.3 / 9)} g fat (30% of calories). Your doctor's advice comes first.`;
     }
     function useTargetSuggestion() {
-      const act = parseFloat(tgt('targetActivity').value) || 1.55, def = Math.max(0, parseFloat(tgt('targetDeficit').value) || 0);
-      const v = suggestedCalMax(act, def);
-      if (!v) { showToast('Add a Visbody scan with a BMR first.', 'warn'); return; }
+      const sel = tgt('targetActivity').value, def = Math.max(0, parseFloat(tgt('targetDeficit').value) || 0);
+      const v = sel === 'auto' ? suggestedCalMax() : suggestedCalMax(parseFloat(sel) || 1.55, def);
+      if (!v) { showToast('Add a Visbody scan, or your sex and birth year in Profile, first.', 'warn'); return; }
       tgt('targetCalMaxInput').value = v; tgt('targetFatMaxInput').value = Math.round(v * 0.3 / 9);
       updateTargetsHint();
     }
@@ -3739,7 +3976,7 @@
       const val = v => (isNum(v) && v > 0 ? v : '');
       tgt('targetProteinInput').value = proteinTarget(); tgt('targetSugarMaxInput').value = sugarMax();
       tgt('targetFatMaxInput').value = val(prefs.fatMax); tgt('targetCalFloorInput').value = val(prefs.calorieFloor); tgt('targetCalMaxInput').value = val(prefs.calorieMax);
-      tgt('targetActivity').value = String(activityFactor()); tgt('targetDeficit').value = deficitKcal();
+      tgt('targetActivity').value = prefs.activityMode === 'fixed' ? String(fixedActivity()) : 'auto'; tgt('targetDeficit').value = deficitKcal();
       updateTargetsHint(); renderTargetsAudit();
     }
     function saveFoodTargets() {
@@ -3754,7 +3991,7 @@
       if (cf !== null && cm !== null && cm <= cf) { showToast('The maximum must be higher than the minimum.', 'warn'); return; }
       if (def !== null && !(def >= 0 && def <= 2000)) { showToast('Deficit should be 0 to 2,000 kcal.', 'warn'); return; }
       const oldP = { ...prefs };
-      Object.assign(prefs, { proteinTarget: Math.round(p * 10) / 10, sugarMax: sg, fatMax: fm, calorieFloor: cf === null ? null : Math.round(cf), calorieMax: cm === null ? null : Math.round(cm), activity: parseFloat(tgt('targetActivity').value) || 1.55, deficit: def === null ? 500 : def });
+      Object.assign(prefs, { proteinTarget: Math.round(p * 10) / 10, sugarMax: sg, fatMax: fm, calorieFloor: cf === null ? null : Math.round(cf), calorieMax: cm === null ? null : Math.round(cm), activity: tgt('targetActivity').value === 'auto' ? fixedActivity() : (parseFloat(tgt('targetActivity').value) || 1.55), activityMode: tgt('targetActivity').value === 'auto' ? 'auto' : 'fixed', deficit: def === null ? 500 : def });
       prefs.targetsAt = { ...(prefs.targetsAt || {}) };
       ['proteinTarget', 'sugarMax', 'fatMax', 'calorieFloor', 'calorieMax', 'activity', 'deficit'].forEach(k => { if (oldP[k] !== prefs[k]) prefs.targetsAt[k] = localDateStr(); });
       LS.set('vmt_prefs', prefs);
@@ -3765,6 +4002,15 @@
       showToast('Targets saved');
     }
 
+    let snackTimer = null;
+    function hideBackupSnack() { const e = document.getElementById('backupSnack'); if (e) e.classList.add('hidden'); clearTimeout(snackTimer); }
+    // After a weigh-in: offer a one-tap backup if you have not exported in the last 7 days.
+    function maybeOfferBackup() {
+      const last = prefs.lastBackup, days = last ? Math.round((parseLocalDate(localDateStr()) - parseLocalDate(last)) / 86400000) : null;
+      if (days !== null && days < 7) return;
+      const e = document.getElementById('backupSnack'); if (!e) return;
+      e.classList.remove('hidden'); clearTimeout(snackTimer); snackTimer = setTimeout(hideBackupSnack, 15000);
+    }
     function renderBackupBanner() {
       const el = document.getElementById('backupBanner'); if (!el) return;
       const hasData = (appState.visbodyScans.length + appState.amScaleLogs.length + appState.mjShots.length) > 0;
@@ -3777,7 +4023,7 @@
         : `Your last backup was ${days} days ago. Export a fresh copy so a deleted app or cleared Safari data cannot take your history.`;
     }
     function snoozeBackupBanner() { prefs.backupSnooze = addDaysStr(localDateStr(), 3); LS.set('vmt_prefs', prefs); renderBackupBanner(); }
-    function markBackedUp() { prefs.lastBackup = localDateStr(); prefs.backupSnooze = null; LS.set('vmt_prefs', prefs); renderBackupBanner(); }
+    function markBackedUp() { hideBackupSnack(); prefs.lastBackup = localDateStr(); prefs.backupSnooze = null; LS.set('vmt_prefs', prefs); renderBackupBanner(); }
 
     async function renderTodayGlance() {
       const grid = document.getElementById('glanceGrid'); if (!grid) return;
@@ -3848,7 +4094,7 @@
     async function openDoctorSummary() {
       toggleSettingsDrawer(false);
       const [foods, dailies] = await Promise.all([dbGetAll('foodLogs'), dbGetAll('dailyLogs')]);
-      const L = limitsNow(), today = localDateStr(), fv = v => (isNum(v) ? String(Math.round(v * 10) / 10) : '\u2013');
+      const L = limitsNow(localDateStr()), today = localDateStr(), fv = v => (isNum(v) ? String(Math.round(v * 10) / 10) : '\u2013');
       const sgn = (a, b) => (isNum(a) && isNum(b) ? `${b - a > 0 ? '+' : ''}${(Math.round((b - a) * 10) / 10)}` : '');
       const secs = [];
       const am = appState.amScaleLogs.slice(-8);
@@ -3871,7 +4117,13 @@
       secs.push({ t: 'Current targets', head: ['Target', 'Value', 'Source'], rows: [
         ['Calorie minimum', f ? `${f.value.toLocaleString()} kcal` : '\u2013', targetSrc(f)], ['Calorie maximum', c ? `${c.value.toLocaleString()} kcal` : '\u2013', targetSrc(c)],
         ['Fat max', fm ? `${fmtFood(fm.value)} g` : '\u2013', targetSrc(fm)], ['Added sugar max', `${fmtFood(sugarMax())} g`, (prefs.targetsAt || {}).sugarMax ? 'set by you' : 'default'],
-        ['Protein target', `${fmtFood(proteinTarget())} g`, (prefs.targetsAt || {}).proteinTarget ? 'set by you' : 'default']] });
+        ['Protein target', `${fmtFood(proteinTarget())} g`, (prefs.targetsAt || {}).proteinTarget ? 'set by you' : 'default'],
+        ['Goal mode', GOAL_MODE_LABEL[goalMode()], ''], ...(() => { const TD = tdeeFor(today); return TD ? [['Maintenance today', `${TD.maint.toLocaleString()} kcal (BMR ${TD.bmr.value.toLocaleString()} ${TD.bmr.source === 'scan' ? 'scan' : 'estimated'} x ${TD.am.mult})`, '']] : []; })()] });
+      const mRows = [], g1 = smmGuardrail(), g2 = segInsight();
+      if (g1) mRows.push(['Muscle (SMM) check', g1.short]);
+      if (g2) mRows.push(['Left vs right lean', g2.short]);
+      if (dailies.some(r => isNum(r.sore))) { const d14 = Array.from({ length: 14 }, (_, i) => addDaysStr(today, -i)), so = dailies.filter(r => d14.includes(r.date) && isNum(r.sore) && r.sore > 0); mRows.push(['Muscle soreness, last 14 days', so.length ? `${so.length} day${so.length === 1 ? '' : 's'} logged, ${so.filter(r => r.sore >= 2).length} at 2/3 or more, ${so.filter(r => r.sore === 3).length} at 3/3` : 'none logged']); }
+      if (mRows.length) secs.push({ t: 'Muscle and balance notes', head: ['Item', 'Note'], rows: mRows });
       const gp = goalProjection(), wTr = scanTrendGoal('midWaist', Number(profile.targetWaist)), bTr = scanTrendGoal('pbf', Number(profile.targetBf));
       const gRows = [];
       if (gp) {
@@ -3887,7 +4139,7 @@
       if (profile.plannedDose && profile.plannedDoseDate) gRows.push(['Planned dose change', `${profile.plannedDose} mg from ${shortDate(profile.plannedDoseDate, true)}`]);
       if ((profile.doctorNotes || '').trim()) gRows.push(['Notes', profile.doctorNotes.trim()]);
       if (gRows.length) secs.push({ t: 'Goals and notes', head: ['Item', 'Value'], rows: gRows });
-      const who = [profile.name, profile.height ? `${profile.height} cm` : '', profile.startWeight ? `start ${profile.startWeight} kg` : '', profile.targetWeight ? `target ${profile.targetWeight} kg` : ''].filter(Boolean).join(' \u00b7 ');
+      const who = [profile.name, profile.sex && profileAge() ? `${profile.sex}, ${profileAge()} y` : '', profile.height ? `${profile.height} cm` : '', profile.startWeight ? `start ${profile.startWeight} kg` : '', profile.targetWeight ? `target ${profile.targetWeight} kg` : ''].filter(Boolean).join(' \u00b7 ');
       const note = 'Self-reported data from the VM Tracker app. Informational only, not medical advice.';
       doctorText = [`Health summary, ${today}`, who, ''].concat(...secs.map(x => [x.t, ...x.rows.map(r => '  ' + r.filter(v => v !== '').join(' | ')), ''])).concat(note).join('\n');
       document.getElementById('doctorBody').innerHTML = `<h1>Health summary</h1><p>${esc(today)}${who ? ' \u00b7 ' + esc(who) : ''}</p>`
@@ -4005,6 +4257,28 @@
       checkLimitCrossing(before, foodTotals());
     }
 
+    let copySource = null;
+    function closeCopyModal() { document.getElementById('copyModal').classList.add('hidden'); }
+    async function copyPrevMeals() {
+      playSfx('click');
+      const date = foodDate();
+      let logs = []; try { logs = await dbGetAll('foodLogs'); } catch (e) { return; }
+      const prev = logs.filter(l => l.date < date && Array.isArray(l.entries) && l.entries.length).sort((a, b) => b.date.localeCompare(a.date))[0];
+      if (!prev) { showToast('No earlier day with logged meals to copy.', 'warn'); return; }
+      copySource = prev;
+      if (!foodEntries.length) { doCopyMeals('merge'); return; }
+      document.getElementById('copyModalText').textContent = `${prev.entries.length} meal${prev.entries.length === 1 ? '' : 's'} from ${prev.date === addDaysStr(date, -1) ? 'yesterday' : shortDate(prev.date)}. This day already has ${foodEntries.length}.`;
+      document.getElementById('copyModal').classList.remove('hidden');
+    }
+    function doCopyMeals(mode) {
+      closeCopyModal();
+      if (!copySource) return;
+      const snapshot = foodEntries.map(e => ({ ...e })), src = copySource, now = Date.now();
+      if (mode === 'replace') foodEntries = [];
+      src.entries.forEach((e, i) => foodEntries.push({ ...e, id: `f_${(now + i).toString(36)}${Math.random().toString(36).slice(2, 5)}`, t: now + i }));
+      playSfx('add'); renderFoodDay(); saveFoodLogForDate(true);
+      showUndoToast(`Copied ${src.entries.length} meal${src.entries.length === 1 ? '' : 's'} from ${shortDate(src.date)}`, () => { foodEntries = snapshot; renderFoodDay(); saveFoodLogForDate(true); });
+    }
     const getMeals = () => (Array.isArray(prefs.meals) ? prefs.meals : []);
     function saveMealFromEntry(id) {
       const e = foodEntries.find(x => x.id === id); if (!e) return;
@@ -4182,7 +4456,7 @@
           calories: t.calories,
           protein: t.protein,
           proteinTarget: proteinTarget(),
-          limits: limitsNow(),
+          limits: limitsNow(date),
           fat: t.fat,
           sugar: t.sugar,
           water: currentWaterMl,
@@ -4262,6 +4536,7 @@
       renderFoodTrendChart();
     }
 
+    function toggleFoodInj() { playSfx('click'); prefs.foodInj = prefs.foodInj === false; LS.set('vmt_prefs', prefs); renderFoodTrendChart(); }
     async function renderFoodTrendChart() {
       const logs = await dbGetAll('foodLogs');
       const byDate = new Map(logs.map(l => [l.date, l]));
@@ -4326,13 +4601,41 @@
       const cap = document.getElementById('foodChartCaption');
       if (cap) cap.innerText = caption;
 
+      // v8.8: Mounjaro injection days over the intake bars (days 1 to 3 = appetite suppression, days 5 to 7 = late-week rebound)
+      const shotIdx = appState.mjShots.map(x => Math.round((parseLocalDate(x.dateTime.slice(0, 10)) - parseLocalDate(days[0])) / 86400000)).filter(i => i > -8 && i < n);
+      const injOn = prefs.foodInj !== false && shotIdx.length > 0;
+      const injRow = document.getElementById('foodInjRow');
+      if (injRow) {
+        injRow.classList.toggle('hidden', !appState.mjShots.length);
+        document.getElementById('foodInjBtn').textContent = prefs.foodInj !== false ? 'Hide injection days' : 'Show injection days';
+        document.getElementById('foodInjLegend').innerHTML = prefs.foodInj !== false ? '<span class="inline-flex items-center gap-1"><span class="w-0.5 h-3 bg-violet-400"></span>Injection</span><span class="inline-flex items-center gap-1"><span class="w-3 h-2.5 rounded-sm" style="background:rgba(45,212,191,.35)"></span>Days 1 to 3</span><span class="inline-flex items-center gap-1"><span class="w-3 h-2.5 rounded-sm" style="background:rgba(251,191,36,.35)"></span>Days 5 to 7</span>' : '';
+      }
+      const injPlugin = {
+        id: 'injDays',
+        beforeDatasetsDraw(chart) {
+          if (!injOn) return;
+          const { ctx, chartArea: a, scales: { x } } = chart, step = n > 1 ? x.getPixelForValue(1) - x.getPixelForValue(0) : a.right - a.left;
+          const band = (i0, i1, col) => { const l = Math.max(a.left, x.getPixelForValue(i0) - step / 2), r = Math.min(a.right, x.getPixelForValue(i1) + step / 2); if (r > l) { ctx.fillStyle = col; ctx.fillRect(l, a.top, r - l, a.bottom - a.top); } };
+          ctx.save();
+          shotIdx.forEach(i => { band(i + 1, i + 3, 'rgba(45,212,191,0.14)'); band(i + 5, i + 7, 'rgba(251,191,36,0.13)'); });
+          ctx.restore();
+        },
+        afterDatasetsDraw(chart) {
+          if (!injOn) return;
+          const { ctx, chartArea: a, scales: { x } } = chart;
+          ctx.save(); ctx.strokeStyle = '#a78bfa'; ctx.fillStyle = '#a78bfa'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 3]); ctx.font = '600 9px sans-serif'; ctx.textAlign = 'center';
+          shotIdx.forEach(i => { if (i < 0) return; const px = x.getPixelForValue(i); ctx.beginPath(); ctx.moveTo(px, a.top); ctx.lineTo(px, a.bottom); ctx.stroke(); ctx.setLineDash([]); ctx.fillText('Shot', Math.min(Math.max(px, a.left + 14), a.right - 14), a.top + 9); ctx.setLineDash([4, 3]); });
+          ctx.restore();
+        }
+      };
       createOrUpdateChart('chartFoodTrend', {
         type: 'bar',
         data: { labels, datasets },
         options: chartOpts({
           plugins: { legend: { display: false } },
           scales: { y: { beginAtZero: true }, x: { ticks: { maxTicksLimit: n <= 7 ? 7 : 6 } } }
-        }, 0)
+        }, 0),
+        plugins: [injPlugin]
       });
     }
 
@@ -4351,6 +4654,47 @@
       renderAdvisorScorecard();
     }
 
+    // v8.8: muscle guardrail and left/right balance. Informational only.
+    function smmGuardrail() {
+      const sc = (appState.visbodyScans || []).filter(x => isNum(x.smm));
+      if (sc.length < 2) return null;
+      const cur = sc[sc.length - 1], prev = sc[sc.length - 2];
+      const dS = Math.round((cur.smm - prev.smm) * 10) / 10;
+      const days = Math.max(1, Math.round((parseLocalDate(cur.date) - parseLocalDate(prev.date)) / 86400000));
+      // weight change from AM fasted weights near each scan, so afternoon clinic weight does not distort it
+      const wAt = scan => { const near = (appState.amScaleLogs || []).filter(l => isNum(l.amWeight) && Math.abs(parseLocalDate(l.date) - parseLocalDate(scan.date)) <= 3 * 86400000).sort((a, b) => Math.abs(parseLocalDate(a.date) - parseLocalDate(scan.date)) - Math.abs(parseLocalDate(b.date) - parseLocalDate(scan.date)))[0]; return near ? near.amWeight : scan.weight; };
+      const w0 = wAt(prev), w1 = wAt(cur); if (!isNum(w0) || !isNum(w1)) return null;
+      const lost = Math.round((w0 - w1) * 10) / 10, pctWk = (lost / w0) * (7 / days) * 100, rapid = pctWk >= 0.75;
+      const span = `${shortDate(prev.date)} and ${shortDate(cur.date)}`;
+      let text, border, color, short;
+      if (dS <= -0.5 && rapid) {
+        text = `Skeletal muscle fell ${Math.abs(dS)} kg between ${span} while you lost ${lost} kg (${pctWk.toFixed(1)}% a week). Some of that may be muscle. It is worth discussing your protein intake and resistance training with your doctor or dietitian.`;
+        border = 'border-rose-800/70'; color = 'text-rose-400'; short = `SMM down ${Math.abs(dS)} kg with ${lost} kg lost, ${span}`;
+      } else if (dS <= -0.3) {
+        text = `Skeletal muscle is down ${Math.abs(dS)} kg between ${span}. Changes this small can be normal scan-to-scan variation (hydration, time of day), so check the next scan before drawing conclusions. Keep protein and resistance training steady.`;
+        border = 'border-amber-800/60'; color = 'text-amber-400'; short = `SMM down ${Math.abs(dS)} kg, ${span} (small change)`;
+      } else {
+        text = lost > 0.5 ? `Muscle is holding up: skeletal muscle ${dS >= 0.05 ? `rose ${dS}` : 'stayed within 0.2'} kg between ${span} while you lost ${lost} kg. A good sign.` : `Skeletal muscle changed ${dS > 0 ? '+' : ''}${dS} kg between ${span}, with little weight change. Nothing to flag.`;
+        border = 'border-emerald-800/50'; color = 'text-emerald-400'; short = `SMM ${dS > 0 ? '+' : ''}${dS} kg with ${lost} kg lost, ${span}`;
+      }
+      return { title: 'Muscle check (SMM)', icon: 'fa-shield-heart', color, text, border, short };
+    }
+    function segInsight() {
+      const sc = (appState.visbodyScans || []).filter(x => ['lnLeftArm', 'lnRightArm', 'lnLeftLeg', 'lnRightLeg'].every(k => isNum(x[k])));
+      if (!sc.length) return null;
+      const cur = sc[sc.length - 1], prev = sc.length > 1 ? sc[sc.length - 2] : null;
+      const d = x => ({ arms: segDiff(x.lnLeftArm, x.lnRightArm), legs: segDiff(x.lnLeftLeg, x.lnRightLeg) });
+      const c = d(cur), p = prev ? d(prev) : null;
+      const flagged = Object.keys(c).filter(k => Math.abs(c[k]) >= 10);
+      const desc = k => `${k} ${Math.abs(c[k]).toFixed(1)}% more on the ${c[k] > 0 ? 'right' : 'left'}`;
+      if (!flagged.length) {
+        const t = `Lean mass is well matched left to right (arms ${Math.abs(c.arms).toFixed(1)}% apart, legs ${Math.abs(c.legs).toFixed(1)}% apart).`;
+        return { title: 'Left vs right muscle balance', icon: 'fa-scale-balanced', color: 'text-cyan-400', text: t, border: 'border-slate-800', short: t };
+      }
+      const repeated = p && flagged.every(k => Math.abs(p[k]) >= 10 && Math.sign(p[k]) === Math.sign(c[k]));
+      const t = `Lean mass is uneven: ${flagged.map(desc).join(' and ')}. ${repeated ? 'The same gap showed on your previous scan, so it is worth raising with your doctor or trainer. Single-sided exercises can help even things out.' : 'This is one scan only, so check again on the next scan before acting. Single-sided exercises can help even things out.'}`;
+      return { title: 'Left vs right muscle balance', icon: 'fa-scale-balanced', color: 'text-amber-400', text: t, border: 'border-amber-800/60', short: flagged.map(desc).join(', ') + (repeated ? ' (repeated)' : ' (one scan)') };
+    }
     function renderAdvisorBriefings() {
       const container = document.getElementById('advisorBriefingsContainer');
       container.innerHTML = '';
@@ -4385,10 +4729,11 @@
       [
         { title: "Body Recomposition & Lean Mass", icon: "fa-dumbbell", color: "text-indigo-400", text: recomp },
         { title: "Mounjaro Injection Log", icon: "fa-syringe", color: "text-emerald-400", text: mj },
-        { title: "Posture (Anterior Pelvic Tilt)", icon: "fa-person-walking", color: "text-cyan-400", text: posture }
+        { title: "Posture (Anterior Pelvic Tilt)", icon: "fa-person-walking", color: "text-cyan-400", text: posture },
+        ...[smmGuardrail(), segInsight()].filter(Boolean)
       ].forEach(b => {
         const card = document.createElement('div');
-        card.className = "glass-card p-4 rounded-2xl border border-slate-800 space-y-1.5";
+        card.className = `glass-card p-4 rounded-2xl border ${b.border || "border-slate-800"} space-y-1.5`;
         card.innerHTML = `
           <div class="font-bold text-white text-xs flex items-center gap-2">
             <i class="fa-solid ${b.icon} ${b.color}"></i> ${b.title}
@@ -5028,11 +5373,42 @@ const RISE_NAME = { navel: 'navel waist', below: 'low waist', hip: 'upper hip' }
       else out.status = pace.pct <= 0 ? ['Not losing', 'amber'] : pace.pct < 0.5 ? ['Slower than usual', 'amber'] : pace.pct <= 1.0 ? ['Steady pace', 'emerald'] : ['Fast', 'rose'];
       return out;
     }
+    // v8.8: checklist card in the 24 hours before your appointment
+    function renderPrepCard() {
+      const el = document.getElementById('prepCard'); if (!el) return;
+      const date = profile.nextAppt; if (!date) { el.classList.add('hidden'); return; }
+      const time = /^\d{2}:\d{2}$/.test(profile.nextApptTime || '') ? profile.nextApptTime : '';
+      const appt = time ? new Date(`${date}T${time}:00`) : null, hrs = appt ? (appt - Date.now()) / 36e5 : null, d = daysUntil(date);
+      const show = time ? (hrs >= -1 && hrs <= 24) : (d === 0 || d === 1);
+      if (!show) { el.classList.add('hidden'); return; }
+      const clk = ms => new Date(ms).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      const custom = (profile.prepList || '').split('\n').map(x => x.trim()).filter(Boolean).slice(0, 8);
+      const items = custom.length ? custom.map(t => ({ t })) : [
+        { t: 'Finish your last meal 2.5 hours or more before', by: time ? `by ${clk(appt - 150 * 60000)}` : '' },
+        { t: 'Taper water: last big drink 90 minutes before', by: time ? `by ${clk(appt - 90 * 60000)}` : '' },
+        { t: 'Empty your bladder just before the scan' },
+        { t: 'Wear fitted clothing' }];
+      const key = `vmt_prep_${date}`, done = LS.get(key, {}) || {}, n = items.filter((_, i) => done[i]).length;
+      const when = time ? (hrs <= 0 ? 'now' : hrs < 1 ? `in ${Math.max(1, Math.round(hrs * 60))} min` : `in ${Math.round(hrs)} h`) : (d === 0 ? 'today' : 'tomorrow');
+      el.classList.remove('hidden');
+      el.innerHTML = `<div class="flex items-center justify-between gap-2"><div class="flex items-center gap-2 min-w-0"><span class="w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-700/40 flex items-center justify-center flex-none"><i class="fa-solid fa-clipboard-check text-cyan-300 text-sm"></i></span><div class="min-w-0"><div class="text-sm font-bold text-white leading-tight">Get ready for your scan</div><div class="text-[11px] text-slate-400 truncate">${esc(profile.apptNote || 'Appointment')} \u00b7 ${when}${time ? ` (${time})` : ''}</div></div></div><span class="text-[11px] font-semibold text-cyan-300 flex-none">${n}/${items.length}</span></div>
+        <div class="h-1 rounded-full bg-slate-800 overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-cyan-400 to-emerald-400 transition-all duration-500" style="width:${items.length ? n / items.length * 100 : 0}%"></div></div>
+        <div class="space-y-1.5">${items.map((it, i) => { const on = !!done[i]; return `<button type="button" onclick="togglePrep(${i})" class="w-full flex items-center gap-3 text-left p-2.5 rounded-xl border ${on ? 'border-emerald-700/60 bg-emerald-950/30' : 'border-slate-700 bg-slate-800/60'}"><span class="w-5 h-5 rounded-full border flex items-center justify-center flex-none ${on ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-600'}">${on ? '<i class="fa-solid fa-check text-[10px]"></i>' : ''}</span><span class="flex-1 text-xs ${on ? 'text-slate-500 line-through' : 'text-slate-200'}">${esc(it.t)}</span>${it.by ? `<span class="text-[10px] font-semibold text-cyan-300 flex-none">${it.by}</span>` : ''}</button>`; }).join('')}</div>
+        <p class="text-[10px] text-slate-500">General tips only. Follow your clinic's own instructions if they differ.</p>`;
+    }
+    function togglePrep(i) {
+      const key = `vmt_prep_${profile.nextAppt}`, done = LS.get(key, {}) || {};
+      done[i] = !done[i]; LS.set(key, done);
+      playSfx('click'); renderPrepCard();
+      const custom = (profile.prepList || '').split('\n').map(x => x.trim()).filter(Boolean).slice(0, 8), total = custom.length || 4;
+      if (done[i] && Object.values(done).filter(Boolean).length >= total) { playSfx('win'); showToast('All set for your appointment'); }
+    }
     function renderApptChip() {
       const el = document.getElementById('apptChip'); if (!el) return;
       const d = profile.nextAppt ? daysUntil(profile.nextAppt) : null;
       el.classList.toggle('hidden', !(d !== null && d >= 0 && d <= 60));
-      if (d !== null && d >= 0 && d <= 60) document.getElementById('apptChipText').textContent = `Next appointment ${d === 0 ? 'today' : d === 1 ? 'tomorrow' : `in ${d} days`} (${shortDate(profile.nextAppt)})${profile.apptNote ? ` \u00b7 ${profile.apptNote}` : ''}`;
+      if (d !== null && d >= 0 && d <= 60) document.getElementById('apptChipText').textContent = `Next appointment ${d === 0 ? 'today' : d === 1 ? 'tomorrow' : `in ${d} days`} (${shortDate(profile.nextAppt)}${profile.nextApptTime ? ' at ' + profile.nextApptTime : ''})${profile.apptNote ? ` \u00b7 ${profile.apptNote}` : ''}`;
+      renderPrepCard();
     }
     function renderProfileSummary() {
       const el = document.getElementById('profileSummary'); if (!el) return;
@@ -5050,9 +5426,21 @@ const RISE_NAME = { navel: 'navel waist', below: 'low waist', hip: 'upper hip' }
         + cell('Lost so far', sw > 0 && isNum(cw) ? `${r1p(sw - cw)} kg` : dash, sw > 0 && isNum(cw) && sw > cw ? `${r1p((sw - cw) / sw * 100)}% of start` : '')
         + cell('BMI', h > 0 && isNum(cw) ? (cw / ((h / 100) ** 2)).toFixed(1) : dash, h > 0 ? `height ${h} cm` : 'add your height')
         + cell('Waist / height', h > 0 && isNum(waist) ? (waist / h).toFixed(2) : dash, 'under 0.5 is a common reference')
-        + cell('Next visit', appt !== null && appt >= 0 ? (appt === 0 ? 'Today' : `${appt} d`) : dash, profile.nextAppt && appt >= 0 ? shortDate(profile.nextAppt) : 'set an appointment');
+        + cell('Next visit', appt !== null && appt >= 0 ? (appt === 0 ? 'Today' : `${appt} d`) : dash, profile.nextAppt && appt >= 0 ? `${shortDate(profile.nextAppt)}${profile.nextApptTime ? ' ' + profile.nextApptTime : ''}` : 'set an appointment')
+        + cell('Goal mode', GOAL_MODE_LABEL[goalMode()], profileAge() ? `${profile.sex || 'sex not set'}, age ${profileAge()}` : 'add sex and birth year')
+        + cell('BMR', (() => { const b = getEffectiveBMR(); return b ? `${b.value.toLocaleString()} kcal` : dash; })(), (() => { const b = getEffectiveBMR(); return b ? (b.source === 'scan' ? 'from your latest scan' : 'estimated (Mifflin-St Jeor)') : 'add a scan, or sex and birth year'; })());
       const note = document.getElementById('profileNote');
       if (note) note.textContent = `${profile.name ? profile.name + ' \u00b7 ' : ''}AM weigh-in day: ${weighDayName()}`;
+    }
+    const GOAL_HINTS = { cut: 'Maintenance minus your daily deficit, never below your BMR floor.', recomp: 'A smaller deficit (about 250 kcal) and a protein suggestion of 1.6 to 2.0 g/kg. Ask your doctor before changing your protein target.', maintenance: 'Eat at your daily maintenance (BMR x activity).' };
+    function pickGoalMode(m, quiet) {
+      if (!quiet) playSfx('click');
+      document.getElementById('profGoalMode').value = m;
+      document.querySelectorAll('.gm-btn').forEach(b => {
+        const on = b.dataset.gm === m;
+        b.className = `gm-btn py-2.5 rounded-xl border text-xs font-semibold ${on ? 'border-cyan-500 bg-cyan-950/50 text-cyan-300' : 'border-slate-700 bg-slate-800 text-slate-400'}`;
+      });
+      document.getElementById('goalModeHint').textContent = GOAL_HINTS[m] || '';
     }
     function openProfileEdit() {
       toggleSettingsDrawer(false);
@@ -5061,6 +5449,8 @@ const RISE_NAME = { navel: 'navel waist', below: 'low waist', hip: 'upper hip' }
       set('profStartDate', profile.startDate); set('profTargetDate', profile.targetDate); set('profTargetWaist', profile.targetWaist); set('profTargetBf', profile.targetBf);
       set('profNextAppt', profile.nextAppt); set('profApptNote', profile.apptNote); set('profPlanDate', profile.plannedDoseDate); set('profPlanDose', profile.plannedDose);
       set('profWeighDay', isFinite(Number(profile.weighDay)) ? Number(profile.weighDay) : 2); set('profNotes', profile.doctorNotes);
+      set('profSex', profile.sex); set('profBirthYear', profile.birthYear); set('profNextApptTime', profile.nextApptTime); set('profPrepList', profile.prepList);
+      pickGoalMode(goalMode(), true); { const a = profileAge(); document.getElementById('profAgeNote').textContent = a ? `Age ${a}` : 'Age is worked out for you.'; }
       document.getElementById('profileModal').classList.remove('hidden');
     }
     function closeProfileEdit() { document.getElementById('profileModal').classList.add('hidden'); }
@@ -5075,9 +5465,13 @@ const RISE_NAME = { navel: 'navel waist', below: 'low waist', hip: 'upper hip' }
       if (Object.values(next).some(v => v === null)) return;
       const val = id => document.getElementById(id).value;
       if (val('profTargetDate') && val('profTargetDate') <= localDateStr()) { showToast('The target date must be in the future.', 'warn'); return; }
+      const by = val('profBirthYear'); if (by !== '' && !(parseInt(by, 10) >= 1920 && parseInt(by, 10) <= new Date().getFullYear() - 10)) { showToast('Birth year should be between 1920 and ' + (new Date().getFullYear() - 10) + '.', 'warn'); return; }
       if (!!val('profPlanDate') !== !!val('profPlanDose')) { showToast('Set both the planned dose and the date, or neither.', 'warn'); return; }
+      const prevMode = profile.goalMode;
       profile = { ...profile, ...next, name: val('profName').trim(), startDate: val('profStartDate'), targetDate: val('profTargetDate'), nextAppt: val('profNextAppt'), apptNote: val('profApptNote').trim(),
-        plannedDoseDate: val('profPlanDate'), plannedDose: val('profPlanDose'), weighDay: parseInt(val('profWeighDay'), 10), doctorNotes: val('profNotes').trim() };
+        plannedDoseDate: val('profPlanDate'), plannedDose: val('profPlanDose'), weighDay: parseInt(val('profWeighDay'), 10), doctorNotes: val('profNotes').trim(),
+        sex: val('profSex'), birthYear: by === '' ? '' : parseInt(by, 10), goalMode: val('profGoalMode') || 'cut', nextApptTime: val('profNextApptTime'), prepList: val('profPrepList').trim() };
+      if (profile.goalMode !== (prevMode)) { delete prefs.protHide; LS.set('vmt_prefs', prefs); }
       LS.set('vmt_profile', profile);
       playSfx('chime'); closeProfileEdit(); applyProfileAndPrefs(); renderActiveTab(); showToast('Profile saved');
     }

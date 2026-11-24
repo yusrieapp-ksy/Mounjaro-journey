@@ -3,6 +3,23 @@
 A single-page tracker that installs on an iPhone home screen, runs full-screen, and works offline.
 Everything you enter stays on your device (IndexedDB and localStorage). Nothing is sent to a server.
 
+## What's new in v8.8
+
+- **Profile adds sex, birth year and a goal mode** (Cut, Lean recomp, Maintain) as one source of truth, plus an appointment time and an editable pre-scan checklist. A Visbody PDF upload never changes sex, birth year or height, so a clinic kiosk typo cannot skew the maths.
+- **BMR that always resolves.** Your latest scan BMR comes first. With no scan, the app estimates it with Mifflin-St Jeor from your profile and latest AM weight. The Profile summary shows which one is in use.
+- **Adaptive daily calories.** The target now follows each day's steps and Lifting Day flag (x1.25 on a rest or low-step day up to x1.55 on a lifting day with 8,000+ steps). Today never drops below your usual steps. Cut subtracts your deficit, Lean recomp about 250 kcal, Maintain targets 100%. Your BMR (or your own floor) is always the minimum. Edit all, Activity level, **Auto** or a fixed level. Anything you set yourself still wins.
+- **Traffic-light calorie bar:** amber under your BMR floor, green in the target zone, yellow above target but under maintenance, red over maintenance, with a legend and a one-line explanation of today's maintenance.
+- **Recomp protein suggestion.** In Lean recomp the Food tab offers 1.6 to 2.0 g/kg as a suggestion with a one-tap Use button. Your doctor's target stays until you choose to change it.
+- **Pre-scan prep card** on the Dashboard in the 24 hours before your appointment: tappable checklist with the time to stop eating and drinking, a progress bar and a celebration sound when everything is ticked.
+- **Segmental lean and fat** are read from page 1 of the Visbody PDF (arms, trunk, legs) and shown in a **Left vs right balance** card on the Visbody tab with a Lean/Fat switch. The segmental fields are also in the manual scan form.
+- **Virtual Advisor:** a **Muscle check (SMM)** card compares your last two scans against your AM weight loss (flagging a drop of 0.5 kg or more during rapid loss, and noting smaller dips as possible measurement variation), and a **Left vs right muscle balance** card flags gaps of 10% or more, and says when the gap repeats.
+- **Clinic weight** on the Visbody tab is labelled as an afternoon reading. Pace, trend and goal date use AM fasted weights only.
+- **Mounjaro overlay on the Food summary chart:** injection markers with shading for days 1 to 3 and days 5 to 7, with a toggle.
+- **Daily tab:** Creatine lights up on a Lifting Day and dims on a rest day. A 1 to 3 muscle soreness toggle sits under Rosuvastatin and feeds the safety note and the doctor summary.
+- **Copy yesterday's meals** on the Food tab (with Add or Replace, and Undo).
+- **Backup prompt** after saving a weigh-in when you have not exported in the last 7 days. One tap opens the share sheet.
+- Doctor summary adds goal mode, today's maintenance, muscle and balance notes and the soreness log.
+
 ## What's new in v8.7
 
 - **Goal projection chart is simpler.** It now shows three clear lines: your weigh-ins (cyan), your pace (amber, solid) and the pace your target date needs (purple, dashed), plus a green dotted target line. Each path stops the week it reaches the target and is labelled with its date, and a "Today" marker separates the past from the forecast. The chart zooms in on your own weigh-ins instead of a full year.
@@ -73,7 +90,7 @@ Everything you enter stays on your device (IndexedDB and localStorage). Nothing 
 | --- | --- |
 | `index.html` | The whole app |
 | `manifest.webmanifest` | Name, colours and icons for installing |
-| `sw.js` | Offline support (service worker). Version `v8.7.0` |
+| `sw.js` | Offline support (service worker). Version `v8.8.0` |
 | `apple-touch-icon-v2.png`, `apple-touch-icon-167-v2.png`, `apple-touch-icon-152-v2.png` | The icon iOS uses for Add to Home Screen |
 | `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `favicon-32.png`, `icon.svg` | Manifest, browser tab and source artwork |
 
