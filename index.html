@@ -213,7 +213,7 @@
     html.light .bg-slate-700, html.light .bg-slate-700\/80, html.light .hover\:bg-slate-700:hover { background-color: #e2e8f0; }
     html.light .bg-slate-600 { background-color: #cbd5e1; }
     html.light .bg-slate-950 > .bg-slate-800 { background-color: #ffffff; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.14); }
-    html.light #settingsDrawer, html.light #onboardingModal, html.light #addMedModal, html.light #exerciseModal, html.light #targetModal, html.light #foodEditModal, html.light #sizeDrawer, html.light #comboModal { background-color: rgba(15, 23, 42, 0.45); }
+    html.light #settingsDrawer, html.light #onboardingModal, html.light #addMedModal, html.light #exerciseModal, html.light #targetModal, html.light #foodEditModal, html.light #sizeDrawer, html.light #comboModal, html.light #profileModal { background-color: rgba(15, 23, 42, 0.45); }
     html.light .drawer-panel { background-color: #f8fafc; }
     html.light .border-slate-700, html.light .border-slate-700\/80 { border-color: #cbd5e1; }
     html.light .border-slate-800, html.light .border-slate-800\/80, html.light .divide-slate-800 > * { border-color: #e2e8f0; }
@@ -311,7 +311,7 @@
         <div>
           <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-1.5">
             <span>Visbody & Mounjaro</span>
-            <span class="text-xs font-normal text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded-full border border-cyan-800/60">v8.5</span>
+            <span class="text-xs font-normal text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded-full border border-cyan-800/60">v8.6</span>
           </h1>
           <p id="headerSubtitle" class="text-xs text-slate-400">Personal tracker</p>
         </div>
@@ -346,6 +346,8 @@
             <button type="button" onclick="snoozeBackupBanner()" class="px-4 bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs rounded-xl border border-slate-700">Later</button>
           </div>
         </div>
+
+        <div id="apptChip" class="hidden glass-card p-3 rounded-2xl border border-slate-800 flex items-center gap-2 text-xs text-slate-300"><i class="fa-solid fa-calendar-check text-cyan-400"></i><span id="apptChipText"></span></div>
 
         <button type="button" onclick="switchTab('tab-food')" class="glass-card w-full text-left p-3.5 rounded-2xl border border-slate-800 space-y-2">
           <div class="flex items-center justify-between"><h2 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-bullseye text-cyan-400"></i> Today at a glance <span id="glanceStreak" class="hidden ml-1 text-[10px] font-semibold text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded-full border border-amber-800/60"></span></h2><span class="text-[11px] text-cyan-400">Open Food</span></div>
@@ -426,6 +428,21 @@
           <p id="goalText" class="text-[11px] text-slate-400"></p>
         </div>
 
+        <!-- Goal projection -->
+        <div id="projCard" class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
+          <div class="flex items-center justify-between gap-2">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-flag-checkered text-emerald-400"></i> Goal projection</h2>
+            <span id="projStatus" class="text-[11px] font-semibold px-2 py-0.5 rounded-full border border-slate-700 text-slate-300">&ndash;</span>
+          </div>
+          <div id="projGrid" class="grid grid-cols-3 gap-1.5 text-center"></div>
+          <p id="projAim" class="text-xs text-slate-200"></p>
+          <div class="h-56 w-full relative"><canvas id="chartProjection"></canvas></div>
+          <div id="projPaths" class="space-y-0.5 text-[11px] text-slate-400"></div>
+          <p id="projCheck" class="text-[11px] text-slate-400"></p>
+          <div id="projOther" class="space-y-0.5 text-[11px] text-slate-400"></div>
+          <p class="text-[10px] text-slate-500">Estimates from your own weigh-ins, not predictions. Loss usually slows over time, so the green band shows 0.5 to 1.0% a week (a general reference). Dose changes are not modelled. Not medical advice.</p>
+        </div>
+
         <!-- Body recomposition, loss pace, goal ETA -->
         <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
           <h2 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-person-running text-emerald-400"></i> Recomposition &amp; pace</h2>
@@ -460,7 +477,7 @@
               <h2 class="text-sm font-bold text-white flex items-center gap-2">
                 <i class="fa-solid fa-chart-line text-cyan-400"></i> Weight Trend: AM Fasted vs Clinic Visbody
               </h2>
-              <p class="text-xs text-slate-400">Compares Tuesday morning home scale with clinic afternoon scan</p>
+              <p class="text-xs text-slate-400">Compares <span class="weigh-day">Tuesday</span> morning home scale with clinic afternoon scan</p>
             </div>
             <span id="diurnalBadge" class="text-xs font-medium text-slate-300 bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700">
               Diurnal Offset: —
@@ -475,7 +492,7 @@
         <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
           <div class="flex justify-between items-center">
             <h3 class="text-sm font-bold text-white flex items-center gap-2">
-              <i class="fa-solid fa-list-check text-cyan-400"></i> Tuesday AM Fasted Scale History Log
+              <i class="fa-solid fa-list-check text-cyan-400"></i> <span class="weigh-day">Tuesday</span> AM Fasted Scale History Log
             </h3>
             <button onclick="switchTab('tab-mounjaro')" class="text-xs text-cyan-400 hover:text-cyan-300 font-medium">
               + Log AM Scale
@@ -709,7 +726,7 @@
         <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3 bg-gradient-to-r from-slate-900 to-cyan-950/40">
           <div class="flex justify-between items-center">
             <h2 class="text-sm font-bold text-white flex items-center gap-2">
-              <i class="fa-solid fa-weight-scale text-cyan-400"></i> Fast Log: Tuesday AM Fasted Scale
+              <i class="fa-solid fa-weight-scale text-cyan-400"></i> Fast Log: <span class="weigh-day">Tuesday</span> AM Fasted Scale
             </h2>
             <span class="text-[11px] text-cyan-400">Syncs with Dashboard List</span>
           </div>
@@ -1306,6 +1323,16 @@
           </button>
         </div>
 
+        <!-- Profile & goals -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold text-white flex items-center gap-2"><i class="fa-solid fa-user text-cyan-400"></i> Profile &amp; goals</h3>
+            <button type="button" onclick="openProfileEdit()" class="text-xs text-cyan-400 underline">Edit</button>
+          </div>
+          <div id="profileSummary" class="grid grid-cols-2 gap-2 text-center"></div>
+          <p id="profileNote" class="text-[11px] text-slate-400"></p>
+        </div>
+
         <!-- Theme & Audio Controls -->
         <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
           <h3 class="text-xs font-bold text-white">Preferences</h3>
@@ -1408,6 +1435,11 @@
               <input type="number" inputmode="decimal" step="0.1" id="onboardTargetWeight" value="" placeholder="e.g. 75.0" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white w-full">
             </div>
           </div>
+          <div>
+            <label class="text-[11px] text-slate-400 block mb-1">Target date (optional)</label>
+            <input type="date" id="onboardTargetDate" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white w-full">
+          </div>
+          <p class="text-[11px] text-slate-500">Height gives your BMI and waist-to-height ratio. Start and target weight drive Progress, the goal projection and 5 kg milestones. A target date shows the weekly pace you need. You can add more goals and clinic details later in Settings, Profile &amp; goals.</p>
         </div>
 
         <button onclick="completeOnboarding()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-sm py-3.5 rounded-2xl shadow-xl shadow-cyan-600/30 touch-target">
@@ -1524,6 +1556,30 @@
     </form>
   </div>
 
+  <div id="profileModal" class="sheet-modal fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-end justify-center">
+    <form onsubmit="saveProfileEdit(event)" class="glass-card p-5 border border-slate-800 space-y-3">
+      <div class="flex items-center justify-between">
+        <h2 class="text-base font-bold text-white">Profile &amp; goals</h2>
+        <button type="button" onclick="closeProfileEdit()" aria-label="Close" class="p-2 text-slate-400 hover:text-white rounded-xl bg-slate-800"><i class="fa-solid fa-xmark text-sm"></i></button>
+      </div>
+      <p class="text-[11px] text-slate-400">Stays on this phone. Every field is optional, and each one says where it is used.</p>
+      <div class="text-[11px] font-semibold text-slate-300 pt-1">You</div>
+      <div class="grid grid-cols-2 gap-2"><div><label for="profName" class="text-[11px] text-slate-400 block mb-1">Name</label><input type="text" maxlength="30" id="profName" placeholder="Optional" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><p class="text-[10px] text-slate-500 mt-1">Shown in the header.</p></div><div><label for="profHeight" class="text-[11px] text-slate-400 block mb-1">Height (cm)</label><input type="number" step="0.1" inputmode="decimal" id="profHeight" placeholder="e.g. 170" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><p class="text-[10px] text-slate-500 mt-1">BMI and waist-to-height ratio.</p></div></div>
+      <div class="text-[11px] font-semibold text-slate-300 pt-1">Weight goal</div>
+      <div class="grid grid-cols-2 gap-2"><div><label for="profStartWeight" class="text-[11px] text-slate-400 block mb-1">Start weight (kg)</label><input type="number" step="0.1" inputmode="decimal" id="profStartWeight" placeholder="e.g. 100" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><p class="text-[10px] text-slate-500 mt-1">Progress and 5 kg milestones.</p></div><div><label for="profTargetWeight" class="text-[11px] text-slate-400 block mb-1">Target weight (kg)</label><input type="number" step="0.1" inputmode="decimal" id="profTargetWeight" placeholder="e.g. 85" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><p class="text-[10px] text-slate-500 mt-1">Goal projection.</p></div><div><label for="profStartDate" class="text-[11px] text-slate-400 block mb-1">Program start date</label><input type="date"  id="profStartDate" placeholder="" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><p class="text-[10px] text-slate-500 mt-1">Counts "Week N".</p></div><div><label for="profTargetDate" class="text-[11px] text-slate-400 block mb-1">Target date</label><input type="date"  id="profTargetDate" placeholder="" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><p class="text-[10px] text-slate-500 mt-1">Shows the weekly pace you need.</p></div></div>
+      <div class="text-[11px] font-semibold text-slate-300 pt-1">Body goals</div>
+      <div class="grid grid-cols-2 gap-2"><div><label for="profTargetWaist" class="text-[11px] text-slate-400 block mb-1">Target waist (cm, navel)</label><input type="number" step="0.1" inputmode="decimal" id="profTargetWaist" placeholder="e.g. 100" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><p class="text-[10px] text-slate-500 mt-1">Projected from your scans.</p></div><div><label for="profTargetBf" class="text-[11px] text-slate-400 block mb-1">Target body fat (%)</label><input type="number" step="0.1" inputmode="decimal" id="profTargetBf" placeholder="e.g. 25" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><p class="text-[10px] text-slate-500 mt-1">Projected from your scans.</p></div></div>
+      <div class="text-[11px] font-semibold text-slate-300 pt-1">Clinic</div>
+      <div class="grid grid-cols-2 gap-2"><div><label for="profNextAppt" class="text-[11px] text-slate-400 block mb-1">Next appointment</label><input type="date"  id="profNextAppt" placeholder="" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><p class="text-[10px] text-slate-500 mt-1">Countdown on the Dashboard.</p></div><div><label for="profApptNote" class="text-[11px] text-slate-400 block mb-1">Appointment note</label><input type="text" maxlength="60" id="profApptNote" placeholder="e.g. Dose review" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"></div><div><label for="profPlanDate" class="text-[11px] text-slate-400 block mb-1">Planned dose change on</label><input type="date"  id="profPlanDate" placeholder="" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><p class="text-[10px] text-slate-500 mt-1">Used in the level curve.</p></div><div><label for="profPlanDose" class="text-[11px] text-slate-400 block mb-1">Planned new dose</label><select id="profPlanDose" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><option value="">None</option><option value="2.5">2.5 mg</option><option value="5">5 mg</option><option value="7.5">7.5 mg</option><option value="10">10 mg</option><option value="12.5">12.5 mg</option><option value="15">15 mg</option></select></div></div>
+      <div class="text-[11px] font-semibold text-slate-300 pt-1">Habits</div>
+      <div><label for="profWeighDay" class="text-[11px] text-slate-400 block mb-1">AM weigh-in day</label><select id="profWeighDay" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option></select><p class="text-[10px] text-slate-500 mt-1">Labels, reminders in the weekly scorecard and the next weigh-in date.</p></div>
+      <div class="text-[11px] font-semibold text-slate-300 pt-1">Notes for your doctor</div>
+      <textarea id="profNotes" rows="3" maxlength="400" placeholder="Questions, symptoms, things to raise" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"></textarea>
+      <p class="text-[10px] text-slate-500">Included in the doctor summary.</p>
+      <button type="submit" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs py-3 rounded-xl shadow-lg shadow-cyan-600/30">Save profile</button>
+    </form>
+  </div>
+
   <div id="comboModal" class="sheet-modal fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-end justify-center">
     <form onsubmit="saveCombo(event)" class="glass-card p-5 border border-slate-800 space-y-3">
       <div class="flex items-center justify-between">
@@ -1543,7 +1599,6 @@
     <div id="doctorBody" class="dr"></div>
   </div>
 
-  <button id="foodFab" type="button" onclick="scrollToFoodForm()" aria-label="Add a food entry" style="display:none;bottom:calc(env(safe-area-inset-bottom) + 5.75rem)" class="fixed right-4 z-40 w-12 h-12 rounded-full bg-cyan-600 text-white shadow-xl shadow-cyan-600/30 items-center justify-center"><i class="fa-solid fa-plus"></i></button>
 
   <!-- TOASTS (replace blocking alert popups) -->
   <div id="toastHost" aria-live="polite" class="fixed left-0 right-0 z-[60] pointer-events-none flex justify-center px-4" style="bottom: calc(env(safe-area-inset-bottom) + 5.25rem);"></div>
@@ -1734,7 +1789,7 @@
     };
 
     /* ---- Profile & preferences (previously lost on every reload) ---- */
-    const DEFAULT_PROFILE = { name: '', height: '', startWeight: '', targetWeight: '' };
+    const DEFAULT_PROFILE = { name: '', height: '', startWeight: '', targetWeight: '', startDate: '', targetDate: '', targetWaist: '', targetBf: '', nextAppt: '', apptNote: '', plannedDoseDate: '', plannedDose: '', doctorNotes: '', weighDay: 2 };
     let profile = { ...DEFAULT_PROFILE };
     let prefs = { sfx: true, accent: 'accent-cyan', fit: 'regular', sizeCal: null, theme: 'dark', proteinTarget: 100, calorieFloor: null, sugarMax: 20, fatMax: null, calorieMax: null, activity: 1.55, deficit: 500, waterTarget: 2500, stepTarget: 8000, lastBackup: null, backupSnooze: null, meals: [], targetsAt: {}, sfxAlerts: true };
 
@@ -1755,6 +1810,8 @@
       applyTheme();
       renderGoalLabels();
       renderSizePredictor();
+      document.querySelectorAll('.weigh-day').forEach(e => { e.textContent = weighDayName(); });
+      renderProfileSummary();
     }
 
     /* ---- Light / dark appearance (v8.1) ---- */
@@ -2001,7 +2058,6 @@
       initSwipes();
       initSheets();
       renderMealChips();
-      updateFab();
     };
 
     async function loadAllData() {
@@ -2077,7 +2133,6 @@
         requestAnimationFrame(() => { main.scrollTop = 0; });
         setTimeout(() => { if (appState.activeTab === tabId) main.scrollTop = 0; }, 120);
       }
-      updateFab();
     }
 
     /* ==========================================================================
@@ -2104,6 +2159,8 @@
       renderBackupBanner();
       renderTodayGlance();
       renderBodyAnalytics();
+      renderGoalProjection();
+      renderApptChip();
       const vt = getVisTarget('vfl'), st = getVisTarget('smm');
       document.getElementById('kpiVflTarget').innerText = isNum(vt.target) ? `Target: Level ${vt.target}${vt.note ? ` (${vt.note})` : ''}` : (vt.note || 'Set a target on the Visbody tab');
       document.getElementById('kpiSmmGoal').innerText = isNum(st.target) ? `Target: at least ${st.target} kg${st.note ? ` (${st.note})` : ''}` : (st.note ? `Goal: ${st.note}` : 'Set a target on the Visbody tab');
@@ -2240,6 +2297,7 @@
     }
 
     const CHART_EMPTY = {
+      chartProjection: 'Set a target weight (Settings, Profile & goals) and log a weight to see the projection.',
       chartWeightTrend: 'Log at least 2 weights (AM scale or Visbody) to see the trend.',
       chartFatTrend: 'Add at least 2 Visbody scans to see fat mass.', chartSmmTrend: 'Add at least 2 Visbody scans to see muscle mass.',
       chartVisceralTrend: 'Add at least 2 Visbody scans to see visceral fat.', chartWaistTrend: 'Add at least 2 scans with waist measurements.',
@@ -3113,7 +3171,9 @@
       const H = 3600000, now = Date.now(), start = now - 28 * 24 * H, end = now + 7 * 24 * H;
       const last = shots.reduce((a, b) => (new Date(b.dateTime) > new Date(a.dateTime) ? b : a));
       const dueT = new Date(last.dateTime).getTime() + 7 * 24 * H, overdue = dueT < now, nextT = overdue ? now : dueT;
-      const withNext = [...shots, { dateTime: new Date(nextT).toISOString(), dose: parseFloat(last.dose) }];
+      const plannedOk = !!(profile.plannedDose && profile.plannedDoseDate && profile.plannedDoseDate <= localDateStr(new Date(nextT)));
+      const nextDose = plannedOk ? parseFloat(profile.plannedDose) : parseFloat(last.dose);
+      const withNext = [...shots, { dateTime: new Date(nextT).toISOString(), dose: nextDose }];
       const ts = []; for (let t = start; t <= end; t += 6 * H) ts.push(t);
       const nowIdx = ts.findIndex(t => t >= now), nextIdx = ts.findIndex(t => t >= nextT);
       const r2 = v => Math.round(v * 100) / 100;
@@ -3121,7 +3181,7 @@
       const plan = ts.map((t, i) => (i >= nowIdx && nextT <= end ? r2(mjLevelAt(withNext, t)) : null));
       const labels = ts.map(t => { const d = new Date(t); return `${d.getDate()} ${d.toLocaleString([], { month: 'short' })} ${pad2(d.getHours())}:00`; });
       const nd = new Date(dueT), ndTxt = `${nd.getDate()} ${nd.toLocaleString([], { month: 'short' })}`;
-      if (lab) lab.innerText = `Now ~${mjLevelAt(shots, now).toFixed(1)} mg \u00b7 ${overdue ? 'next dose was due ' : 'next dose '}${ndTxt}`;
+      if (lab) lab.innerText = `Now ~${mjLevelAt(shots, now).toFixed(1)} mg \u00b7 ${overdue ? 'next dose was due ' : 'next dose '}${ndTxt}${plannedOk ? ` (${nextDose} mg planned)` : ''}`;
       createOrUpdateChart('chartMjActiveLevel', {
         type: 'line',
         data: { labels, datasets: [
@@ -3642,7 +3702,6 @@
           + chip(t.sugar, 'S', isNum(t.sugar) && t.sugar > L.sugar ? 'text-rose-400' : 'text-white');
       }
       renderMealSplit();
-      updateFab();
     }
 
     const tgt = id => document.getElementById(id);
@@ -3753,23 +3812,6 @@
     }
 
     /* ---- floating add button, swipe gestures (v8.4) ---- */
-    let fabObs = null, formVisible = false;
-    function updateFab() {
-      const f = document.getElementById('foodFab'); if (!f) return;
-      if (!fabObs && 'IntersectionObserver' in window) {
-        const target = document.getElementById('foodItemLabel');
-        if (target) { fabObs = new IntersectionObserver(es => { formVisible = es[0].isIntersecting; updateFab(); }, { root: document.getElementById('mainScrollContainer'), threshold: 0.1 }); fabObs.observe(target); }
-      }
-      const show = appState.activeTab === 'tab-food' && !document.getElementById('foodView-intake').classList.contains('hidden') && !formVisible;
-      f.style.display = show ? 'flex' : 'none';
-    }
-    function scrollToFoodForm() {
-      playSfx('click');
-      const i = document.getElementById('foodItemLabel');
-      if (document.getElementById('foodAddPane').classList.contains('hidden')) switchFoodMode('add', true);
-      i.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'center' });
-      setTimeout(() => i.focus({ preventScroll: true }), 350);
-    }
     function initSwipes() {
       const main = document.getElementById('mainScrollContainer'); let g = null;
       main.addEventListener('touchstart', e => {
@@ -3819,6 +3861,21 @@
         ['Calorie minimum', f ? `${f.value.toLocaleString()} kcal` : '\u2013', targetSrc(f)], ['Calorie maximum', c ? `${c.value.toLocaleString()} kcal` : '\u2013', targetSrc(c)],
         ['Fat max', fm ? `${fmtFood(fm.value)} g` : '\u2013', targetSrc(fm)], ['Added sugar max', `${fmtFood(sugarMax())} g`, (prefs.targetsAt || {}).sugarMax ? 'set by you' : 'default'],
         ['Protein target', `${fmtFood(proteinTarget())} g`, (prefs.targetsAt || {}).proteinTarget ? 'set by you' : 'default']] });
+      const gp = goalProjection(), wTr = scanTrendGoal('midWaist', Number(profile.targetWaist)), bTr = scanTrendGoal('pbf', Number(profile.targetBf));
+      const gRows = [];
+      if (gp) {
+        gRows.push(['Weight now / target', `${fv(gp.cw)} / ${fv(gp.tw)} kg`]);
+        if (gp.sw) gRows.push(['Start weight', `${fv(gp.sw)} kg (${fv(gp.sw - gp.cw)} kg change)`]);
+        if (gp.pace) gRows.push(['Recent pace', `${gp.pace.kg.toFixed(2)} kg/wk (${gp.pace.pct.toFixed(2)} %/wk), ${gp.pace.n} weigh-ins`]);
+        if (gp.trendDate) gRows.push(['Projected at this pace', shortDate(gp.trendDate, true)]);
+        if (gp.neededKg) gRows.push([`Pace needed for ${shortDate(profile.targetDate, true)}`, `${gp.neededKg.toFixed(2)} kg/wk`]);
+      }
+      if (wTr && Number(profile.targetWaist) > 0) gRows.push(['Waist (navel)', `${fv(wTr.now)} cm, target ${profile.targetWaist} cm`]);
+      if (bTr && Number(profile.targetBf) > 0) gRows.push(['Body fat', `${fv(bTr.now)} %, target ${profile.targetBf} %`]);
+      if (profile.nextAppt && profile.nextAppt >= today) gRows.push(['Next appointment', `${shortDate(profile.nextAppt, true)}${profile.apptNote ? `, ${profile.apptNote}` : ''}`]);
+      if (profile.plannedDose && profile.plannedDoseDate) gRows.push(['Planned dose change', `${profile.plannedDose} mg from ${shortDate(profile.plannedDoseDate, true)}`]);
+      if ((profile.doctorNotes || '').trim()) gRows.push(['Notes', profile.doctorNotes.trim()]);
+      if (gRows.length) secs.push({ t: 'Goals and notes', head: ['Item', 'Value'], rows: gRows });
       const who = [profile.name, profile.height ? `${profile.height} cm` : '', profile.startWeight ? `start ${profile.startWeight} kg` : '', profile.targetWeight ? `target ${profile.targetWeight} kg` : ''].filter(Boolean).join(' \u00b7 ');
       const note = 'Self-reported data from the VM Tracker app. Informational only, not medical advice.';
       doctorText = [`Health summary, ${today}`, who, ''].concat(...secs.map(x => [x.t, ...x.rows.map(r => '  ' + r.filter(v => v !== '').join(' | ')), ''])).concat(note).join('\n');
@@ -4074,7 +4131,6 @@
 
     function switchFoodSubTab(type, quiet) {
       if (!quiet) playSfx('click');
-      setTimeout(updateFab, 0);
       if (type === 'intake') {
         document.getElementById('foodView-intake').classList.remove('hidden');
         document.getElementById('foodView-summary').classList.add('hidden');
@@ -4521,7 +4577,7 @@
       }
       {
         const am = ams.find(a => week.includes(a.date));
-        const tuesday = addDaysStr(monday, 1);
+        const weighDate = addDaysStr(monday, (Number(profile.weighDay ?? 2) + 6) % 7);
         if (am) {
           const before = ams.filter(a => a.date < am.date);
           const prevAm = before.length ? before[before.length - 1] : null;
@@ -4532,8 +4588,8 @@
             detail: `${am.amWeight.toFixed(1)} kg on ${shortDate(am.date)}${delta !== null ? ` (${delta > 0 ? '+' : ''}${delta.toFixed(1)} kg vs previous entry)` : ''}.`,
             tips: []
           });
-        } else if (today <= tuesday && isCurrent) {
-          items.push({ id: 'weighin', label: 'AM weigh-in', icon: 'fa-weight-scale', color: 'text-cyan-400', weight: 10, ratio: null, value: 'Due Tue', detail: 'Weigh in fasted on Tuesday morning so the trend stays comparable.', tips: [] });
+        } else if (today <= weighDate && isCurrent) {
+          items.push({ id: 'weighin', label: 'AM weigh-in', icon: 'fa-weight-scale', color: 'text-cyan-400', weight: 10, ratio: null, value: 'Due ' + weighDayName().slice(0, 3), detail: 'Weigh in fasted on ' + weighDayName() + ' morning so the trend stays comparable.', tips: [] });
         } else {
           items.push({
             id: 'weighin', label: 'AM weigh-in', icon: 'fa-weight-scale', color: 'text-cyan-400', weight: 10,
@@ -4911,8 +4967,169 @@ const RISE_NAME = { navel: 'navel waist', below: 'low waist', hip: 'upper hip' }
     function toggleSettingsDrawer(show) {
       playSfx('click');
       const drawer = document.getElementById('settingsDrawer');
-      if (show) drawer.classList.remove('hidden');
+      if (show) { drawer.classList.remove('hidden'); renderProfileSummary(); }
       else drawer.classList.add('hidden');
+    }
+
+    /* ---- profile, goals, projection (v8.6) ---- */
+    const r1p = v => Math.round(v * 10) / 10;
+    const weighDayName = () => ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][isFinite(Number(profile.weighDay)) ? Number(profile.weighDay) : 2];
+    const daysUntil = d => Math.round((parseLocalDate(d) - parseLocalDate(localDateStr())) / 86400000);
+    function nextWeighDate(lastLog) {
+      const wd = isFinite(Number(profile.weighDay)) ? Number(profile.weighDay) : 2, t = localDateStr();
+      for (let i = 0; i < 8; i++) { const c = addDaysStr(t, i); if (parseLocalDate(c).getDay() === wd && c > (lastLog || '')) return c; }
+      return addDaysStr(t, 7);
+    }
+    function linSlope(pts) {
+      const n = pts.length, mx = pts.reduce((a, p) => a + p.x, 0) / n, my = pts.reduce((a, p) => a + p.y, 0) / n;
+      const den = pts.reduce((a, p) => a + (p.x - mx) ** 2, 0);
+      return den ? pts.reduce((a, p) => a + (p.x - mx) * (p.y - my), 0) / den : 0;
+    }
+    // Trend of one Visbody measure (per month) and, if a target is set and it is moving toward it, the date it is reached
+    function scanTrendGoal(key, target) {
+      const sc = appState.visbodyScans.filter(x => isNum(x[key])).sort((a, b) => a.date.localeCompare(b.date)).slice(-6);
+      if (!sc.length) return null;
+      const out = { now: sc[sc.length - 1][key] };
+      const t0 = parseLocalDate(sc[0].date).getTime(), pts = sc.map(x => ({ x: (parseLocalDate(x.date).getTime() - t0) / 86400000, y: x[key] }));
+      if (sc.length >= 2 && pts[pts.length - 1].x >= 14) {
+        const slope = linSlope(pts);
+        out.perMonth = slope * 30.4;
+        if (target > 0 && out.now > target && slope < 0) out.eta = addDaysStr(localDateStr(), Math.round((out.now - target) / -slope));
+      }
+      return out;
+    }
+    function goalProjection() {
+      const today = localDateStr();
+      const am = [...appState.amScaleLogs].filter(l => isNum(l.amWeight)).sort((a, b) => a.date.localeCompare(b.date));
+      const sc = [...appState.visbodyScans].filter(x => isNum(x.weight)).sort((a, b) => a.date.localeCompare(b.date));
+      const cw = am.length ? am[am.length - 1].amWeight : (sc.length ? sc[sc.length - 1].weight : null), tw = Number(profile.targetWeight);
+      if (cw === null || !(tw > 0)) return null;
+      const pace = weightPace(appState.amScaleLogs, today), toGo = Math.max(0, cw - tw), sw = Number(profile.startWeight);
+      const out = { cw, tw, toGo, pace, sw: sw > 0 ? sw : null, reached: cw <= tw, lastLog: am.length ? am[am.length - 1].date : null };
+      const wk = pct => (toGo > 0 ? Math.log(tw / cw) / Math.log(1 - pct / 100) : 0), at = w => addDaysStr(today, Math.round(w * 7));
+      out.slowWeeks = wk(0.5); out.fastWeeks = wk(1.0); out.slowDate = at(out.slowWeeks); out.fastDate = at(out.fastWeeks);
+      out.trendWeeks = pace && pace.kg > 0.05 && toGo > 0 ? toGo / pace.kg : null; out.trendDate = out.trendWeeks ? at(out.trendWeeks) : null;
+      const td = profile.targetDate;
+      if (td && td > today && toGo > 0) { out.weeksLeft = (parseLocalDate(td) - parseLocalDate(today)) / (7 * 86400000); out.neededKg = toGo / out.weeksLeft; out.neededPct = out.neededKg / cw * 100; }
+      if (out.reached) out.status = ['Reached', 'emerald'];
+      else if (!pace) out.status = ['Needs data', 'slate'];
+      else if (out.neededKg) { const k = pace.kg / out.neededKg; out.status = k >= 1.1 ? ['Ahead', 'emerald'] : k >= 0.9 ? ['On track', 'emerald'] : k >= 0.6 ? ['Slightly behind', 'amber'] : ['Behind', 'rose']; }
+      else out.status = pace.pct <= 0 ? ['Not losing', 'amber'] : pace.pct < 0.5 ? ['Slower than usual', 'amber'] : pace.pct <= 1.0 ? ['Steady pace', 'emerald'] : ['Fast', 'rose'];
+      return out;
+    }
+    function renderApptChip() {
+      const el = document.getElementById('apptChip'); if (!el) return;
+      const d = profile.nextAppt ? daysUntil(profile.nextAppt) : null;
+      el.classList.toggle('hidden', !(d !== null && d >= 0 && d <= 60));
+      if (d !== null && d >= 0 && d <= 60) document.getElementById('apptChipText').textContent = `Next appointment ${d === 0 ? 'today' : d === 1 ? 'tomorrow' : `in ${d} days`} (${shortDate(profile.nextAppt)})${profile.apptNote ? ` \u00b7 ${profile.apptNote}` : ''}`;
+    }
+    function renderProfileSummary() {
+      const el = document.getElementById('profileSummary'); if (!el) return;
+      const am = [...appState.amScaleLogs].filter(l => isNum(l.amWeight)).sort((a, b) => a.date.localeCompare(b.date));
+      const sc = [...appState.visbodyScans].sort((a, b) => a.date.localeCompare(b.date));
+      const cw = am.length ? am[am.length - 1].amWeight : (sc.filter(x => isNum(x.weight)).slice(-1)[0] || {}).weight;
+      const first = profile.startDate || (am[0] && am[0].date) || (sc[0] && sc[0].date) || null;
+      const wk = first ? Math.max(1, Math.floor(-daysUntil(first) / 7) + 1) : null;
+      const h = Number(profile.height), sw = Number(profile.startWeight), tw = Number(profile.targetWeight);
+      const waist = (sc.filter(x => isNum(x.midWaist)).slice(-1)[0] || {}).midWaist;
+      const cell = (l, v, sub) => `<div class="p-2 bg-slate-800/80 rounded-xl border border-slate-700"><div class="text-[10px] text-slate-400">${l}</div><div class="text-sm font-bold text-white">${v}</div><div class="text-[10px] text-slate-500">${sub || ''}</div></div>`;
+      const dash = '\u2013', appt = profile.nextAppt ? daysUntil(profile.nextAppt) : null;
+      el.innerHTML = cell('Journey', wk ? `Week ${wk}` : dash, first ? `since ${shortDate(first, true)}` : 'add a start date')
+        + cell('Weight now', isNum(cw) ? `${r1p(cw)} kg` : dash, `start ${sw > 0 ? r1p(sw) : dash} \u00b7 target ${tw > 0 ? r1p(tw) : dash}`)
+        + cell('Lost so far', sw > 0 && isNum(cw) ? `${r1p(sw - cw)} kg` : dash, sw > 0 && isNum(cw) && sw > cw ? `${r1p((sw - cw) / sw * 100)}% of start` : '')
+        + cell('BMI', h > 0 && isNum(cw) ? (cw / ((h / 100) ** 2)).toFixed(1) : dash, h > 0 ? `height ${h} cm` : 'add your height')
+        + cell('Waist / height', h > 0 && isNum(waist) ? (waist / h).toFixed(2) : dash, 'under 0.5 is a common reference')
+        + cell('Next visit', appt !== null && appt >= 0 ? (appt === 0 ? 'Today' : `${appt} d`) : dash, profile.nextAppt && appt >= 0 ? shortDate(profile.nextAppt) : 'set an appointment');
+      const note = document.getElementById('profileNote');
+      if (note) note.textContent = `${profile.name ? profile.name + ' \u00b7 ' : ''}AM weigh-in day: ${weighDayName()}`;
+    }
+    function openProfileEdit() {
+      toggleSettingsDrawer(false);
+      const set = (id, v) => { document.getElementById(id).value = v === undefined || v === null ? '' : v; };
+      set('profName', profile.name); set('profHeight', profile.height); set('profStartWeight', profile.startWeight); set('profTargetWeight', profile.targetWeight);
+      set('profStartDate', profile.startDate); set('profTargetDate', profile.targetDate); set('profTargetWaist', profile.targetWaist); set('profTargetBf', profile.targetBf);
+      set('profNextAppt', profile.nextAppt); set('profApptNote', profile.apptNote); set('profPlanDate', profile.plannedDoseDate); set('profPlanDose', profile.plannedDose);
+      set('profWeighDay', isFinite(Number(profile.weighDay)) ? Number(profile.weighDay) : 2); set('profNotes', profile.doctorNotes);
+      document.getElementById('profileModal').classList.remove('hidden');
+    }
+    function closeProfileEdit() { document.getElementById('profileModal').classList.add('hidden'); }
+    function saveProfileEdit(ev) {
+      ev.preventDefault();
+      const bad = msg => { showToast(msg, 'warn'); return null; };
+      const num = (id, lo, hi, label) => { const raw = document.getElementById(id).value; if (raw === '') return ''; const v = parseFloat(raw); return isFinite(v) && v >= lo && v <= hi ? v : bad(`${label} should be between ${lo} and ${hi}.`); };
+      const next = {
+        height: num('profHeight', 100, 250, 'Height'), startWeight: num('profStartWeight', 20, 400, 'Start weight'), targetWeight: num('profTargetWeight', 20, 400, 'Target weight'),
+        targetWaist: num('profTargetWaist', 40, 200, 'Target waist'), targetBf: num('profTargetBf', 3, 70, 'Target body fat')
+      };
+      if (Object.values(next).some(v => v === null)) return;
+      const val = id => document.getElementById(id).value;
+      if (val('profTargetDate') && val('profTargetDate') <= localDateStr()) { showToast('The target date must be in the future.', 'warn'); return; }
+      if (!!val('profPlanDate') !== !!val('profPlanDose')) { showToast('Set both the planned dose and the date, or neither.', 'warn'); return; }
+      profile = { ...profile, ...next, name: val('profName').trim(), startDate: val('profStartDate'), targetDate: val('profTargetDate'), nextAppt: val('profNextAppt'), apptNote: val('profApptNote').trim(),
+        plannedDoseDate: val('profPlanDate'), plannedDose: val('profPlanDose'), weighDay: parseInt(val('profWeighDay'), 10), doctorNotes: val('profNotes').trim() };
+      LS.set('vmt_profile', profile);
+      playSfx('chime'); closeProfileEdit(); applyProfileAndPrefs(); renderActiveTab(); showToast('Profile saved');
+    }
+    async function renderGoalProjection() {
+      const q = id => document.getElementById(id); if (!q('projCard')) return;
+      const gp = goalProjection(), today = localDateStr();
+      const chip = (txt, c) => { q('projStatus').textContent = txt; q('projStatus').className = `text-[11px] font-semibold px-2 py-0.5 rounded-full border ${{ emerald: 'border-emerald-800/60 text-emerald-400 bg-emerald-950/60', amber: 'border-amber-800/60 text-amber-400 bg-amber-950/60', rose: 'border-rose-800/60 text-rose-400 bg-rose-950/60', slate: 'border-slate-700 text-slate-300' }[c]}`; };
+      const other = [], wT = scanTrendGoal('midWaist', Number(profile.targetWaist)), bT = scanTrendGoal('pbf', Number(profile.targetBf));
+      if (wT && Number(profile.targetWaist) > 0) other.push(`Waist (navel): ${r1p(wT.now)} cm \u2192 ${profile.targetWaist} cm${isNum(wT.perMonth) ? ` \u00b7 ${wT.perMonth > 0 ? '+' : ''}${r1p(wT.perMonth)} cm/month` : ''}${wT.eta ? ` \u00b7 around ${shortDate(wT.eta, true)}` : ''}`);
+      if (bT && Number(profile.targetBf) > 0) other.push(`Body fat: ${r1p(bT.now)}% \u2192 ${profile.targetBf}%${isNum(bT.perMonth) ? ` \u00b7 ${bT.perMonth > 0 ? '+' : ''}${r1p(bT.perMonth)} points/month` : ''}${bT.eta ? ` \u00b7 around ${shortDate(bT.eta, true)}` : ''}`);
+      q('projOther').innerHTML = other.map(t => `<div>${esc(t)}</div>`).join('');
+      if (!gp) {
+        chip('Set a goal', 'slate'); q('projGrid').innerHTML = ''; q('projPaths').innerHTML = ''; q('projCheck').textContent = '';
+        q('projAim').textContent = 'Add a target weight (Settings, Profile & goals) and at least one weight to see where you are heading.';
+        createOrUpdateChart('chartProjection', { type: 'line', data: { labels: [], datasets: [{ label: 'Actual', data: [] }] }, options: {} });
+        return;
+      }
+      chip(gp.status[0], gp.status[1]);
+      const cell = (l, v, sub) => `<div class="p-2 bg-slate-800/80 rounded-xl border border-slate-700"><div class="text-[10px] text-slate-400">${l}</div><div class="text-sm font-bold text-white">${v}</div><div class="text-[10px] text-slate-500">${sub || ''}</div></div>`;
+      q('projGrid').innerHTML = cell('To go', gp.reached ? 'Done' : `${r1p(gp.toGo)} kg`, `${r1p(gp.cw)} \u2192 ${r1p(gp.tw)} kg`)
+        + cell('Your pace', gp.pace ? `${gp.pace.kg.toFixed(2)} kg/wk` : '\u2013', gp.pace ? `${gp.pace.pct.toFixed(2)}%/wk${gp.pace.n < 3 ? ' \u00b7 low confidence' : ''}` : 'needs 2+ weights over 2 weeks')
+        + cell('Reach target', gp.trendDate ? shortDate(gp.trendDate) : '\u2013', gp.trendWeeks ? `about ${Math.round(gp.trendWeeks)} weeks` : 'at your pace');
+      // This week's aim
+      const nw = nextWeighDate(gp.lastLog);
+      if (gp.reached) q('projAim').textContent = 'You are at or below your target weight. Focus on holding it.';
+      else {
+        const aim = gp.neededKg ? Math.min(gp.neededKg, gp.cw * 0.01) : gp.cw * 0.0075, from = gp.lastLog || today;
+        const span = Math.max(1, (parseLocalDate(nw) - parseLocalDate(from)) / 86400000), exp = gp.cw - aim * span / 7;
+        q('projAim').textContent = `Aim for about ${aim.toFixed(2)} kg of loss a week: roughly ${exp.toFixed(1)} kg at your ${weighDayName()} weigh-in on ${shortDate(nw)}.${gp.neededKg && gp.neededPct > 1 ? ' Your target date needs more than the usual 1.0% a week, so consider a later date.' : ''}`;
+      }
+      const lines = [];
+      if (gp.trendDate) lines.push(`At your pace: ${shortDate(gp.trendDate, true)}`);
+      lines.push(`Faster path (1.0%/wk): ${shortDate(gp.fastDate, true)} \u00b7 Slower path (0.5%/wk): ${shortDate(gp.slowDate, true)}`);
+      if (gp.neededKg) lines.push(`For ${shortDate(profile.targetDate, true)}: ${gp.neededKg.toFixed(2)} kg/wk (${gp.neededPct.toFixed(2)}%/wk)`);
+      q('projPaths').innerHTML = lines.map(t => `<div>${esc(t)}</div>`).join('');
+      // Chart: weigh-ins so far, then the paths forward
+      const pastW = 8, hz = Math.min(52, Math.max(6, Math.ceil(Math.max(gp.slowWeeks || 0, gp.trendWeeks || 0, gp.weeksLeft || 0)) + 1)), n = pastW + hz + 1;
+      const labels = Array.from({ length: n }, (_, i) => shortDate(addDaysStr(today, (i - pastW) * 7)));
+      const actual = Array(n).fill(null);
+      appState.amScaleLogs.forEach(l => { if (!isNum(l.amWeight)) return; const i = pastW + Math.round((parseLocalDate(l.date) - parseLocalDate(today)) / (7 * 86400000)); if (i >= 0 && i <= pastW) actual[i] = l.amWeight; });
+      const path = fn => Array.from({ length: n }, (_, i) => (i < pastW ? null : Math.max(gp.tw, r1p(fn(i - pastW) * 10) / 10)));
+      const none = Array(n).fill(null);
+      createOrUpdateChart('chartProjection', {
+        type: 'line',
+        data: { labels, datasets: [
+          { label: 'Actual (AM)', data: actual, borderColor: '#06b6d4', backgroundColor: '#06b6d4', pointRadius: 3, spanGaps: true },
+          { label: 'At your pace', data: gp.pace && gp.pace.kg > 0.05 ? path(k => gp.cw - gp.pace.kg * k) : none, borderColor: '#f59e0b', borderDash: [5, 4], pointRadius: 0 },
+          { label: '1.0%/wk', data: path(k => gp.cw * Math.pow(0.99, k)), borderColor: 'rgba(16,185,129,0.6)', borderWidth: 1, pointRadius: 0, fill: '+1', backgroundColor: 'rgba(16,185,129,0.12)' },
+          { label: '0.5%/wk', data: path(k => gp.cw * Math.pow(0.995, k)), borderColor: 'rgba(16,185,129,0.6)', borderWidth: 1, pointRadius: 0 },
+          { label: 'For your date', data: gp.neededKg ? path(k => (k >= gp.weeksLeft ? gp.tw : gp.cw - gp.neededKg * k)) : none, borderColor: '#f43f5e', borderDash: [2, 3], pointRadius: 0 },
+          { label: 'Target', data: Array(n).fill(gp.tw), borderColor: '#10b981', borderDash: [2, 3], borderWidth: 1.5, pointRadius: 0 }
+        ] },
+        options: chartOpts({ plugins: { legend: { display: true, position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } }, scales: { x: { ticks: { maxTicksLimit: 8 } }, y: { suggestedMin: gp.tw - 2 } } }, 0)
+      });
+      // Does the intake you logged agree with what the scale shows?
+      let logs = []; try { logs = await dbGetAll('foodLogs'); } catch (e) { /* keep going without it */ }
+      const days = Array.from({ length: 14 }, (_, i) => addDaysStr(today, -i)).map(d => logs.find(l => l.date === d)).filter(r => r && isNum(r.calories) && r.calories > 0), bmr = latestScanBmr();
+      if (days.length >= 7 && bmr) {
+        const avg = days.reduce((a, r) => a + r.calories, 0) / days.length, maint = bmr * activityFactor(), pred = (maint - avg) * 7 / 7700;
+        let t = `Your logged intake (${days.length} days, average ${Math.round(avg).toLocaleString()} kcal) against about ${Math.round(maint).toLocaleString()} kcal maintenance predicts roughly ${pred.toFixed(2)} kg of loss a week.`;
+        if (gp.pace) { const d = gp.pace.kg - pred; t += ` The scale shows ${gp.pace.kg.toFixed(2)} kg a week. ${Math.abs(d) < 0.25 ? 'These agree well.' : d < 0 ? 'The scale is slower than your intake predicts: unlogged food, water retention or a lower maintenance than estimated can explain it.' : 'The scale is faster than your intake predicts: maintenance may be higher than estimated, or some days are under-logged.'}`; }
+        q('projCheck').textContent = t;
+      } else q('projCheck').textContent = 'Log calories on at least 7 of the last 14 days (and have a scan with a BMR) to compare your intake with the scale.';
     }
 
     function toggleSizeDrawer(show) {
@@ -5037,11 +5254,7 @@ const RISE_NAME = { navel: 'navel waist', below: 'low waist', hip: 'upper hip' }
       const tw = Number(profile.targetWeight), sw = Number(profile.startWeight);
       const am = [...appState.amScaleLogs].filter(l => isNum(l.amWeight)).sort((a, b) => a.date.localeCompare(b.date));
       const cw = am.length ? am[am.length - 1].amWeight : (sc.length ? sc[sc.length - 1].weight : null), out = [];
-      if (cw !== null && isFinite(tw) && tw > 0) {
-        if (cw <= tw) out.push('You have reached your target weight.');
-        else if (pace && pace.kg > 0.05) { const wk = (cw - tw) / pace.kg; out.push(`At this pace you reach ${tw} kg around ${shortDate(addDaysStr(today, Math.round(wk * 7)), true)} (about ${Math.round(wk)} weeks).`); }
-        else out.push('A steady loss trend is needed to estimate your target date.');
-      }
+      if (cw !== null && isFinite(tw) && tw > 0 && cw <= tw) out.push('You have reached your target weight.');
       if (cw !== null && isFinite(sw) && sw > cw) { const lost = sw - cw, next = Math.floor(lost / 5) * 5 + 5; out.push(`Lost ${r1(lost)} kg so far. Next 5 kg milestone: ${r1(sw - next)} kg (${r1(next - lost)} kg to go).`); }
       q('reEta').textContent = out.join(' ');
     }
@@ -5229,6 +5442,7 @@ const RISE_NAME = { navel: 'navel waist', below: 'low waist', hip: 'upper hip' }
         document.getElementById('onboardHeight').value = profile.height;
         document.getElementById('onboardStartWeight').value = profile.startWeight;
         document.getElementById('onboardTargetWeight').value = profile.targetWeight;
+        document.getElementById('onboardTargetDate').value = profile.targetDate || '';
         modal.classList.remove('hidden');
       } else {
         modal.classList.add('hidden');
@@ -5241,10 +5455,12 @@ const RISE_NAME = { navel: 'navel waist', below: 'low waist', hip: 'upper hip' }
       playSfx('chime');
       const num = (id, fallback) => { const v = parseFloat(document.getElementById(id).value); return isFinite(v) && v > 0 ? v : fallback; };
       profile = {
+        ...profile,
         name: (document.getElementById('onboardName').value || '').trim(),
         height: num('onboardHeight', profile.height),
         startWeight: num('onboardStartWeight', profile.startWeight),
-        targetWeight: num('onboardTargetWeight', profile.targetWeight)
+        targetWeight: num('onboardTargetWeight', profile.targetWeight),
+        targetDate: (() => { const v = document.getElementById('onboardTargetDate').value; return v && v > localDateStr() ? v : profile.targetDate; })()
       };
       LS.set('vmt_profile', profile);
       LS.set('onboardingDone', true);

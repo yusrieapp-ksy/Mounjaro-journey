@@ -3,6 +3,14 @@
 A single-page tracker that installs on an iPhone home screen, runs full-screen, and works offline.
 Everything you enter stays on your device (IndexedDB and localStorage). Nothing is sent to a server.
 
+## What's new in v8.6
+
+- **Floating + button removed** from the Food tab.
+- **Goal projection** (Dashboard): status (Ahead, On track, Behind, Steady pace and so on), kg to go, your pace from the last 4 weeks of AM weights, the date you reach your target at that pace, this week's aim in kg, and a chart with your weigh-ins, your pace, the 0.5 to 1.0% a week band and the pace needed for your target date. It also compares the intake you logged (with your scan BMR and activity level) with what the scale shows, and projects waist and body fat targets from your scans. Estimates only: loss usually slows, and dose changes are not modelled.
+- **Profile & goals** (Settings): a summary (week of your journey, weight now, lost so far, BMI, waist-to-height ratio, next visit) and an editor for name, height, start and target weight, program start date, target date, target waist, target body fat, next appointment with a note, a planned dose change, your AM weigh-in day, and notes for your doctor. Each field says where it is used.
+- **Planned dose change** feeds the level curve's "if next dose is taken" line. **Weigh-in day** replaces the fixed Tuesday in labels and the weekly scorecard. **Next appointment** shows a countdown chip on the Dashboard. The doctor summary adds a "Goals and notes" section.
+- The first-run screen now explains what each field is for and adds an optional target date.
+
 ## What's new in v8.5
 
 - **Size predictor has its own sheet.** The shirt button opens a slide-up Size Predictor. Settings now holds only app settings, backups and the doctor summary.
