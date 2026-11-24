@@ -3,6 +3,15 @@
 A single-page tracker that installs on an iPhone home screen, runs full-screen, and works offline.
 Everything you enter stays on your device (IndexedDB and localStorage). Nothing is sent to a server.
 
+## What's new in v8.7
+
+- **Goal projection chart is simpler.** It now shows three clear lines: your weigh-ins (cyan), your pace (amber, solid) and the pace your target date needs (purple, dashed), plus a green dotted target line. Each path stops the week it reaches the target and is labelled with its date, and a "Today" marker separates the past from the forecast. The chart zooms in on your own weigh-ins instead of a full year.
+- **Usual range is optional.** The 0.5 to 1.0% a week band is hidden until you tap **Show usual range** under the chart.
+- **Colour key with the numbers.** The text under the chart is a key: each row has the same colour and line style as its line, with the date and kg/week.
+- **Readout wraps.** The line above the chart that follows your finger now wraps onto two lines instead of being cut off.
+- **Clearer wording** when your target date needs slightly more than 1.0% a week.
+- **Louder, faster sounds.** Short punchy notes with a rising, celebratory feel, a master limiter so they can be loud without crackling, and a **Sound volume** slider with a Test button in Settings. Saving a weigh-in that is lower than your last one plays a celebration sound and shows how much you dropped. Reaching your target weight plays the fanfare.
+
 ## What's new in v8.6
 
 - **Floating + button removed** from the Food tab.
@@ -64,7 +73,7 @@ Everything you enter stays on your device (IndexedDB and localStorage). Nothing 
 | --- | --- |
 | `index.html` | The whole app |
 | `manifest.webmanifest` | Name, colours and icons for installing |
-| `sw.js` | Offline support (service worker). Version `v8.1.0` |
+| `sw.js` | Offline support (service worker). Version `v8.7.0` |
 | `apple-touch-icon-v2.png`, `apple-touch-icon-167-v2.png`, `apple-touch-icon-152-v2.png` | The icon iOS uses for Add to Home Screen |
 | `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `favicon-32.png`, `icon.svg` | Manifest, browser tab and source artwork |
 

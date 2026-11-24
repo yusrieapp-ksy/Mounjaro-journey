@@ -311,7 +311,7 @@
         <div>
           <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-1.5">
             <span>Visbody & Mounjaro</span>
-            <span class="text-xs font-normal text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded-full border border-cyan-800/60">v8.6</span>
+            <span class="text-xs font-normal text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded-full border border-cyan-800/60">v8.7</span>
           </h1>
           <p id="headerSubtitle" class="text-xs text-slate-400">Personal tracker</p>
         </div>
@@ -436,11 +436,12 @@
           </div>
           <div id="projGrid" class="grid grid-cols-3 gap-1.5 text-center"></div>
           <p id="projAim" class="text-xs text-slate-200"></p>
-          <div class="h-56 w-full relative"><canvas id="chartProjection"></canvas></div>
-          <div id="projPaths" class="space-y-0.5 text-[11px] text-slate-400"></div>
+          <div class="h-64 w-full relative"><canvas id="chartProjection"></canvas></div>
+          <div class="flex justify-end"><button type="button" id="projBandBtn" onclick="toggleProjBand()" class="text-[11px] font-semibold px-2.5 py-1 rounded-full border border-slate-700 bg-slate-800 text-slate-300">Show usual range</button></div>
+          <div id="projPaths" class="space-y-1.5 text-[11px] text-slate-400"></div>
           <p id="projCheck" class="text-[11px] text-slate-400"></p>
           <div id="projOther" class="space-y-0.5 text-[11px] text-slate-400"></div>
-          <p class="text-[10px] text-slate-500">Estimates from your own weigh-ins, not predictions. Loss usually slows over time, so the green band shows 0.5 to 1.0% a week (a general reference). Dose changes are not modelled. Not medical advice.</p>
+          <p class="text-[10px] text-slate-500">Estimates from your own weigh-ins, not predictions. Loss usually slows over time, so the optional grey range shows 0.5 to 1.0% a week (a general reference). Dose changes are not modelled. Not medical advice.</p>
         </div>
 
         <!-- Body recomposition, loss pace, goal ETA -->
@@ -1338,13 +1339,22 @@
           <h3 class="text-xs font-bold text-white">Preferences</h3>
           
           <div class="flex justify-between items-center">
-            <span class="text-xs text-slate-300">Web Audio SFX (Chimes)</span>
+            <span class="text-xs text-slate-300">Sound effects</span>
             <input type="checkbox" id="settingSfxToggle" checked onchange="savePreferences()" class="w-4 h-4 rounded text-cyan-600 focus:ring-0 bg-slate-800 border-slate-700">
           </div>
 
           <div class="flex justify-between items-center">
             <span class="text-xs text-slate-300">Alert sounds (limit over, target reached)</span>
             <input type="checkbox" id="settingSfxAlerts" checked onchange="savePreferences()" class="w-4 h-4 rounded text-cyan-600 focus:ring-0 bg-slate-800 border-slate-700">
+          </div>
+
+          <div class="space-y-1">
+            <div class="flex justify-between items-center">
+              <label for="settingSfxVol" class="text-xs text-slate-300">Sound volume</label>
+              <button type="button" onclick="playSfx('win')" class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full border border-slate-700 bg-slate-800 text-cyan-400"><i class="fa-solid fa-volume-high mr-1"></i>Test</button>
+            </div>
+            <input type="range" id="settingSfxVol" min="0.3" max="1.5" step="0.1" value="1" oninput="savePreferences()" onchange="playSfx('add')" class="w-full">
+            <p class="text-[10px] text-slate-500">Needs the iPhone ring/silent switch on ring. Weight drops and reached targets play a celebration sound.</p>
           </div>
 
           <div class="space-y-1">
@@ -1657,18 +1667,21 @@
     /* ==========================================================================
        3. WEB AUDIO API SYNTHESIZED SFX
        ========================================================================== */
-    let audioCtx = null;
+    let audioCtx = null, masterBus = null;
     function getAudioCtx() {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (!AudioCtx) return null;
-      if (!audioCtx || audioCtx.state === 'closed') audioCtx = new AudioCtx();
+      if (!audioCtx || audioCtx.state === 'closed') {
+        try { audioCtx = new AudioCtx({ latencyHint: 'interactive' }); } catch (e) { audioCtx = new AudioCtx(); }
+        masterBus = null;
+      }
       return audioCtx;
     }
     // iOS suspends or kills the audio session while the app is minimised, and a context left over from
     // before that stays silent for good. So it is thrown away when the app is hidden, and the next tap
     // (a real user gesture, which iOS requires) builds a fresh one.
     function dropAudioCtx() {
-      if (audioCtx) { try { audioCtx.close(); } catch (e) { /* already closed */ } audioCtx = null; }
+      if (audioCtx) { try { audioCtx.close(); } catch (e) { /* already closed */ } audioCtx = null; masterBus = null; }
     }
     function wakeAudio() {
       const ctx = getAudioCtx();
@@ -1682,63 +1695,54 @@
     // Resume inside the gesture itself (capture phase, before the button's own handler plays its sound).
     ['touchend', 'click'].forEach(ev => document.addEventListener(ev, wakeAudio, { capture: true, passive: true }));
 
-    // v8.4: distinct short tones (add, water, undo, plus the alert pair: goal reached, over a limit)
-    function playTone(type) {
-      if ((type === 'goal' || type === 'over') && prefs.sfxAlerts === false) return;
+    // v8.7: louder and snappier. Every sound goes through one master volume and a limiter, so it can be loud without crackling.
+    function sfxVolume() { const v = Number(prefs && prefs.sfxVol); return isFinite(v) && v > 0 ? Math.min(1.5, v) : 1; }
+    function getBus(ctx) {
+      if (!masterBus) {
+        const comp = ctx.createDynamicsCompressor();
+        comp.threshold.value = -12; comp.knee.value = 10; comp.ratio.value = 8; comp.attack.value = 0.002; comp.release.value = 0.15;
+        const g = ctx.createGain(); g.connect(comp); comp.connect(ctx.destination); masterBus = g;
+      }
+      masterBus.gain.value = sfxVolume();
+      return masterBus;
+    }
+    // [frequency Hz, start delay s, length s, wave, loudness]. Short notes, fast steps, rising pitch = a "win" feel.
+    const TONES = {
+      click: [[1100, 0, 0.04, 'triangle', 0.3]],
+      add: [[659.25, 0, 0.07, 'triangle', 0.55], [987.77, 0.055, 0.14, 'triangle', 0.55], [1975.5, 0.055, 0.1, 'sine', 0.14]],
+      water: [[1250, 0, 0.045, 'sine', 0.5], [620, 0.04, 0.13, 'sine', 0.55]],
+      undo: [[520, 0, 0.06, 'triangle', 0.45], [390, 0.05, 0.1, 'triangle', 0.45]],
+      over: [[233, 0, 0.14, 'sawtooth', 0.22], [175, 0.13, 0.22, 'sawtooth', 0.22]],
+      chime: [[523.25, 0, 0.08, 'triangle', 0.5], [659.25, 0.065, 0.08, 'triangle', 0.5], [783.99, 0.13, 0.2, 'triangle', 0.5], [1567.98, 0.13, 0.16, 'sine', 0.14]],
+      win: [[392, 0, 0.08, 'triangle', 0.5], [523.25, 0.07, 0.08, 'triangle', 0.5], [659.25, 0.14, 0.08, 'triangle', 0.5], [783.99, 0.21, 0.08, 'triangle', 0.5], [1046.5, 0.28, 0.45, 'triangle', 0.55], [2093, 0.28, 0.3, 'sine', 0.12]],
+      goal: [[523.25, 0, 0.09, 'triangle', 0.55], [659.25, 0.08, 0.09, 'triangle', 0.55], [783.99, 0.16, 0.09, 'triangle', 0.55], [1046.5, 0.24, 0.5, 'triangle', 0.6], [1318.5, 0.24, 0.5, 'sine', 0.22], [1567.98, 0.34, 0.45, 'sine', 0.2]]
+    };
+    function playNotes(notes) {
       try {
         const ctx = getAudioCtx(); if (!ctx) return;
-        wakeAudio();
-        const t0 = ctx.currentTime;
-        const notes = {
-          add: [[520, 0, 0.06, 'sine', 0.12], [780, 0.05, 0.08, 'sine', 0.1]],
-          goal: [[523.25, 0, 0.12, 'triangle', 0.12], [659.25, 0.11, 0.12, 'triangle', 0.12], [783.99, 0.22, 0.28, 'triangle', 0.12]],
-          over: [[196, 0, 0.22, 'sawtooth', 0.06], [165, 0.2, 0.3, 'sawtooth', 0.06]],
-          water: [[900, 0, 0.05, 'sine', 0.1], [420, 0.04, 0.16, 'sine', 0.12]],
-          undo: [[400, 0, 0.07, 'sine', 0.1], [300, 0.06, 0.1, 'sine', 0.08]]
-        }[type];
-        notes.forEach(([f, d, len, wave, vol]) => {
-          const o = ctx.createOscillator(), g = ctx.createGain();
-          o.type = wave; o.frequency.setValueAtTime(f, t0 + d);
-          g.gain.setValueAtTime(vol, t0 + d); g.gain.exponentialRampToValueAtTime(0.001, t0 + d + len);
-          o.connect(g); g.connect(ctx.destination); o.start(t0 + d); o.stop(t0 + d + len + 0.02);
-        });
+        const run = () => {
+          const bus = getBus(ctx), t0 = ctx.currentTime + 0.01;
+          notes.forEach(([f, d, len, wave, vol]) => {
+            const o = ctx.createOscillator(), g = ctx.createGain();
+            o.type = wave; o.frequency.setValueAtTime(f, t0 + d);
+            g.gain.setValueAtTime(0.0001, t0 + d);
+            g.gain.linearRampToValueAtTime(vol, t0 + d + 0.004);
+            g.gain.exponentialRampToValueAtTime(0.001, t0 + d + len);
+            o.connect(g); g.connect(bus); o.start(t0 + d); o.stop(t0 + d + len + 0.03);
+          });
+        };
+        // A context that is still waking up would play the start late, so wait for it instead of scheduling into the past.
+        if (ctx.state === 'running') run();
+        else { const p = ctx.resume(); if (p && p.then) p.then(run, run); else run(); }
       } catch (e) { /* audio unavailable */ }
     }
+    function playTone(type) { playNotes(TONES[type] || TONES.click); }
 
     function playSfx(type = 'click') {
       const toggle = document.getElementById('settingSfxToggle');
       if (toggle && !toggle.checked) return;
-      if (['add', 'goal', 'over', 'water', 'undo'].includes(type)) { playTone(type); return; }
-
-      try {
-        const ctx = getAudioCtx();
-        if (!ctx) return;
-        wakeAudio();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-
-        const t = ctx.currentTime;
-        if (type === 'click') {
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(600, t);
-          osc.frequency.exponentialRampToValueAtTime(200, t + 0.04);
-          gain.gain.setValueAtTime(0.15, t);
-          gain.gain.linearRampToValueAtTime(0.01, t + 0.04);
-          osc.start(t);
-          osc.stop(t + 0.04);
-        } else if (type === 'chime') {
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(523.25, t); // C5
-          osc.frequency.setValueAtTime(659.25, t + 0.06); // E5
-          gain.gain.setValueAtTime(0.1, t);
-          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
-          osc.start(t);
-          osc.stop(t + 0.2);
-        }
-      } catch (e) { console.warn("Audio unavailable", e); }
+      if ((type === 'goal' || type === 'over') && prefs.sfxAlerts === false) return;
+      playTone(type);
     }
 
     /* ==========================================================================
@@ -1806,6 +1810,8 @@
       if (sfx) sfx.checked = !!prefs.sfx;
       const sfxAl = document.getElementById('settingSfxAlerts');
       if (sfxAl) sfxAl.checked = prefs.sfxAlerts !== false;
+      const sfxVol = document.getElementById('settingSfxVol');
+      if (sfxVol) sfxVol.value = prefs.sfxVol || 1;
       applyAccent(prefs.accent);
       applyTheme();
       renderGoalLabels();
@@ -1854,6 +1860,8 @@
       if (sfx) prefs.sfx = sfx.checked;
       const al = document.getElementById('settingSfxAlerts');
       if (al) prefs.sfxAlerts = al.checked;
+      const vl = document.getElementById('settingSfxVol');
+      if (vl) prefs.sfxVol = parseFloat(vl.value) || 1;
       LS.set('vmt_prefs', prefs);
     }
 
@@ -2321,7 +2329,7 @@
       }
       cv.style.display = ''; wrap.style.minHeight = ''; if (ph) ph.style.display = 'none';
       if (['line', 'bar'].includes(config.type) && canvasId !== 'chartVisbodyBreakdown') {
-        if (!pill) { pill = document.createElement('div'); pill.className = 'scrub-pill text-[11px] text-slate-400 text-center h-6 leading-6 truncate'; wrap.parentElement.insertBefore(pill, wrap); }
+        if (!pill) { pill = document.createElement('div'); pill.className = canvasId === 'chartProjection' ? 'scrub-pill text-[11px] text-slate-400 text-center min-h-[2.5rem] leading-4 flex items-center justify-center px-1' : 'scrub-pill text-[11px] text-slate-400 text-center h-6 leading-6 truncate'; wrap.parentElement.insertBefore(pill, wrap); }
         pill.style.display = ''; pill.textContent = 'Touch the chart to read values'; pill.classList.remove('text-cyan-400', 'font-semibold'); pill.classList.add('text-slate-400');
         cv.style.touchAction = 'pan-y'; // sideways drags scrub the chart, up and down still scroll the page
         config.options = config.options || {};
@@ -2342,7 +2350,7 @@
         const els = chart.getElementsAtEventForMode(e, 'index', { intersect: false }, false); if (!els.length) return;
         const i = els[0].index, lab = chart.data.labels ? chart.data.labels[i] : '';
         const parts = chart.data.datasets.map((d, di) => ({ d, v: d.data[i], on: chart.isDatasetVisible(di) }))
-          .filter(x => x.on && x.v !== null && x.v !== undefined && x.d.label !== 'Target')
+          .filter(x => x.on && x.v !== null && x.v !== undefined && x.d.label !== 'Target' && !x.d.noPill)
           .map(x => `${String(x.d.label || '').replace(/\s*\(.*?\)/, '').slice(0, 18)} ${typeof x.v === 'number' ? Math.round(x.v * 10) / 10 : x.v}`);
         pill.textContent = `${lab}: ${parts.join(' \u00b7 ')}`;
         pill.classList.remove('text-slate-400'); pill.classList.add('text-cyan-400', 'font-semibold');
@@ -3219,17 +3227,20 @@
 
       // Only what you typed is stored. The clinic offset is worked out later from real scans on the same date.
       const entry = { date, amWeight: weight };
+      const prevLog = [...appState.amScaleLogs].filter(l => isNum(l.amWeight) && l.date < date).sort((x, y) => x.date.localeCompare(y.date)).pop();
+      const drop = prevLog ? prevLog.amWeight - weight : 0, tgt = Number(profile.targetWeight);
       try {
         const tx = db.transaction("amScaleLogs", "readwrite");
         tx.objectStore("amScaleLogs").put(entry);
         await txDone(tx);
       } catch (err) { showToast("Couldn't save the entry", 'error'); return; }
 
-      playSfx('chime');
+      const hitTarget = tgt > 0 && weight <= tgt;
+      playSfx(hitTarget ? 'goal' : drop > 0.04 ? 'win' : 'chime');
       document.getElementById('fastAmScaleWeight').value = '';
       await loadAllData();
       renderDashboard();
-      showToast(`Saved AM fasted scale: ${weight} kg`);
+      showToast(hitTarget ? `Target reached: ${weight} kg. Amazing work!` : drop > 0.04 ? `Saved ${weight} kg. Down ${drop.toFixed(1)} kg, well done!` : `Saved AM fasted scale: ${weight} kg`);
     }
 
     /* ==========================================================================
@@ -5070,6 +5081,7 @@ const RISE_NAME = { navel: 'navel waist', below: 'low waist', hip: 'upper hip' }
       LS.set('vmt_profile', profile);
       playSfx('chime'); closeProfileEdit(); applyProfileAndPrefs(); renderActiveTab(); showToast('Profile saved');
     }
+    function toggleProjBand() { playSfx('click'); prefs.projBand = !prefs.projBand; LS.set('vmt_prefs', prefs); renderGoalProjection(); }
     async function renderGoalProjection() {
       const q = id => document.getElementById(id); if (!q('projCard')) return;
       const gp = goalProjection(), today = localDateStr();
@@ -5095,31 +5107,59 @@ const RISE_NAME = { navel: 'navel waist', below: 'low waist', hip: 'upper hip' }
       else {
         const aim = gp.neededKg ? Math.min(gp.neededKg, gp.cw * 0.01) : gp.cw * 0.0075, from = gp.lastLog || today;
         const span = Math.max(1, (parseLocalDate(nw) - parseLocalDate(from)) / 86400000), exp = gp.cw - aim * span / 7;
-        q('projAim').textContent = `Aim for about ${aim.toFixed(2)} kg of loss a week: roughly ${exp.toFixed(1)} kg at your ${weighDayName()} weigh-in on ${shortDate(nw)}.${gp.neededKg && gp.neededPct > 1 ? ' Your target date needs more than the usual 1.0% a week, so consider a later date.' : ''}`;
+        q('projAim').textContent = `Aim for about ${aim.toFixed(2)} kg of loss a week: roughly ${exp.toFixed(1)} kg at your ${weighDayName()} weigh-in on ${shortDate(nw)}.${gp.neededKg && gp.neededPct > 1 ? ` Your target date needs about ${gp.neededPct.toFixed(2)}% a week, just above the usual 0.5 to 1.0% reference, so a slightly later date would be gentler.` : ''}`;
       }
-      const lines = [];
-      if (gp.trendDate) lines.push(`At your pace: ${shortDate(gp.trendDate, true)}`);
-      lines.push(`Faster path (1.0%/wk): ${shortDate(gp.fastDate, true)} \u00b7 Slower path (0.5%/wk): ${shortDate(gp.slowDate, true)}`);
-      if (gp.neededKg) lines.push(`For ${shortDate(profile.targetDate, true)}: ${gp.neededKg.toFixed(2)} kg/wk (${gp.neededPct.toFixed(2)}%/wk)`);
-      q('projPaths').innerHTML = lines.map(t => `<div>${esc(t)}</div>`).join('');
-      // Chart: weigh-ins so far, then the paths forward
-      const pastW = 8, hz = Math.min(52, Math.max(6, Math.ceil(Math.max(gp.slowWeeks || 0, gp.trendWeeks || 0, gp.weeksLeft || 0)) + 1)), n = pastW + hz + 1;
+      // v8.7: three clear lines (your weigh-ins, your pace, the pace your date needs) plus the target. The 0.5 to 1.0% range is optional.
+      const C = { actual: '#22d3ee', pace: '#fbbf24', need: '#c084fc', target: '#34d399' }, showBand = !!prefs.projBand;
+      const bb = q('projBandBtn'); if (bb) { bb.textContent = showBand ? 'Hide usual range' : 'Show usual range'; bb.className = `text-[11px] font-semibold px-2.5 py-1 rounded-full border ${showBand ? 'border-cyan-500 text-cyan-400' : 'border-slate-700 text-slate-300'} bg-slate-800`; }
+      const rowSw = (col, st) => `<span class="inline-block w-6 shrink-0" style="border-top:3px ${st} ${col}"></span>`;
+      const row = (sw, name, val) => `<div class="flex items-center gap-2">${sw}<span class="text-slate-200">${name}</span><span class="ml-auto text-right text-slate-300">${val}</span></div>`;
+      const rows = [row('<span class="inline-block w-2.5 h-2.5 rounded-full mx-[7px] shrink-0" style="background:' + C.actual + '"></span>', 'Your weigh-ins', `${r1p(gp.cw)} kg now`)];
+      if (gp.trendDate) rows.push(row(rowSw(C.pace, 'solid'), 'At your pace', `${shortDate(gp.trendDate, true)} \u00b7 ${gp.pace.kg.toFixed(2)} kg/wk`));
+      if (gp.neededKg) rows.push(row(rowSw(C.need, 'dashed'), 'Needed for your date', `${shortDate(profile.targetDate, true)} \u00b7 ${gp.neededKg.toFixed(2)} kg/wk`));
+      rows.push(row(rowSw(C.target, 'dotted'), 'Target', `${r1p(gp.tw)} kg`));
+      if (showBand) rows.push(row('<span class="inline-block w-6 h-2.5 rounded-sm shrink-0" style="background:rgba(148,163,184,.35)"></span>', 'Usual range (0.5 to 1.0%/wk)', `${shortDate(gp.fastDate, true)} to ${shortDate(gp.slowDate, true)}`));
+      q('projPaths').innerHTML = rows.join('');
+      const firstAm = appState.amScaleLogs.filter(l => isNum(l.amWeight)).map(l => l.date).sort()[0];
+      const wkSince = firstAm ? Math.round((parseLocalDate(today) - parseLocalDate(firstAm)) / (7 * 86400000)) : 0;
+      const pastW = Math.min(12, Math.max(4, wkSince + 1));
+      const reachW = Math.max(gp.trendWeeks || 0, gp.weeksLeft || 0, showBand ? (gp.slowWeeks || 0) : 0);
+      const hz = Math.min(60, Math.max(6, Math.ceil(reachW) + 2)), n = pastW + hz + 1;
       const labels = Array.from({ length: n }, (_, i) => shortDate(addDaysStr(today, (i - pastW) * 7)));
       const actual = Array(n).fill(null);
       appState.amScaleLogs.forEach(l => { if (!isNum(l.amWeight)) return; const i = pastW + Math.round((parseLocalDate(l.date) - parseLocalDate(today)) / (7 * 86400000)); if (i >= 0 && i <= pastW) actual[i] = l.amWeight; });
-      const path = fn => Array.from({ length: n }, (_, i) => (i < pastW ? null : Math.max(gp.tw, r1p(fn(i - pastW) * 10) / 10)));
-      const none = Array(n).fill(null);
+      // A path runs from today and stops the week it reaches the target, so the lines do not pile up along the bottom.
+      const toTarget = fn => { const arr = Array(n).fill(null); let end = -1; for (let i = pastW; i < n; i++) { const v = Math.round(fn(i - pastW) * 10) / 10; arr[i] = Math.max(gp.tw, v); if (v <= gp.tw) { end = i; break; } } return { arr, end }; };
+      const band = pct => Array.from({ length: n }, (_, i) => (i < pastW ? null : Math.max(gp.tw, Math.round(gp.cw * Math.pow(1 - pct / 100, i - pastW) * 10) / 10)));
+      const pacePath = gp.pace && gp.pace.kg > 0.05 ? toTarget(k => gp.cw - gp.pace.kg * k) : null;
+      const needPath = gp.neededKg ? toTarget(k => (k >= gp.weeksLeft ? gp.tw : gp.cw - gp.neededKg * k)) : null;
+      const endDots = (path, col) => Array.from({ length: n }, (_, i) => (path && i === path.end ? 6 : 0));
+      const ds = [];
+      if (showBand) ds.push({ label: 'Usual range', data: band(1.0), borderWidth: 0, pointRadius: 0, fill: '+1', backgroundColor: 'rgba(148,163,184,0.22)', noPill: true }, { label: 'Usual range low', data: band(0.5), borderWidth: 0, pointRadius: 0, noPill: true });
+      ds.push({ label: 'Actual (AM)', data: actual, borderColor: C.actual, backgroundColor: C.actual, borderWidth: 3, pointRadius: 4, pointHoverRadius: 6, spanGaps: true });
+      if (pacePath) ds.push({ label: 'At your pace', data: pacePath.arr, borderColor: C.pace, backgroundColor: C.pace, borderWidth: 3, pointRadius: endDots(pacePath), pointHoverRadius: 5 });
+      if (needPath) ds.push({ label: 'Needed for date', data: needPath.arr, borderColor: C.need, backgroundColor: C.need, borderWidth: 2.5, borderDash: [7, 4], pointRadius: endDots(needPath), pointHoverRadius: 5 });
+      ds.push({ label: 'Target', data: Array(n).fill(gp.tw), borderColor: C.target, borderDash: [2, 5], borderWidth: 1.5, pointRadius: 0, noPill: true });
+      const hi = Math.max(gp.cw, ...actual.filter(isNum));
       createOrUpdateChart('chartProjection', {
         type: 'line',
-        data: { labels, datasets: [
-          { label: 'Actual (AM)', data: actual, borderColor: '#06b6d4', backgroundColor: '#06b6d4', pointRadius: 3, spanGaps: true },
-          { label: 'At your pace', data: gp.pace && gp.pace.kg > 0.05 ? path(k => gp.cw - gp.pace.kg * k) : none, borderColor: '#f59e0b', borderDash: [5, 4], pointRadius: 0 },
-          { label: '1.0%/wk', data: path(k => gp.cw * Math.pow(0.99, k)), borderColor: 'rgba(16,185,129,0.6)', borderWidth: 1, pointRadius: 0, fill: '+1', backgroundColor: 'rgba(16,185,129,0.12)' },
-          { label: '0.5%/wk', data: path(k => gp.cw * Math.pow(0.995, k)), borderColor: 'rgba(16,185,129,0.6)', borderWidth: 1, pointRadius: 0 },
-          { label: 'For your date', data: gp.neededKg ? path(k => (k >= gp.weeksLeft ? gp.tw : gp.cw - gp.neededKg * k)) : none, borderColor: '#f43f5e', borderDash: [2, 3], pointRadius: 0 },
-          { label: 'Target', data: Array(n).fill(gp.tw), borderColor: '#10b981', borderDash: [2, 3], borderWidth: 1.5, pointRadius: 0 }
-        ] },
-        options: chartOpts({ plugins: { legend: { display: true, position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } }, scales: { x: { ticks: { maxTicksLimit: 8 } }, y: { suggestedMin: gp.tw - 2 } } }, 0)
+        data: { labels, datasets: ds },
+        options: chartOpts({ plugins: { legend: { display: false } }, scales: { x: { ticks: { maxTicksLimit: 6 } }, y: { min: Math.floor(gp.tw - 3), max: Math.ceil(hi + 1), ticks: { maxTicksLimit: 6 } } } }, 0),
+        plugins: [{
+          id: 'projMarks',
+          afterDatasetsDraw(chart) {
+            const { ctx, chartArea: a, scales: { x, y } } = chart;
+            ctx.save(); ctx.font = '600 10px sans-serif'; ctx.textAlign = 'center';
+            const tx = x.getPixelForValue(pastW);
+            ctx.strokeStyle = 'rgba(148,163,184,0.6)'; ctx.fillStyle = '#94a3b8'; ctx.setLineDash([3, 3]);
+            ctx.beginPath(); ctx.moveTo(tx, a.top); ctx.lineTo(tx, a.bottom); ctx.stroke(); ctx.setLineDash([]);
+            ctx.fillText('Today', Math.min(Math.max(tx, a.left + 16), a.right - 16), a.top + 10);
+            const lab = (path, txt, col, dy) => { if (!path || path.end < 0) return; ctx.fillStyle = col; ctx.fillText(txt, Math.min(Math.max(x.getPixelForValue(path.end), a.left + 24), a.right - 24), y.getPixelForValue(gp.tw) + dy); };
+            lab(pacePath, gp.trendDate ? shortDate(gp.trendDate) : '', C.pace, -10);
+            lab(needPath, profile.targetDate ? shortDate(profile.targetDate) : '', C.need, 17);
+            ctx.restore();
+          }
+        }]
       });
       // Does the intake you logged agree with what the scale shows?
       let logs = []; try { logs = await dbGetAll('foodLogs'); } catch (e) { /* keep going without it */ }
