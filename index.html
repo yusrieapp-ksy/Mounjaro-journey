@@ -213,7 +213,7 @@
     html.light .bg-slate-700, html.light .bg-slate-700\/80, html.light .hover\:bg-slate-700:hover { background-color: #e2e8f0; }
     html.light .bg-slate-600 { background-color: #cbd5e1; }
     html.light .bg-slate-950 > .bg-slate-800 { background-color: #ffffff; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.14); }
-    html.light #settingsDrawer, html.light #onboardingModal, html.light #addMedModal, html.light #exerciseModal, html.light #targetModal, html.light #foodEditModal { background-color: rgba(15, 23, 42, 0.45); }
+    html.light #settingsDrawer, html.light #onboardingModal, html.light #addMedModal, html.light #exerciseModal, html.light #targetModal, html.light #foodEditModal, html.light #sizeDrawer, html.light #comboModal { background-color: rgba(15, 23, 42, 0.45); }
     html.light .drawer-panel { background-color: #f8fafc; }
     html.light .border-slate-700, html.light .border-slate-700\/80 { border-color: #cbd5e1; }
     html.light .border-slate-800, html.light .border-slate-800\/80, html.light .divide-slate-800 > * { border-color: #e2e8f0; }
@@ -247,12 +247,16 @@
     .dr table { width: 100%; border-collapse: collapse; font-size: 12px; }
     .dr td, .dr th { padding: 3px 4px; text-align: left; border-bottom: 1px solid #e2e8f0; white-space: normal; }
     .dr p { font-size: 11px; color: #475569; margin: 4px 0; }
-    @media print {
-      body.printing > *:not(#doctorSheet) { display: none !important; }
-      body.printing .dr-sheet { position: static; overflow: visible; padding: 0; }
-      body.printing .dr-bar, body.printing .dr-safe { display: none; }
-      html.printing-root, body.printing { height: auto; overflow: visible; background: #fff; }
-    }
+
+
+    /* ---- v8.5 ---- */
+    #foodPinned { top: -1rem; background: #0f172a; -webkit-backdrop-filter: none; backdrop-filter: none; }
+    html.light #foodPinned { background: #ffffff; }
+    .sheet-modal { align-items: flex-end; padding: 0 0 var(--kb, 0px); }
+    .sheet-modal > * { width: 100%; max-width: 28rem; border-radius: 1.5rem 1.5rem 0 0 !important; max-height: min(88dvh, calc(100dvh - var(--kb, 0px) - 0.75rem)); overflow-y: auto; padding-bottom: calc(1.25rem + env(safe-area-inset-bottom)) !important; animation: sheetUp 0.28s cubic-bezier(0.2, 0.8, 0.2, 1); }
+    .sheet-modal:not(.hidden) { animation: sheetFade 0.2s ease; }
+    @keyframes sheetUp { from { transform: translateY(100%); } to { transform: none; } }
+    @keyframes sheetFade { from { opacity: 0; } to { opacity: 1; } }
 
     @media (prefers-reduced-motion: reduce) {
       * { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
@@ -307,7 +311,7 @@
         <div>
           <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-1.5">
             <span>Visbody & Mounjaro</span>
-            <span class="text-xs font-normal text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded-full border border-cyan-800/60">v8.4</span>
+            <span class="text-xs font-normal text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded-full border border-cyan-800/60">v8.5</span>
           </h1>
           <p id="headerSubtitle" class="text-xs text-slate-400">Personal tracker</p>
         </div>
@@ -318,7 +322,7 @@
         <div id="syncBadge" class="hidden sm:flex items-center text-[10px] text-emerald-400 bg-emerald-950/80 px-2 py-1 rounded-full border border-emerald-800/50">
           <i class="fa-solid font-bold text-[8px] mr-1">●</i> IndexedDB
         </div>
-        <button aria-label="Open size predictor" onclick="toggleSettingsDrawer(true)" class="p-2.5 rounded-xl bg-slate-800/80 text-amber-400 hover:text-amber-300 hover:bg-slate-700 transition touch-target">
+        <button aria-label="Open size predictor" onclick="toggleSizeDrawer(true)" class="p-2.5 rounded-xl bg-slate-800/80 text-amber-400 hover:text-amber-300 hover:bg-slate-700 transition touch-target">
           <i class="fa-solid fa-shirt text-base"></i>
         </button>
         <button id="themeQuickBtn" type="button" aria-label="Switch light or dark mode" onclick="toggleThemeQuick()" class="p-2.5 rounded-xl bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700 transition touch-target">
@@ -422,6 +426,33 @@
           <p id="goalText" class="text-[11px] text-slate-400"></p>
         </div>
 
+        <!-- Body recomposition, loss pace, goal ETA -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
+          <h2 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-person-running text-emerald-400"></i> Recomposition &amp; pace</h2>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="p-2.5 bg-slate-800/80 rounded-xl border border-slate-700">
+              <div class="text-[10px] text-slate-400">Fat share of weight lost</div>
+              <div id="reRatio" class="text-base font-bold text-white">&ndash;</div>
+              <div id="reRatioSub" class="text-[10px] text-slate-500"></div>
+            </div>
+            <div class="p-2.5 bg-slate-800/80 rounded-xl border border-slate-700">
+              <div class="text-[10px] text-slate-400">Pace, last 4 weeks</div>
+              <div id="rePace" class="text-base font-bold text-white">&ndash;</div>
+              <div id="rePaceSub" class="text-[10px] text-slate-500"></div>
+            </div>
+          </div>
+          <div>
+            <div class="relative h-2.5 rounded-full bg-slate-800 overflow-hidden">
+              <div class="absolute inset-y-0 bg-emerald-500/40" style="left:33.33%;width:33.33%"></div>
+              <div id="paceMarker" class="absolute -top-0.5 w-1 h-3.5 rounded bg-white hidden" style="left:0%"></div>
+            </div>
+            <div class="flex justify-between text-[9px] text-slate-500 mt-0.5"><span>0</span><span>0.5</span><span>1.0</span><span>1.5 %/wk</span></div>
+            <p id="rePaceZone" class="text-[11px] text-slate-400 mt-1"></p>
+          </div>
+          <p id="reEta" class="text-[11px] text-slate-300"></p>
+          <p class="text-[10px] text-slate-500">The 0.5 to 1.0% a week band is a general reference, not medical advice. Visbody readings vary between scans, so judge the fat share over several scans, and follow your doctor's guidance.</p>
+        </div>
+
         <!-- Chart 1: Weight Trend (AM Fasted vs Clinic Visbody) -->
         <div class="glass-card p-4 rounded-2xl border border-slate-800">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3">
@@ -519,6 +550,7 @@
 
       <!-- TAB 2: VISBODY REPORTS & COMPARISONS -->
       <section id="tab-visbody" class="tab-content hidden space-y-6">
+        <p id="scanAgeLine" class="text-[11px] text-slate-400"></p>
         <!-- Scan Selector & Web View Launcher -->
         <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-4">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
@@ -748,8 +780,8 @@
               <div>
                 <label class="text-xs text-slate-300 font-medium block mb-1">Appetite Suppression Rating (1–5)</label>
                 <select id="mjAppetite" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
-                  <option value="5">5 — Very Strong (No Cravings)</option>
-                  <option value="4" selected>4 — Strong Control</option>
+                  <option value="5" selected>5 — Very Strong (No Cravings)</option>
+                  <option value="4">4 — Strong Control</option>
                   <option value="3">3 — Moderate Suppression</option>
                   <option value="2">2 — Mild / Wearing Off</option>
                   <option value="1">1 — Hunger Returned</option>
@@ -955,7 +987,8 @@
                 <span class="text-xs font-semibold text-slate-300 flex items-center gap-1.5"><i class="fa-solid fa-sliders text-cyan-400"></i> Daily targets</span>
                 <button type="button" onclick="toggleTargetsEditor()" class="text-xs text-cyan-400 underline">Edit all</button>
               </div>
-              <div id="targetsSummary" class="text-[11px] text-slate-400 space-y-0.5"></div>
+              <div id="targetsLine" class="text-[11px] text-slate-400"></div>
+              <div id="targetsSummary" class="hidden text-[11px] text-slate-400 space-y-0.5"></div>
               <div id="targetsEditor" class="hidden pt-2 border-t border-slate-800 space-y-2">
                 <div class="grid grid-cols-2 gap-2">
                   <div><label for="targetProteinInput" class="text-[11px] text-slate-400 block mb-1">Protein target (g/day)</label><input type="number" inputmode="decimal" step="any" min="0" id="targetProteinInput" placeholder="e.g. 100" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"></div>
@@ -984,7 +1017,13 @@
               </div>
 
               <div id="foodAddPane" class="space-y-2">
-                <input type="text" id="foodItemLabel" maxlength="40" placeholder="What was it? (optional, e.g. Lunch)" onkeydown="if(event.key==='Enter'){event.preventDefault();addFoodEntry();}" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+                <input type="hidden" id="foodItemLabel" value="">
+                <div class="grid grid-cols-4 gap-1.5" role="group" aria-label="Which meal">
+                  <button type="button" data-meal="Breakfast" onclick="pickMeal('Breakfast')" class="meal-chip py-2 rounded-xl border border-slate-700 bg-slate-800 text-xs font-semibold text-slate-300">Breakfast</button>
+                  <button type="button" data-meal="Lunch" onclick="pickMeal('Lunch')" class="meal-chip py-2 rounded-xl border border-slate-700 bg-slate-800 text-xs font-semibold text-slate-300">Lunch</button>
+                  <button type="button" data-meal="Dinner" onclick="pickMeal('Dinner')" class="meal-chip py-2 rounded-xl border border-slate-700 bg-slate-800 text-xs font-semibold text-slate-300">Dinner</button>
+                  <button type="button" data-meal="Snack" onclick="pickMeal('Snack')" class="meal-chip py-2 rounded-xl border border-slate-700 bg-slate-800 text-xs font-semibold text-slate-300">Snack</button>
+                </div>
                 <div class="grid grid-cols-2 gap-2">
                   <input type="number" inputmode="numeric" min="0" id="foodItemCal" placeholder="kcal" aria-label="Calories to add" onkeydown="if(event.key==='Enter'){event.preventDefault();addFoodEntry();}" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
                   <input type="number" inputmode="decimal" step="0.1" min="0" id="foodItemProtein" placeholder="protein g" aria-label="Protein to add in grams" onkeydown="if(event.key==='Enter'){event.preventDefault();addFoodEntry();}" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
@@ -992,9 +1031,12 @@
                   <input type="number" inputmode="decimal" step="0.1" min="0" id="foodItemSugar" placeholder="sugar g" aria-label="Added sugar to add in grams" onkeydown="if(event.key==='Enter'){event.preventDefault();addFoodEntry();}" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
                 </div>
                 <button type="button" onclick="addFoodEntry()" class="w-full bg-slate-800 hover:bg-slate-700 text-cyan-400 font-semibold text-xs py-2 rounded-xl border border-slate-700">+ Add to today</button>
+                <div id="mealMultRow" style="display:none" class="items-center gap-1.5 text-[11px] text-slate-400"><span>Saved meal portion</span><button type="button" data-mult="0.5" onclick="setFoodMult(0.5)">0.5×</button><button type="button" data-mult="1" onclick="setFoodMult(1)">1×</button><button type="button" data-mult="1.5" onclick="setFoodMult(1.5)">1.5×</button><button type="button" data-mult="2" onclick="setFoodMult(2)">2×</button></div>
                 <div id="foodRecent" class="flex flex-wrap gap-1.5"></div>
+                <div id="foodMealSplit" class="hidden space-y-1"></div>
                 <div id="foodEntryList" class="space-y-1.5"></div>
                 <p class="text-[10px] text-slate-500">Swipe an entry left to delete, or right to save it as a meal. Swipe the page sideways to change the day.</p>
+                <button type="button" onclick="openCombo()" class="text-[11px] text-cyan-400 underline">Save entries as a combo</button>
               </div>
 
               <div id="foodTotalPane" class="hidden space-y-2">
@@ -1204,17 +1246,12 @@
     </nav>
 
     <!-- STYLE & SETTINGS DRAWER / MODAL (⚙) -->
-    <div id="settingsDrawer" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex justify-end">
-      <div class="drawer-panel w-full max-w-md bg-slate-900 h-full overflow-y-auto p-5 space-y-6 border-l border-slate-800 shadow-2xl">
+    <div id="sizeDrawer" class="sheet-modal fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-end justify-center">
+      <div class="bg-slate-900 border-t border-slate-800 shadow-2xl p-5 space-y-4">
         <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-          <h2 class="text-base font-bold text-white flex items-center gap-2">
-            <i class="fa-solid fa-shirt text-cyan-400"></i> Size Predictor & Settings
-          </h2>
-          <button onclick="toggleSettingsDrawer(false)" class="p-2 text-slate-400 hover:text-white rounded-xl bg-slate-800">
-            <i class="fa-solid fa-xmark text-sm"></i>
-          </button>
+          <h2 class="text-base font-bold text-white flex items-center gap-2"><i class="fa-solid fa-shirt text-amber-400"></i> Size Predictor</h2>
+          <button type="button" onclick="toggleSizeDrawer(false)" aria-label="Close" class="p-2 text-slate-400 hover:text-white rounded-xl bg-slate-800"><i class="fa-solid fa-xmark text-sm"></i></button>
         </div>
-
         <!-- Asian Size Predictor (Visbody derived) -->
         <div id="sizeSection" class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
           <div class="flex items-start justify-between gap-2">
@@ -1253,6 +1290,20 @@
             <p class="text-[11px] text-slate-500">Enter the sizes you wear today and tap Calibrate. The predictor then works out how your clothes sit on your body and projects every future size from that.</p>
           </div>
           <p class="text-[10px] text-slate-500">Built on a common Asian-sizing body chart (cm). Brands vary by about one size, so treat results as a guide and check each product's own size chart.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <div id="settingsDrawer" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex justify-end">
+      <div class="drawer-panel w-full max-w-md bg-slate-900 h-full overflow-y-auto p-5 space-y-6 border-l border-slate-800 shadow-2xl">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-sliders text-cyan-400"></i> Settings
+          </h2>
+          <button onclick="toggleSettingsDrawer(false)" class="p-2 text-slate-400 hover:text-white rounded-xl bg-slate-800">
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
         </div>
 
         <!-- Theme & Audio Controls -->
@@ -1309,8 +1360,9 @@
 
         <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-2">
           <h3 class="text-xs font-bold text-white flex items-center gap-2"><i class="fa-solid fa-file-medical text-cyan-400"></i> Doctor summary</h3>
-          <p class="text-[11px] text-slate-400">One page with your weight trend, latest Visbody numbers, injections, last 7 days of intake against your targets, and the targets themselves. Print it or share it as text.</p>
+          <p class="text-[11px] text-slate-400">One page with your weight trend, latest Visbody numbers, injections, last 7 days of intake against your targets, and the targets themselves. Share it as text.</p>
           <button type="button" onclick="openDoctorSummary()" class="w-full bg-slate-800 hover:bg-slate-700 text-xs text-cyan-400 font-semibold py-2 rounded-xl border border-slate-700">Open summary</button>
+          <button type="button" onclick="exportCsv()" class="w-full bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 font-semibold py-2 rounded-xl border border-slate-700">Export CSV files (weights, scans, injections, intake)</button>
         </div>
 
         <div class="glass-card p-4 rounded-2xl border border-rose-900/60 space-y-2">
@@ -1367,7 +1419,7 @@
   </div>
 
   <!-- CUSTOM MEDICATION MODAL -->
-  <div id="addMedModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+  <div id="addMedModal" class="sheet-modal fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-end justify-center">
     <form id="addMedForm" onsubmit="saveCustomMed(event)" class="glass-card w-full max-w-md p-5 rounded-3xl border border-slate-800 space-y-4 max-h-full overflow-y-auto">
       <div class="flex items-center justify-between">
         <h2 class="text-base font-bold text-white">Add a custom medication</h2>
@@ -1396,7 +1448,7 @@
   </div>
 
 <!-- ROUTINE (EXERCISE) MODAL -->
-  <div id="exerciseModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+  <div id="exerciseModal" class="sheet-modal fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-end justify-center">
     <form id="exerciseForm" onsubmit="saveExercise(event)" class="glass-card w-full max-w-md p-5 rounded-3xl border border-slate-800 space-y-4 max-h-full overflow-y-auto">
       <div class="flex items-center justify-between">
         <h2 id="exerciseModalTitle" class="text-base font-bold text-white">Add routine</h2>
@@ -1420,7 +1472,7 @@
   </div>
 
   <!-- VISBODY TARGET & REMARK MODAL -->
-  <div id="targetModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+  <div id="targetModal" class="sheet-modal fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-end justify-center">
     <form id="targetForm" onsubmit="saveVisTarget(event)" class="glass-card w-full max-w-md p-5 rounded-3xl border border-slate-800 space-y-4 max-h-full overflow-y-auto">
       <div class="flex items-center justify-between">
         <h2 id="targetModalTitle" class="text-base font-bold text-white">Target & remark</h2>
@@ -1457,7 +1509,7 @@
   </div>
 
   <!-- EDIT FOOD ENTRY MODAL -->
-  <div id="foodEditModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+  <div id="foodEditModal" class="sheet-modal fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-end justify-center">
     <form onsubmit="saveFoodEdit(event)" class="glass-card w-full max-w-md p-5 rounded-3xl border border-slate-800 space-y-4 max-h-full overflow-y-auto">
       <div class="flex items-center justify-between">
         <h2 class="text-base font-bold text-white">Edit entry</h2>
@@ -1465,16 +1517,29 @@
       </div>
       <input type="hidden" id="foodEditId">
       <div class="space-y-3 text-xs">
-        <div><label for="foodEditLabel" class="text-[11px] text-slate-400 block mb-1">Name</label><input type="text" id="foodEditLabel" maxlength="40" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"></div>
+        <div><label for="foodEditLabel" class="text-[11px] text-slate-400 block mb-1">Meal</label><select id="foodEditLabel" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><option>Breakfast</option><option>Lunch</option><option>Dinner</option><option>Snack</option></select></div>
         <div class="grid grid-cols-2 gap-2"><div><label for="foodEditCal" class="text-[11px] text-slate-400 block mb-1">kcal</label><input type="number" inputmode="numeric" step="0.1" min="0" id="foodEditCal" placeholder="kcal" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"></div><div><label for="foodEditProtein" class="text-[11px] text-slate-400 block mb-1">Protein g</label><input type="number" inputmode="decimal" step="0.1" min="0" id="foodEditProtein" placeholder="g" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"></div><div><label for="foodEditFat" class="text-[11px] text-slate-400 block mb-1">Fat g</label><input type="number" inputmode="decimal" step="0.1" min="0" id="foodEditFat" placeholder="g" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"></div><div><label for="foodEditSugar" class="text-[11px] text-slate-400 block mb-1">Sugar g</label><input type="number" inputmode="decimal" step="0.1" min="0" id="foodEditSugar" placeholder="g" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"></div></div>
       </div>
       <button type="submit" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs py-3 rounded-xl shadow-lg shadow-cyan-600/30">Save changes</button>
     </form>
   </div>
 
+  <div id="comboModal" class="sheet-modal fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-end justify-center">
+    <form onsubmit="saveCombo(event)" class="glass-card p-5 border border-slate-800 space-y-3">
+      <div class="flex items-center justify-between">
+        <h2 class="text-base font-bold text-white">Save as combo</h2>
+        <button type="button" onclick="closeCombo()" aria-label="Close" class="p-2 text-slate-400 hover:text-white rounded-xl bg-slate-800"><i class="fa-solid fa-xmark text-sm"></i></button>
+      </div>
+      <p class="text-[11px] text-slate-400">Tick the entries to bundle into one reusable meal. Its macros are added together.</p>
+      <div id="comboList" class="space-y-1.5"></div>
+      <input type="text" id="comboName" maxlength="40" placeholder="Combo name, e.g. Usual lunch" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
+      <button type="submit" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs py-3 rounded-xl shadow-lg shadow-cyan-600/30">Save combo</button>
+    </form>
+  </div>
+
   <div id="doctorSheet" class="dr-sheet" style="display:none">
     <div class="dr-safe" style="height:env(safe-area-inset-top,0px);background:#0f172a;margin:0 -16px 12px"></div>
-    <div class="dr-bar"><button type="button" onclick="printDoctorSummary()">Print / PDF</button><button type="button" onclick="shareDoctorSummary()">Share text</button><button type="button" onclick="closeDoctorSummary()">Close</button></div>
+    <div class="dr-bar"><button type="button" onclick="shareDoctorSummary()">Share text</button><button type="button" onclick="closeDoctorSummary()">Close</button></div>
     <div id="doctorBody" class="dr"></div>
   </div>
 
@@ -1934,6 +1999,8 @@
       switchTab('tab-dashboard');
       registerServiceWorker();
       initSwipes();
+      initSheets();
+      renderMealChips();
       updateFab();
     };
 
@@ -1969,7 +2036,7 @@
     function renderActiveTab() {
       const tabId = appState.activeTab;
       if (tabId === 'tab-dashboard') renderDashboard();
-      if (tabId === 'tab-visbody') renderVisbodyView();
+      if (tabId === 'tab-visbody') { renderVisbodyView(); renderScanAge(); }
       if (tabId === 'tab-mounjaro') renderMounjaroView();
       if (tabId === 'tab-dailylog') loadDailyLogForSelectedDate();
       if (tabId === 'tab-food') loadFoodLogForDate();
@@ -2036,6 +2103,7 @@
       renderDiurnalBadge();
       renderBackupBanner();
       renderTodayGlance();
+      renderBodyAnalytics();
       const vt = getVisTarget('vfl'), st = getVisTarget('smm');
       document.getElementById('kpiVflTarget').innerText = isNum(vt.target) ? `Target: Level ${vt.target}${vt.note ? ` (${vt.note})` : ''}` : (vt.note || 'Set a target on the Visbody tab');
       document.getElementById('kpiSmmGoal').innerText = isNum(st.target) ? `Target: at least ${st.target} kg${st.note ? ` (${st.note})` : ''}` : (st.note ? `Goal: ${st.note}` : 'Set a target on the Visbody tab');
@@ -2171,16 +2239,57 @@
       });
     }
 
+    const CHART_EMPTY = {
+      chartWeightTrend: 'Log at least 2 weights (AM scale or Visbody) to see the trend.',
+      chartFatTrend: 'Add at least 2 Visbody scans to see fat mass.', chartSmmTrend: 'Add at least 2 Visbody scans to see muscle mass.',
+      chartVisceralTrend: 'Add at least 2 Visbody scans to see visceral fat.', chartWaistTrend: 'Add at least 2 scans with waist measurements.',
+      chartMjActiveLevel: 'Log an injection to see your estimated level curve.', chartFoodTrend: 'Log at least 2 days of intake to see this trend.'
+    };
+    const chartPointCount = config => Math.max(0, ...config.data.datasets.filter(d => d.label !== 'Target').map(d => (d.data || []).filter(v => v !== null && v !== undefined && !Number.isNaN(v)).length));
     function createOrUpdateChart(canvasId, config) {
       if (!window.Chart) return; // Chart.js not loaded yet (first launch while offline): skip instead of breaking the page
-      if (charts[canvasId]) {
-        charts[canvasId].destroy();
+      const cv = document.getElementById(canvasId); if (!cv) return;
+      if (charts[canvasId]) { charts[canvasId].destroy(); delete charts[canvasId]; }
+      const wrap = cv.parentElement;
+      if (getComputedStyle(wrap).position === 'static') wrap.style.position = 'relative';
+      let ph = wrap.querySelector('.chart-empty');
+      let pill = wrap.previousElementSibling && wrap.previousElementSibling.classList.contains('scrub-pill') ? wrap.previousElementSibling : null;
+      if (chartPointCount(config) < 2) {
+        cv.style.display = 'none'; wrap.style.minHeight = '9rem';
+        if (!ph) { ph = document.createElement('div'); ph.className = 'chart-empty absolute inset-0 flex items-center justify-center text-center text-xs text-slate-500 px-6'; wrap.appendChild(ph); }
+        ph.textContent = CHART_EMPTY[canvasId] || 'Not enough data yet. Add at least 2 entries.'; ph.style.display = 'flex';
+        if (pill) pill.style.display = 'none';
+        return;
       }
-      const ctx = document.getElementById(canvasId);
-      if (ctx) {
-        charts[canvasId] = new Chart(ctx, config);
+      cv.style.display = ''; wrap.style.minHeight = ''; if (ph) ph.style.display = 'none';
+      if (['line', 'bar'].includes(config.type) && canvasId !== 'chartVisbodyBreakdown') {
+        if (!pill) { pill = document.createElement('div'); pill.className = 'scrub-pill text-[11px] text-slate-400 text-center h-6 leading-6 truncate'; wrap.parentElement.insertBefore(pill, wrap); }
+        pill.style.display = ''; pill.textContent = 'Touch the chart to read values'; pill.classList.remove('text-cyan-400', 'font-semibold'); pill.classList.add('text-slate-400');
+        cv.style.touchAction = 'pan-y'; // sideways drags scrub the chart, up and down still scroll the page
+        config.options = config.options || {};
+        config.options.interaction = { mode: 'index', intersect: false, ...(config.options.interaction || {}) };
+        if (window.matchMedia && matchMedia('(pointer: coarse)').matches) { // the readout pill replaces the tooltip, so a finger never hides the value
+          config.options.plugins = config.options.plugins || {};
+          config.options.plugins.tooltip = { ...(config.options.plugins.tooltip || {}), enabled: false };
+        }
       }
+      charts[canvasId] = new Chart(cv, config);
     }
+    if (window.Chart) Chart.register({
+      id: 'scrubPill',
+      afterEvent(chart, args) {
+        const e = args.event; if (!e || !['mousemove', 'mousedown', 'click'].includes(e.type)) return;
+        const pill = chart.canvas.parentElement.previousElementSibling;
+        if (!pill || !pill.classList.contains('scrub-pill')) return;
+        const els = chart.getElementsAtEventForMode(e, 'index', { intersect: false }, false); if (!els.length) return;
+        const i = els[0].index, lab = chart.data.labels ? chart.data.labels[i] : '';
+        const parts = chart.data.datasets.map((d, di) => ({ d, v: d.data[i], on: chart.isDatasetVisible(di) }))
+          .filter(x => x.on && x.v !== null && x.v !== undefined && x.d.label !== 'Target')
+          .map(x => `${String(x.d.label || '').replace(/\s*\(.*?\)/, '').slice(0, 18)} ${typeof x.v === 'number' ? Math.round(x.v * 10) / 10 : x.v}`);
+        pill.textContent = `${lab}: ${parts.join(' \u00b7 ')}`;
+        pill.classList.remove('text-slate-400'); pill.classList.add('text-cyan-400', 'font-semibold');
+      }
+    });
 
     /* ==========================================================================
        7. VISBODY REPORTS & COMPARISONS TAB
@@ -2851,28 +2960,36 @@
       renderMjActiveLevelChart();
     }
 
+    function mjLastUsed(siteId) {
+      const sh = [...appState.mjShots].reverse().find(x => x.site === siteId);
+      if (!sh) return 'Never used';
+      const d = daysSince(sh.dateTime);
+      return d === 0 ? 'Used today' : d === 1 ? '1 day ago' : `${d} days ago`;
+    }
     function initMjSiteGrid() {
-      const container = document.getElementById('mjSiteGrid');
-      container.innerHTML = '';
-      const sites = [...MJ_SITES];
-      // Editing an old entry from a site that is no longer offered keeps that site visible and selected.
-      if (!sites.some(x => x.id === appState.selectedMjSite)) sites.push({ id: appState.selectedMjSite, label: mjSiteLabel(appState.selectedMjSite) });
-      sites.forEach(site => {
-        const btn = document.createElement('button');
-        btn.type = "button";
-        btn.onclick = () => selectMjSite(site.id);
-        btn.id = `site-btn-${site.id}`;
-        btn.className = `p-2.5 rounded-xl border text-xs font-medium text-left transition flex justify-between items-center ${appState.selectedMjSite === site.id ? 'bg-emerald-950/80 border-emerald-500 text-emerald-300' : 'bg-slate-800 border-slate-700 text-slate-300'}`;
-        btn.innerHTML = `
-          <span>${site.label}</span>
-          <i class="fa-solid fa-circle-check ${appState.selectedMjSite === site.id ? 'text-emerald-400' : 'text-slate-600'}"></i>
-        `;
-        container.appendChild(btn);
-      });
+      const c = document.getElementById('mjSiteGrid'); c.className = 'space-y-2';
+      const sel = appState.selectedMjSite, rec = suggestedMjSite();
+      const zone = (id, cx, name) => {
+        const on = sel === id, isRec = rec === id && !on, used = mjLastUsed(id);
+        return `<g role="button" tabindex="0" aria-label="${name} abdomen, ${used}${isRec ? ', suggested next' : ''}" aria-pressed="${on}" style="cursor:pointer" onclick="selectMjSite('${id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectMjSite('${id}');}">
+          <ellipse cx="${cx}" cy="86" rx="32" ry="46" fill="${on ? 'rgba(16,185,129,0.28)' : 'rgba(148,163,184,0.10)'}" stroke="${on || isRec ? '#10b981' : '#64748b'}" stroke-width="${on ? 3 : 2}" ${isRec ? 'stroke-dasharray="6 4"' : ''}/>
+          <text x="${cx}" y="80" text-anchor="middle" font-size="15" font-weight="700" fill="currentColor">${name}</text>
+          <text x="${cx}" y="97" text-anchor="middle" font-size="10" fill="currentColor" opacity="0.8">${used}</text>
+          ${on || isRec ? `<text x="${cx}" y="116" text-anchor="middle" font-size="10" font-weight="700" fill="#10b981">${on ? 'Selected' : 'Next'}</text>` : ''}
+        </g>`;
+      };
+      const legacy = MJ_SITES.some(x => x.id === sel) ? '' : `<button type="button" class="w-full p-2.5 rounded-xl border border-emerald-500 bg-emerald-950/80 text-emerald-200 text-xs">${esc(mjSiteLabel(sel))} (site from the entry you are editing)</button>`;
+      c.innerHTML = `<svg viewBox="0 0 320 170" class="w-full max-w-sm mx-auto text-slate-300" role="group" aria-label="Injection site map, drawn as if you look down at your own belly">
+        <path d="M70 12 C44 26 34 62 38 100 C42 134 54 156 70 164 H250 C266 156 278 134 282 100 C286 62 276 26 250 12 Z" fill="none" stroke="#64748b" stroke-width="2"/>
+        <circle cx="160" cy="88" r="30" fill="none" stroke="#64748b" stroke-width="1.5" stroke-dasharray="3 4"/>
+        <circle cx="160" cy="88" r="4" fill="#64748b"/>
+        <text x="160" y="142" text-anchor="middle" font-size="9" fill="currentColor" opacity="0.7">keep clear of the navel</text>
+        ${zone('left_abdomen', 98, 'Left')}${zone('right_abdomen', 222, 'Right')}
+      </svg>${legacy}`;
       const hint = document.getElementById('mjSiteHint');
       if (hint) {
         const last = appState.mjShots[appState.mjShots.length - 1];
-        hint.textContent = last ? `Last shot: ${mjSiteLabel(last.site)}. Alternating sides gives each spot time to recover.` : 'Alternate between left and right abdomen each week.';
+        hint.textContent = last ? `Last shot: ${mjSiteLabel(last.site)}. Tap a side; the dashed outline is the suggested one. Drawn as if you look down at your belly.` : 'Tap a side. Alternate between left and right each week.';
       }
     }
 
@@ -2976,23 +3093,59 @@
       });
     }
 
+    // Sum of every logged dose, each decaying with a 120 h half-life: C(t) = sum D_i * 0.5^(dt_i / 120 h)
+    function mjLevelAt(shots, tMs) {
+      let c = 0;
+      for (const sh of shots) {
+        const t = new Date(sh.dateTime).getTime(), d = parseFloat(sh.dose);
+        if (isFinite(t) && isFinite(d) && tMs >= t) c += d * Math.pow(0.5, (tMs - t) / 3600000 / 120);
+      }
+      return c;
+    }
     function renderMjActiveLevelChart() {
-      // Half-life simulation ~120h (5 days), based on your most recent logged shot only.
-      const hours = Array.from({ length: 14 }, (_, i) => i * 12);
-      const labels = hours.map(h => `+${h}h`);
-
-      const shots = appState.mjShots;
-      const latestDose = shots.length ? shots[shots.length - 1].dose : 0;
-      const activeLevels = hours.map(h => latestDose * Math.pow(0.5, h / 120));
-      document.getElementById('currentActiveMjLevel').innerText = shots.length ? `Active Peak: ~${latestDose.toFixed(1)} mg` : 'No shots logged';
-
+      const lab = document.getElementById('currentActiveMjLevel');
+      const shots = appState.mjShots.filter(x => isFinite(new Date(x.dateTime).getTime()) && isFinite(parseFloat(x.dose)));
+      if (!shots.length) {
+        if (lab) lab.innerText = 'No shots logged';
+        createOrUpdateChart('chartMjActiveLevel', { type: 'line', data: { labels: [], datasets: [{ label: 'Estimated level', data: [] }] }, options: {} });
+        return;
+      }
+      const H = 3600000, now = Date.now(), start = now - 28 * 24 * H, end = now + 7 * 24 * H;
+      const last = shots.reduce((a, b) => (new Date(b.dateTime) > new Date(a.dateTime) ? b : a));
+      const dueT = new Date(last.dateTime).getTime() + 7 * 24 * H, overdue = dueT < now, nextT = overdue ? now : dueT;
+      const withNext = [...shots, { dateTime: new Date(nextT).toISOString(), dose: parseFloat(last.dose) }];
+      const ts = []; for (let t = start; t <= end; t += 6 * H) ts.push(t);
+      const nowIdx = ts.findIndex(t => t >= now), nextIdx = ts.findIndex(t => t >= nextT);
+      const r2 = v => Math.round(v * 100) / 100;
+      const logged = ts.map(t => r2(mjLevelAt(shots, t)));
+      const plan = ts.map((t, i) => (i >= nowIdx && nextT <= end ? r2(mjLevelAt(withNext, t)) : null));
+      const labels = ts.map(t => { const d = new Date(t); return `${d.getDate()} ${d.toLocaleString([], { month: 'short' })} ${pad2(d.getHours())}:00`; });
+      const nd = new Date(dueT), ndTxt = `${nd.getDate()} ${nd.toLocaleString([], { month: 'short' })}`;
+      if (lab) lab.innerText = `Now ~${mjLevelAt(shots, now).toFixed(1)} mg \u00b7 ${overdue ? 'next dose was due ' : 'next dose '}${ndTxt}`;
       createOrUpdateChart('chartMjActiveLevel', {
         type: 'line',
-        data: {
-          labels,
-          datasets: [{ label: 'Estimated Blood Level (mg)', data: activeLevels, borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.15)', fill: true, tension: 0.4 }]
-        },
-        options: chartOpts({ ...NO_LEGEND, scales: { x: { ticks: { maxTicksLimit: 7 } } } }, 0)
+        data: { labels, datasets: [
+          { label: 'Level (logged doses)', data: logged, borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.15)', fill: true, pointRadius: 0, tension: 0.25, segment: { borderDash: c => (c.p0DataIndex >= nowIdx ? [5, 4] : undefined) } },
+          { label: 'If next dose is taken', data: plan, borderColor: '#06b6d4', borderDash: [4, 4], pointRadius: 0, tension: 0.25 }
+        ] },
+        options: chartOpts({ plugins: { legend: { display: true, position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } }, scales: { x: { ticks: { autoSkip: false, maxRotation: 0, callback: (v, i) => (i % 16 === 0 ? labels[i].slice(0, -6) : '') } } } }, 0),
+        plugins: [{
+          id: 'mjMarks',
+          afterDatasetsDraw(chart) {
+            const { ctx, chartArea: a, scales: { x } } = chart;
+            ctx.save(); ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+            const mark = (i, txt, col, dy) => {
+              if (i < 0) return;
+              const px = x.getPixelForValue(i);
+              ctx.strokeStyle = col; ctx.fillStyle = col; ctx.setLineDash([3, 3]);
+              ctx.beginPath(); ctx.moveTo(px, a.top); ctx.lineTo(px, a.bottom); ctx.stroke(); ctx.setLineDash([]);
+              ctx.fillText(txt, Math.min(Math.max(px, a.left + 28), a.right - 28), a.top + dy);
+            };
+            mark(nowIdx, overdue ? 'Now \u00b7 dose due' : 'Now', '#f59e0b', 10);
+            if (!overdue) mark(nextIdx, 'Next dose', '#06b6d4', 22);
+            ctx.restore();
+          }
+        }]
       });
     }
 
@@ -3439,6 +3592,8 @@
       put('calSrc', `minimum ${targetSrc(f) || 'not set'} \u00b7 maximum ${targetSrc(c) || 'not set'}`);
       put('fatSrc', `maximum ${targetSrc(fm) || 'not set'}`);
       put('sugarSrc', `maximum ${own('sugarMax')}`);
+      const ln = document.getElementById('targetsLine');
+      if (ln) ln.textContent = `${f ? f.value.toLocaleString() : '\u2013'}\u2013${c ? c.value.toLocaleString() : '\u2013'} kcal \u00b7 fat \u2264 ${fm ? fmtFood(fm.value) : '\u2013'} g \u00b7 sugar \u2264 ${fmtFood(sugarMax())} g \u00b7 protein \u2265 ${fmtFood(proteinTarget())} g`;
     }
     function renderTargetsAudit() {
       const el = document.getElementById('targetsAudit'); if (!el) return;
@@ -3486,6 +3641,7 @@
           + chip(t.fat, 'F', L.fat && isNum(t.fat) && t.fat > L.fat ? 'text-rose-400' : 'text-white')
           + chip(t.sugar, 'S', isNum(t.sugar) && t.sugar > L.sugar ? 'text-rose-400' : 'text-white');
       }
+      renderMealSplit();
       updateFab();
     }
 
@@ -3508,6 +3664,7 @@
       playSfx('click');
       const box = tgt('targetsEditor'), open = box.classList.contains('hidden');
       box.classList.toggle('hidden', !open);
+      tgt('targetsSummary').classList.toggle('hidden', !open); tgt('targetsLine').classList.toggle('hidden', open);
       if (!open) return;
       const val = v => (isNum(v) && v > 0 ? v : '');
       tgt('targetProteinInput').value = proteinTarget(); tgt('targetSugarMaxInput').value = sugarMax();
@@ -3672,12 +3829,6 @@
       document.getElementById('doctorSheet').scrollTop = 0;
     }
     function closeDoctorSummary() { document.getElementById('doctorSheet').style.display = 'none'; }
-    function printDoctorSummary() {
-      document.body.classList.add('printing');
-      window.addEventListener('afterprint', () => document.body.classList.remove('printing'), { once: true });
-      setTimeout(() => document.body.classList.remove('printing'), 60000);
-      window.print();
-    }
     async function shareDoctorSummary() {
       try { if (navigator.share) { await navigator.share({ title: 'Health summary', text: doctorText }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
       try { await navigator.clipboard.writeText(doctorText); showToast('Summary copied'); } catch (e) { showToast("Couldn't share the summary", 'error'); }
@@ -3728,7 +3879,7 @@
       if (isNum(foodBase.calories) || isNum(foodBase.protein) || isNum(foodBase.fat) || isNum(foodBase.sugar)) {
         parts.push({ label: 'Day total entered', time: '', vals: foodBase, base: true });
       }
-      foodEntries.forEach(e => parts.push({ label: e.label || 'Added', time: e.t ? new Date(e.t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '', vals: e, id: e.id }));
+      foodEntries.forEach(e => parts.push({ label: e.label || 'Added', time: e.t ? new Date(e.t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '', vals: e, id: e.id, note: e.note }));
       list.innerHTML = parts.length ? parts.map(p => {
         const bits = [];
         if (isNum(p.vals.calories)) bits.push(`${fmtFood(p.vals.calories)} kcal`);
@@ -3736,7 +3887,7 @@
         if (isNum(p.vals.fat)) bits.push(`${fmtFood(p.vals.fat)} g fat`);
         if (isNum(p.vals.sugar)) bits.push(`${fmtFood(p.vals.sugar)} g sugar`);
         return `<div data-eid="${p.base ? '' : p.id}" class="flex items-center gap-2 p-2 bg-slate-800/60 rounded-lg border border-slate-800 text-[11px]">
-          <div class="min-w-0 flex-1"><div class="text-slate-200 truncate">${esc(p.label)}${p.time ? ` <span class="text-slate-500">${esc(p.time)}</span>` : ''}</div>
+          <div class="min-w-0 flex-1"><div class="text-slate-200 truncate">${esc(p.label)}${p.note ? ` <span class="text-cyan-400">\u00b7 ${esc(p.note)}</span>` : ''}${p.time ? ` <span class="text-slate-500">${esc(p.time)}</span>` : ''}</div>
           <div class="text-slate-400">${bits.join(' \u00b7 ') || '&ndash;'}</div></div>
           ${p.base ? '' : `<button type="button" aria-label="Save as a meal" onclick="saveMealFromEntry('${p.id}')" class="flex-none p-1.5 text-slate-500 hover:text-amber-400"><i class="fa-solid fa-star text-[11px]"></i></button>`}
           <button type="button" aria-label="Edit this entry" onclick="${p.base ? "switchFoodMode('total')" : `openFoodEdit('${p.id}')`}" class="flex-none p-1.5 text-slate-500 hover:text-cyan-400"><i class="fa-solid fa-pen text-[11px]"></i></button>
@@ -3767,7 +3918,10 @@
     }
 
     function addFoodEntry(prefill) {
-      const label = prefill ? prefill.label : (document.getElementById('foodItemLabel').value || '').trim();
+      const sel = (document.getElementById('foodItemLabel').value || '').trim();
+      const label = prefill ? (prefill.label || sel) : sel;
+      const note = prefill && prefill.note ? prefill.note : '';
+      if (!label) { showToast('Pick Breakfast, Lunch, Dinner or Snack first.', 'warn'); return; }
       const cal = prefill ? prefill.calories : readFoodNum('foodItemCal', 5000);
       const protein = prefill ? (prefill.protein ?? null) : readFoodNum('foodItemProtein', 500);
       const fat = prefill ? prefill.fat : readFoodNum('foodItemFat', 500);
@@ -3776,8 +3930,8 @@
       if (cal === null && protein === null && fat === null && sugar === null) { showToast('Type calories, protein, fat or sugar first.', 'warn'); return; }
       playSfx('add');
       const before = foodTotals();
-      foodEntries.push({ id: `f_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`, t: Date.now(), label, calories: cal, protein, fat, sugar });
-      if (!prefill) ['foodItemLabel', 'foodItemCal', 'foodItemProtein', 'foodItemFat', 'foodItemSugar'].forEach(id => { document.getElementById(id).value = ''; });
+      foodEntries.push({ id: `f_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`, t: Date.now(), label, ...(note ? { note } : {}), calories: cal, protein, fat, sugar });
+      if (!prefill) ['foodItemCal', 'foodItemProtein', 'foodItemFat', 'foodItemSugar'].forEach(id => { document.getElementById(id).value = ''; });
       renderFoodDay();
       saveFoodLogForDate(true);
       checkLimitCrossing(before, foodTotals());
@@ -3786,7 +3940,7 @@
     const getMeals = () => (Array.isArray(prefs.meals) ? prefs.meals : []);
     function saveMealFromEntry(id) {
       const e = foodEntries.find(x => x.id === id); if (!e) return;
-      const label = (e.label || prompt('Name this meal') || '').trim(); if (!label) return;
+      const label = (prompt('Name this meal (e.g. Usual lunch)', e.note || '') || '').trim(); if (!label) return;
       const meal = { id: `m_${Date.now().toString(36)}`, label, calories: e.calories ?? null, protein: e.protein ?? null, fat: e.fat ?? null, sugar: e.sugar ?? null };
       prefs.meals = [meal, ...getMeals().filter(m => m.label.toLowerCase() !== label.toLowerCase())].slice(0, 20);
       LS.set('vmt_prefs', prefs); playSfx('chime'); showToast('Saved as a meal'); renderFoodRecent();
@@ -3796,7 +3950,7 @@
       const e = foodEntries.find(x => x.id === id); if (!e) return;
       playSfx('click');
       const set = (k, v) => { document.getElementById(k).value = v ?? ''; };
-      set('foodEditId', e.id); set('foodEditLabel', e.label); set('foodEditCal', e.calories); set('foodEditProtein', e.protein); set('foodEditFat', e.fat); set('foodEditSugar', e.sugar);
+      set('foodEditId', e.id); ensureMealOption(e.label); set('foodEditLabel', e.label); set('foodEditCal', e.calories); set('foodEditProtein', e.protein); set('foodEditFat', e.fat); set('foodEditSugar', e.sugar);
       document.getElementById('foodEditModal').classList.remove('hidden');
     }
     function closeFoodEdit() { document.getElementById('foodEditModal').classList.add('hidden'); }
@@ -3878,10 +4032,12 @@
         w.className = 'inline-flex items-center rounded-full bg-slate-800 border border-amber-800/60 text-[11px] text-slate-300 overflow-hidden';
         const b = document.createElement('button'); b.type = 'button'; b.className = 'pl-2.5 pr-1.5 py-1 hover:text-white';
         b.textContent = `\u2605 ${m.label}${isNum(m.calories) ? ` \u00b7 ${fmtFood(m.calories)}` : ''}${isNum(m.protein) ? ` \u00b7 ${fmtFood(m.protein)}P` : ''}`;
-        b.onclick = () => { addFoodEntry({ label: m.label, calories: m.calories ?? null, protein: m.protein ?? null, fat: m.fat ?? null, sugar: m.sugar ?? null }); showToast(`Added ${m.label}`); };
+        b.onclick = () => addSavedMeal(m);
         const x = document.createElement('button'); x.type = 'button'; x.setAttribute('aria-label', `Remove saved meal ${m.label}`); x.className = 'pr-2 pl-1 py-1 text-slate-500 hover:text-rose-400'; x.innerHTML = '<i class="fa-solid fa-xmark text-[10px]"></i>'; x.onclick = () => removeMeal(m.id);
         w.append(b, x); host.appendChild(w);
       });
+      const mr = document.getElementById('mealMultRow'); if (mr) mr.style.display = meals.length ? 'flex' : 'none';
+      renderMealChips();
       const savedLabels = new Set(meals.map(m => m.label.toLowerCase()));
       top.filter(({ e }) => !savedLabels.has(e.label.toLowerCase())).forEach(({ e }) => {
         const b = document.createElement('button');
@@ -4755,8 +4911,164 @@ const RISE_NAME = { navel: 'navel waist', below: 'low waist', hip: 'upper hip' }
     function toggleSettingsDrawer(show) {
       playSfx('click');
       const drawer = document.getElementById('settingsDrawer');
-      if (show) { drawer.classList.remove('hidden'); renderSizePredictor(); }
+      if (show) drawer.classList.remove('hidden');
       else drawer.classList.add('hidden');
+    }
+
+    function toggleSizeDrawer(show) {
+      playSfx('click');
+      const d = document.getElementById('sizeDrawer');
+      if (show) { d.classList.remove('hidden'); renderSizePredictor(); } else d.classList.add('hidden');
+    }
+    // Backdrop tap closes a bottom sheet; --kb lifts the sheet above the iPhone keyboard
+    function initSheets() {
+      document.querySelectorAll('.sheet-modal').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.add('hidden'); }));
+      const vv = window.visualViewport;
+      if (vv) {
+        const upd = () => document.documentElement.style.setProperty('--kb', Math.max(0, window.innerHeight - vv.height - vv.offsetTop) + 'px');
+        vv.addEventListener('resize', upd); vv.addEventListener('scroll', upd);
+      }
+    }
+
+    /* ---- meal type, portion multiplier, combos, protein by meal ---- */
+    let foodMult = 1;
+    function pickMeal(m) {
+      playSfx('click');
+      const i = document.getElementById('foodItemLabel'); i.value = i.value === m ? '' : m;
+      renderMealChips();
+    }
+    function setFoodMult(m) { playSfx('click'); foodMult = m; renderMealChips(); }
+    function renderMealChips() {
+      const v = (document.getElementById('foodItemLabel') || {}).value || '';
+      document.querySelectorAll('.meal-chip').forEach(b => {
+        b.className = `meal-chip py-2 rounded-xl border text-xs font-semibold ${b.dataset.meal === v ? 'bg-slate-800 border-cyan-500 text-cyan-400' : 'border-slate-700 bg-slate-800 text-slate-300'}`;
+      });
+      document.querySelectorAll('[data-mult]').forEach(b => {
+        b.className = `px-2.5 py-1 rounded-full border text-[11px] font-semibold ${parseFloat(b.dataset.mult) === foodMult ? 'border-cyan-500 text-cyan-400 bg-slate-800' : 'border-slate-700 text-slate-300 bg-slate-800'}`;
+      });
+    }
+    function addSavedMeal(m) {
+      const k = foodMult, sc = v => (isNum(v) ? Math.round(v * k * 10) / 10 : null);
+      addFoodEntry({ label: '', note: `${m.label}${k !== 1 ? ` \u00d7${k}` : ''}`, calories: isNum(m.calories) ? Math.round(m.calories * k) : null, protein: sc(m.protein), fat: sc(m.fat), sugar: sc(m.sugar) });
+    }
+    function ensureMealOption(v) {
+      const sel = document.getElementById('foodEditLabel');
+      if (v && ![...sel.options].some(o => o.value === v)) { const o = document.createElement('option'); o.value = v; o.textContent = v; sel.appendChild(o); }
+    }
+    function openCombo() {
+      if (foodEntries.length < 2) { showToast('Log at least 2 entries to bundle.', 'warn'); return; }
+      playSfx('click');
+      document.getElementById('comboList').innerHTML = foodEntries.map(e => `<label class="flex items-center gap-2 p-2 bg-slate-800/60 rounded-lg border border-slate-800 text-[11px]"><input type="checkbox" data-cid="${esc(e.id)}" checked class="w-4 h-4 rounded"><span class="flex-1 text-slate-200">${esc(e.label || 'Entry')}${e.note ? ` \u00b7 ${esc(e.note)}` : ''}</span><span class="text-slate-400">${fmtFood(e.calories)} kcal \u00b7 ${fmtFood(e.protein)} P</span></label>`).join('');
+      document.getElementById('comboName').value = '';
+      document.getElementById('comboModal').classList.remove('hidden');
+    }
+    function closeCombo() { document.getElementById('comboModal').classList.add('hidden'); }
+    function saveCombo(ev) {
+      ev.preventDefault();
+      const ids = [...document.querySelectorAll('#comboList [data-cid]:checked')].map(c => c.dataset.cid);
+      const parts = foodEntries.filter(e => ids.includes(e.id)), name = document.getElementById('comboName').value.trim();
+      if (parts.length < 2) { showToast('Tick at least 2 entries.', 'warn'); return; }
+      if (!name) { showToast('Give the combo a name.', 'warn'); return; }
+      const sum = k => { const v = parts.map(p => p[k]).filter(isNum); return v.length ? Math.round(v.reduce((a, b) => a + b, 0) * 10) / 10 : null; };
+      const meal = { id: `m_${Date.now().toString(36)}`, label: name, calories: sum('calories'), protein: sum('protein'), fat: sum('fat'), sugar: sum('sugar'), combo: parts.length };
+      prefs.meals = [meal, ...getMeals().filter(m => m.label.toLowerCase() !== name.toLowerCase())].slice(0, 20);
+      LS.set('vmt_prefs', prefs); closeCombo(); playSfx('chime'); showToast(`Saved combo “${name}”`); renderFoodRecent();
+    }
+    function renderMealSplit() {
+      const el = document.getElementById('foodMealSplit'); if (!el) return;
+      const g = { Breakfast: 0, Lunch: 0, Dinner: 0, Snack: 0 };
+      foodEntries.forEach(e => {
+        if (!isNum(e.protein)) return;
+        const l = String(e.label || '').toLowerCase();
+        g[l.includes('breakfast') ? 'Breakfast' : l.includes('lunch') ? 'Lunch' : l.includes('dinner') ? 'Dinner' : 'Snack'] += e.protein;
+      });
+      const tot = Object.values(g).reduce((a, b) => a + b, 0);
+      if (!tot) { el.classList.add('hidden'); return; }
+      el.classList.remove('hidden');
+      const col = { Breakfast: 'bg-amber-400', Lunch: 'bg-cyan-500', Dinner: 'bg-violet-500', Snack: 'bg-rose-400' }, base = Math.max(proteinTarget(), tot);
+      el.innerHTML = `<div class="text-[11px] text-slate-400">Protein by meal</div><div class="flex h-2 rounded-full bg-slate-800 overflow-hidden">${Object.entries(g).filter(([, v]) => v > 0).map(([k, v]) => `<div class="${col[k]}" style="width:${(v / base) * 100}%"></div>`).join('')}</div><div class="flex justify-between text-[10px] text-slate-400">${Object.entries(g).map(([k, v]) => `<span>${k[0]} ${fmtFood(Math.round(v * 10) / 10)} g</span>`).join('')}</div>`;
+    }
+
+    /* ---- body recomposition, pace, goal ETA, scan age ---- */
+    function weightPace(logs, today) {
+      const t0 = parseLocalDate(addDaysStr(today, -28)).getTime();
+      const pts = logs.filter(l => isNum(l.amWeight) && parseLocalDate(l.date).getTime() >= t0).map(l => ({ x: (parseLocalDate(l.date).getTime() - t0) / 86400000, y: l.amWeight }));
+      if (pts.length < 2) return null;
+      const xs = pts.map(p => p.x);
+      if (Math.max(...xs) - Math.min(...xs) < 14) return null;
+      const n = pts.length, mx = xs.reduce((a, b) => a + b, 0) / n, my = pts.reduce((a, p) => a + p.y, 0) / n;
+      const slope = pts.reduce((a, p) => a + (p.x - mx) * (p.y - my), 0) / pts.reduce((a, p) => a + (p.x - mx) ** 2, 0); // kg per day
+      return { kg: -slope * 7, pct: (-slope * 7 / my) * 100, n };
+    }
+    function renderScanAge() {
+      const el = document.getElementById('scanAgeLine'); if (!el) return;
+      const sc = [...appState.visbodyScans].sort((a, b) => a.date.localeCompare(b.date)), last = sc[sc.length - 1];
+      if (!last) { el.textContent = 'No scans yet.'; return; }
+      const d = daysSince(`${last.date}T00:00:00`);
+      el.textContent = `Last scan: ${shortDate(last.date, true)} \u00b7 ${d === 0 ? 'today' : d === 1 ? '1 day ago' : `${d} days ago`}`;
+    }
+    function renderBodyAnalytics() {
+      const q = id => document.getElementById(id); if (!q('rePace')) return;
+      const r1 = v => Math.round(v * 10) / 10, setCls = (id, c) => { q(id).className = `text-base font-bold ${c}`; };
+      const sc = appState.visbodyScans.filter(x => isNum(x.weight) && isNum(x.bfm)).sort((a, b) => a.date.localeCompare(b.date));
+      q('reRatio').textContent = '\u2013'; setCls('reRatio', 'text-white');
+      if (sc.length < 2) q('reRatioSub').textContent = 'Needs 2 scans with weight and fat mass';
+      else {
+        const p = sc[sc.length - 2], c = sc[sc.length - 1], dW = c.weight - p.weight, dF = c.bfm - p.bfm;
+        if (dW <= -1) {
+          const ratio = dF / dW, pct = Math.round(Math.max(0, ratio) * 100);
+          q('reRatio').textContent = ratio > 1 ? '100%+' : `${pct}%`;
+          setCls('reRatio', pct >= 70 ? 'text-emerald-400' : pct >= 50 ? 'text-amber-400' : 'text-rose-400');
+          q('reRatioSub').textContent = `${r1(-dF)} kg of fat in ${r1(-dW)} kg lost (${shortDate(p.date)} to ${shortDate(c.date)})`;
+        } else q('reRatioSub').textContent = dW > 0 ? 'Weight rose between the last two scans' : 'Needs at least 1 kg of loss between scans';
+      }
+      const today = localDateStr(), pace = weightPace(appState.amScaleLogs, today), mk = q('paceMarker');
+      if (pace) {
+        const losing = pace.pct > 0, zone = pace.pct < 0.5 ? 'Below the usual 0.5 to 1.0% band' : pace.pct <= 1.0 ? 'Inside the usual 0.5 to 1.0% band' : 'Faster than the usual 0.5 to 1.0% band';
+        q('rePace').textContent = losing ? `${pace.pct.toFixed(2)} %/wk` : 'Not losing';
+        setCls('rePace', !losing || pace.pct < 0.5 ? 'text-amber-400' : pace.pct <= 1.0 ? 'text-emerald-400' : 'text-rose-400');
+        q('rePaceSub').textContent = `${Math.abs(pace.kg).toFixed(2)} kg/wk ${losing ? 'down' : 'up'}, ${pace.n} weigh-ins`;
+        q('rePaceZone').textContent = losing ? zone : 'Weight is flat or rising over the last 4 weeks';
+        mk.classList.remove('hidden'); mk.style.left = `${Math.min(1, Math.max(0, pace.pct / 1.5)) * 100}%`;
+      } else {
+        q('rePace').textContent = '\u2013'; setCls('rePace', 'text-white');
+        q('rePaceSub').textContent = 'Needs 2+ AM weights over at least 2 weeks'; q('rePaceZone').textContent = ''; mk.classList.add('hidden');
+      }
+      const tw = Number(profile.targetWeight), sw = Number(profile.startWeight);
+      const am = [...appState.amScaleLogs].filter(l => isNum(l.amWeight)).sort((a, b) => a.date.localeCompare(b.date));
+      const cw = am.length ? am[am.length - 1].amWeight : (sc.length ? sc[sc.length - 1].weight : null), out = [];
+      if (cw !== null && isFinite(tw) && tw > 0) {
+        if (cw <= tw) out.push('You have reached your target weight.');
+        else if (pace && pace.kg > 0.05) { const wk = (cw - tw) / pace.kg; out.push(`At this pace you reach ${tw} kg around ${shortDate(addDaysStr(today, Math.round(wk * 7)), true)} (about ${Math.round(wk)} weeks).`); }
+        else out.push('A steady loss trend is needed to estimate your target date.');
+      }
+      if (cw !== null && isFinite(sw) && sw > cw) { const lost = sw - cw, next = Math.floor(lost / 5) * 5 + 5; out.push(`Lost ${r1(lost)} kg so far. Next 5 kg milestone: ${r1(sw - next)} kg (${r1(next - lost)} kg to go).`); }
+      q('reEta').textContent = out.join(' ');
+    }
+
+    /* ---- CSV export ---- */
+    const csvCell = v => { if (v === null || v === undefined) return ''; const t = typeof v === 'object' ? JSON.stringify(v) : String(v); return /[",\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t; };
+    const toCsv = (head, rows) => [head.join(','), ...rows.map(r => head.map(h => csvCell(r[h])).join(','))].join('\n');
+    async function exportCsv() {
+      playSfx('chime');
+      try {
+        const [scans, ams, shots, dailies, foods] = await Promise.all(['visbodyScans', 'amScaleLogs', 'mjShots', 'dailyLogs', 'foodLogs'].map(x => dbGetAll(x)));
+        const byDate = (a, k = 'date') => [...a].sort((x, y) => String(x[k]).localeCompare(String(y[k])));
+        const scanHead = ['date', ...[...new Set(scans.flatMap(x => Object.keys(x)))].filter(k => k !== 'date')];
+        const days = [...new Set([...foods.map(x => x.date), ...dailies.map(x => x.date)])].sort();
+        const intake = days.map(d => { const f = foods.find(x => x.date === d) || {}, g = dailies.find(x => x.date === d) || {}, L = f.limits || {};
+          return { date: d, calories: f.calories, protein_g: f.protein, fat_g: f.fat, sugar_g: f.sugar, water_ml: f.water, protein_target: f.proteinTarget, calorie_min: L.calMin, calorie_max: L.calMax, fat_max: L.fat, sugar_max: L.sugar, steps: g.steps }; });
+        const files = [
+          ['AM_weights.csv', toCsv(['date', 'amWeight'], byDate(ams))],
+          ['Visbody_scans.csv', toCsv(scanHead, byDate(scans))],
+          ['Injections.csv', toCsv(['dateTime', 'dose', 'site', 'appetite', 'notes'], byDate(shots, 'dateTime'))],
+          ['Daily_intake.csv', toCsv(['date', 'calories', 'protein_g', 'fat_g', 'sugar_g', 'water_ml', 'protein_target', 'calorie_min', 'calorie_max', 'fat_max', 'sugar_max', 'steps'], intake)]
+        ].map(([n, t]) => new File([t], `VM_${localDateStr()}_${n}`, { type: 'text/csv' }));
+        try { if (navigator.canShare && navigator.canShare({ files })) { await navigator.share({ files, title: 'VM Tracker CSV export' }); showToast('CSV files ready'); return; } }
+        catch (err) { if (err && err.name === 'AbortError') return; }
+        files.forEach((f, i) => setTimeout(() => { const u = URL.createObjectURL(f), a = document.createElement('a'); a.href = u; a.download = f.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000); }, i * 400));
+        showToast('CSV files saved');
+      } catch (err) { showToast("Couldn't build the CSV files", 'error'); }
     }
 
     function setAccentColor(className) {
@@ -4845,6 +5157,9 @@ const RISE_NAME = { navel: 'navel waist', below: 'low waist', hip: 'upper hip' }
         try {
           const imported = JSON.parse(event.target.result);
           validateBackup(imported); // checked up front so a bad file can't half-import
+          const cnt = k => (Array.isArray(imported[k]) ? imported[k].length : 0);
+          const dts = [...(imported.foodLogs || []), ...(imported.amScaleLogs || [])].map(r => r.date).filter(Boolean).sort();
+          if (!confirm(`This backup contains:\n\u2022 ${cnt('visbodyScans')} Visbody scans\n\u2022 ${cnt('amScaleLogs')} AM weights\n\u2022 ${cnt('mjShots')} injections\n\u2022 ${cnt('dailyLogs')} daily logs\n\u2022 ${cnt('foodLogs')} food days${dts.length ? `\nDates ${dts[0]} to ${dts[dts.length - 1]}` : ''}\n\nImporting merges these into your data and replaces records on the same dates. Continue?`)) { input.value = ''; return; }
 
           const tx = db.transaction(BACKUP_STORES, "readwrite");
           BACKUP_STORES.forEach(s => {

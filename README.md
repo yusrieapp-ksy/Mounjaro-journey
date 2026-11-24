@@ -3,6 +3,19 @@
 A single-page tracker that installs on an iPhone home screen, runs full-screen, and works offline.
 Everything you enter stays on your device (IndexedDB and localStorage). Nothing is sent to a server.
 
+## What's new in v8.5
+
+- **Size predictor has its own sheet.** The shirt button opens a slide-up Size Predictor. Settings now holds only app settings, backups and the doctor summary.
+- **Food: log by meal.** Pick Breakfast, Lunch, Dinner or Snack instead of typing a name. Saved meals add a portion multiplier (0.5x, 1x, 1.5x, 2x) and **Save entries as a combo** bundles several entries into one reusable saved meal. A bar shows protein by meal. Daily targets collapse to one line until you tap Edit all.
+- **Macro bar fix.** The sticky kcal / P / F / S bar now docks flush under the header with a solid background.
+- **Bottom sheets** for editing a food entry, Visbody targets, routines and medications: they slide up, lift above the keyboard and close when you tap outside.
+- **Injection site map.** A belly diagram with tappable Left and Right zones shows when each side was last used and outlines the suggested side. The appetite rating now starts at 5.
+- **Level curve** adds up every logged dose (120 h half-life) over the last 28 days plus a 7-day projection, marks Now and the next dose, and shows the effect of taking it. It is an estimate.
+- **Charts:** a readout line above each chart updates as you slide a finger across it, and charts with fewer than 2 points show a short empty-state message.
+- **Recomposition and pace** on the Dashboard: fat share of the weight lost between your last two scans (needs at least 1 kg change), 4-week loss pace against the 0.5 to 1.0% a week reference band, an estimated target date and 5 kg milestones.
+- **Backup restore preview** before anything is imported, **CSV export** (weights, scans, injections, intake) in Settings, and **days since last scan** on the Visbody tab.
+- **Removed:** PDF/print export from the doctor summary (Share text stays).
+
 ## What's new in v8.4
 
 - **One Daily targets card** under Added sugar. Tap **Edit all** to change protein, sugar, fat, and the calorie minimum and maximum in one panel. Every limit is labelled **auto** (calculated from your scan BMR, activity and deficit), **set by you** or **default**, and each auto-capable field has **Reset to auto**. The panel shows when each target was last changed.
@@ -11,7 +24,7 @@ Everything you enter stays on your device (IndexedDB and localStorage). Nothing 
 - **Sounds:** distinct tones for add, water and undo, plus alert tones for protein target reached and going over a limit (own toggle in Settings). Needs the iPhone ring/silent switch on ring.
 - **Motion:** bars animate, numbers count up, tabs fade in, and reaching the protein target pulses the number. All of it respects iPhone Reduce Motion.
 - **Swipes:** swipe a food entry left to delete (with undo) or right to save it as a meal. Swipe the Food or Daily page sideways to change the day.
-- **Doctor summary** (Settings): weight trend, latest Visbody numbers, injections, 7-day intake and steps vs targets, and the targets themselves. Print / PDF or share as text.
+- **Doctor summary** (Settings): weight trend, latest Visbody numbers, injections, 7-day intake and steps vs targets, and the targets themselves. Share as text. (There is no PDF export.)
 - **Streak:** a "n-day streak" badge on Today at a glance counts consecutive days with food or water logged.
 
 ## What's new in v8.3
