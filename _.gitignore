@@ -1,0 +1,5 @@
+# Never commit personal data to a public repository
+*[Bb]ackup*.json
+VMT-PRIVATE-*
+*.visbody.pdf
+Body_*.pdf

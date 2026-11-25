@@ -1,8 +1,36 @@
 <!DOCTYPE html>
+<!--
+Copyright (c) 2026 Yusrie. All rights reserved.
+
+This software and its source code belong to Yusrie.
+No permission is granted to copy, modify, distribute,
+sublicense or sell this software or any part of it
+without prior written permission from the copyright owner.
+-->
 <html lang="en" class="h-full bg-slate-900 text-slate-100">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="googlebot" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <script>
+    /* v8.9 privacy: a Content Security Policy limits where this page may connect. It is written in here (before any other
+       script) so it can have a safety switch: if a change ever makes the app misbehave, open the app address with ?nocsp=1
+       once to turn the policy off, and ?nocsp=0 to turn it back on. */
+    (function () {
+      try {
+        if (/[?&]nocsp=1/.test(location.search)) localStorage.setItem('vmt_csp_off', '1');
+        if (/[?&]nocsp=0/.test(location.search)) localStorage.removeItem('vmt_csp_off');
+        if (localStorage.getItem('vmt_csp_off') === '1') return;
+        if (localStorage.getItem('vmt_lock')) document.documentElement.classList.add('app-locked');
+      } catch (e) { /* ignore */ }
+      var csp = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' data: https://cdnjs.cloudflare.com; img-src 'self' data: blob:; media-src 'self' blob: data:; connect-src 'self' https://cdnjs.cloudflare.com blob: data:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'";
+      document.write('<meta http-equiv="Content-Security-Policy" content="' + csp + '">');
+    })();
+    /* Lock screen first paint: show it before anything else renders when a passcode is set. */
+    (function () { try { if (localStorage.getItem('vmt_lock')) document.documentElement.classList.add('app-locked'); } catch (e) { /* ignore */ } })();
+  </script>
   <title>VM Tracker</title>
   <script>
     /* Apply the saved appearance before first paint so there is no dark flash in light mode. */
@@ -252,6 +280,22 @@
     /* ---- v8.5 ---- */
     #foodPinned { top: -1rem; background: #0f172a; -webkit-backdrop-filter: none; backdrop-filter: none; }
     html.light #foodPinned { background: #ffffff; }
+    /* v8.9: passcode lock, privacy shield, welcome overlay */
+    #lockScreen { display: none; }
+    html.app-locked #lockScreen { display: flex; }
+    html.app-locked body { overflow: hidden; }
+    .pad-dot { width: 14px; height: 14px; border-radius: 9999px; border: 2px solid rgba(255,255,255,.55); transition: background .12s, transform .12s; }
+    .pad-dot.on { background: #22d3ee; border-color: #22d3ee; transform: scale(1.12); }
+    .pin-key { height: 62px; border-radius: 9999px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); color: #fff; font-size: 22px; font-weight: 600; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    .pin-key:active { background: rgba(255,255,255,.24); }
+    @keyframes padShake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-10px); } 40% { transform: translateX(9px); } 60% { transform: translateX(-6px); } 80% { transform: translateX(4px); } }
+    .shake { animation: padShake .38s ease; }
+    #welcomeOverlay { transition: opacity .28s ease; }
+    @keyframes welcomeRise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+    .w-rise { animation: welcomeRise .55s cubic-bezier(.2,.8,.2,1) both; }
+    @keyframes welcomeGlow { 0%,100% { transform: scale(1); opacity: .5; } 50% { transform: scale(1.12); opacity: .8; } }
+    .w-glow { animation: welcomeGlow 7s ease-in-out infinite; }
+    @media (prefers-reduced-motion: reduce) { .w-rise, .w-glow, .shake { animation: none !important; } #welcomeOverlay { transition: none; } }
     .sheet-modal { align-items: flex-end; padding: 0 0 var(--kb, 0px); }
     .sheet-modal > * { width: 100%; max-width: 28rem; border-radius: 1.5rem 1.5rem 0 0 !important; max-height: min(88dvh, calc(100dvh - var(--kb, 0px) - 0.75rem)); overflow-y: auto; padding-bottom: calc(1.25rem + env(safe-area-inset-bottom)) !important; animation: sheetUp 0.28s cubic-bezier(0.2, 0.8, 0.2, 1); }
     .sheet-modal:not(.hidden) { animation: sheetFade 0.2s ease; }
@@ -265,6 +309,20 @@
 </head>
 
 <body class="h-full font-sans antialiased bg-slate-900 text-slate-100 accent-cyan selection:bg-cyan-500 selection:text-white">
+<!-- v8.9: passcode lock screen -->
+<div id="lockScreen" class="fixed inset-0 z-[200] flex-col items-center justify-center px-6" role="dialog" aria-label="App locked" style="background:radial-gradient(120% 90% at 50% 0%,#0e3a4a 0%,#0b1220 55%,#070b14 100%);color:#fff;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)">
+  <svg class="w-16 h-16 rounded-2xl shadow-xl" style="box-shadow:0 10px 30px rgba(8,145,178,.35)" aria-hidden="true"><use href="#vmMark"/></svg>
+  <div class="mt-4 text-lg font-extrabold tracking-tight" style="color:#fff">Visbody &amp; Mounjaro</div>
+  <div class="text-xs mb-7" style="color:#94a3b8">Enter your passcode</div>
+  <div id="lockPadHost"></div>
+  <button type="button" onclick="openForgotPin()" class="mt-6 text-xs underline" style="color:#94a3b8">Forgot passcode?</button>
+</div>
+<div id="privacyShield" onclick="showShield(false)" style="display:none;position:fixed;inset:0;z-index:190;background:#0b1220;align-items:center;justify-content:center;flex-direction:column;color:#fff">
+  <svg class="w-16 h-16 rounded-2xl" aria-hidden="true"><use href="#vmMark"/></svg>
+  <div class="mt-3 text-sm font-bold" style="color:#cbd5e1">Visbody &amp; Mounjaro Tracker</div>
+</div>
+<div id="welcomeOverlay" class="fixed inset-0 z-[150] hidden" onclick="dismissWelcome()" role="dialog" aria-label="Daily welcome" style="overflow:hidden;color:#fff"></div>
+
 
   <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><symbol id="vmMark" viewBox="0 0 1024 1024">
   <defs>
@@ -1386,19 +1444,21 @@
           </div>
         </div>
 
-        <!-- JSON Backup & Restore -->
+        <!-- Data safety & backup (v8.9) -->
         <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
-          <h3 class="text-xs font-bold text-white flex items-center gap-2">
-            <i class="fa-solid fa-database text-emerald-400"></i> JSON Data Backup & Restore
-          </h3>
-          <div class="grid grid-cols-2 gap-2">
-            <button onclick="exportJsonBackup()" class="bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 font-semibold py-2 rounded-xl border border-slate-700">
-              Export Backup
-            </button>
-            <label class="bg-slate-800 hover:bg-slate-700 text-xs text-cyan-400 font-semibold py-2 rounded-xl border border-cyan-800/60 cursor-pointer text-center">
-              Import Backup
-              <input type="file" accept=".json" onchange="importJsonBackup(event)" class="hidden">
-            </label>
+          <h3 class="text-xs font-bold text-white flex items-center gap-2"><i class="fa-solid fa-shield-heart text-emerald-400"></i> Data safety &amp; backup</h3>
+          <div class="grid grid-cols-3 gap-2 text-center">
+            <div class="p-2 bg-slate-800/80 rounded-xl border border-slate-700"><div class="text-[10px] text-slate-400">Storage</div><div id="dsStoragePill" class="mt-1 inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-600 text-slate-300 bg-slate-800">Checking</div></div>
+            <div class="p-2 bg-slate-800/80 rounded-xl border border-slate-700"><div class="text-[10px] text-slate-400">Data size</div><div id="dsSize" class="text-sm font-bold text-white mt-0.5">&ndash;</div></div>
+            <div class="p-2 bg-slate-800/80 rounded-xl border border-slate-700"><div class="text-[10px] text-slate-400">Last backup</div><div id="dsLast" class="text-[11px] font-bold text-white leading-tight mt-0.5">&ndash;</div></div>
+          </div>
+          <p id="dsNote" class="text-[10px] text-slate-500"></p>
+          <button type="button" onclick="exportJsonBackup()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold py-2.5 rounded-xl shadow-lg shadow-cyan-600/30"><i class="fa-solid fa-cloud-arrow-down mr-1.5"></i>Backup Now</button>
+          <label class="block w-full bg-slate-800 hover:bg-slate-700 text-xs text-cyan-400 font-semibold py-2.5 rounded-xl border border-cyan-800/60 cursor-pointer text-center"><i class="fa-solid fa-magnifying-glass-chart mr-1.5"></i>Check / Import Backup<input type="file" accept=".json,application/json" onchange="importJsonBackup(event)" class="hidden"></label>
+          <div class="space-y-1.5">
+            <button type="button" onclick="openSnapshots()" class="w-full flex items-center gap-3 p-2.5 rounded-xl bg-slate-800/70 border border-slate-700 text-left"><i class="fa-solid fa-clock-rotate-left text-indigo-300 w-5 text-center"></i><span class="flex-1 text-xs text-slate-200">Restore previous snapshot (Undo)</span><span id="dsSnapCount" class="text-[10px] text-slate-400"></span><i class="fa-solid fa-chevron-right text-[10px] text-slate-500"></i></button>
+            <button type="button" onclick="openBin()" class="w-full flex items-center gap-3 p-2.5 rounded-xl bg-slate-800/70 border border-slate-700 text-left"><i class="fa-solid fa-trash-can-arrow-up text-amber-300 w-5 text-center"></i><span class="flex-1 text-xs text-slate-200">Recently deleted (30 days)</span><span id="dsBinCount" class="text-[10px] text-slate-400"></span><i class="fa-solid fa-chevron-right text-[10px] text-slate-500"></i></button>
+            <button type="button" onclick="openPhoneGuide()" class="w-full flex items-center gap-3 p-2.5 rounded-xl bg-slate-800/70 border border-slate-700 text-left"><i class="fa-solid fa-mobile-screen-button text-cyan-300 w-5 text-center"></i><span class="flex-1 text-xs text-slate-200">Switching phones guide</span><i class="fa-solid fa-chevron-right text-[10px] text-slate-500"></i></button>
           </div>
         </div>
 
@@ -1409,15 +1469,66 @@
           <button type="button" onclick="exportCsv()" class="w-full bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 font-semibold py-2 rounded-xl border border-slate-700">Export CSV files (weights, scans, injections, intake)</button>
         </div>
 
+        <!-- Privacy & security (v8.9) -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
+          <h3 class="text-xs font-bold text-white flex items-center gap-2"><i class="fa-solid fa-user-shield text-cyan-400"></i> Privacy &amp; what leaves my phone</h3>
+          <div class="space-y-2 text-[11px] text-slate-300 leading-relaxed">
+            <p><b class="text-white">Nothing is sent in the background.</b> A Content Security Policy limits this page to your own site and the library host (cdnjs) used to download the PDF reader. There are no analytics, trackers or ads.</p>
+            <p><b class="text-white">Your data only leaves when you choose to:</b> Backup export, Doctor summary share, CSV export, or a link you tap (such as a 3D scan link).</p>
+            <p>Your phone does download app updates from GitHub Pages, so GitHub can see that the app was opened. That request carries no health data.</p>
+          </div>
+          <div class="p-2.5 rounded-xl bg-amber-950/40 border border-amber-800/50 text-[11px] text-amber-200"><i class="fa-solid fa-triangle-exclamation mr-1 text-amber-400"></i><b>Public repository notice:</b> never commit exported <code>.json</code> backup files or Visbody PDFs to GitHub.</div>
+          <div>
+            <div class="flex items-center justify-between mb-1"><span class="text-[11px] text-slate-400">Suggested <code>.gitignore</code> (for a computer or GitHub Desktop)</span><button type="button" onclick="copyGitignore()" class="text-[11px] text-cyan-400 underline">Copy</button></div>
+            <pre id="gitignoreBox" class="text-[10px] leading-relaxed bg-slate-950 border border-slate-800 rounded-xl p-2.5 overflow-x-auto text-slate-300"># Never commit personal data
+*[Bb]ackup*.json
+VMT-PRIVATE-*
+*.visbody.pdf
+Body_*.pdf</pre>
+            <p class="text-[10px] text-slate-500 mt-1">The GitHub website uploader ignores .gitignore, so simply keep backups out of the files you upload.</p>
+          </div>
+          <div class="flex items-center gap-2"><button type="button" onclick="runPrivacyTest()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-xs text-cyan-400 font-semibold py-2 rounded-xl border border-slate-700"><i class="fa-solid fa-vial-circle-check mr-1.5"></i>Run privacy test</button></div>
+          <p id="privacyTestResult" class="text-[11px] text-slate-400"></p>
+          <div class="flex items-center justify-between pt-2 border-t border-slate-800"><div class="min-w-0 pr-3"><div class="text-xs text-slate-300">Content Security Policy</div><div class="text-[10px] text-slate-500">Leave on. Switch off only for troubleshooting, then reload.</div></div><button type="button" id="cspToggleBtn" onclick="toggleCsp()" class="flex-none text-[11px] font-semibold px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-300"></button></div>
+        </div>
+
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
+          <h3 class="text-xs font-bold text-white flex items-center gap-2"><i class="fa-solid fa-lock text-amber-300"></i> App passcode &amp; welcome</h3>
+          <p id="lockStatus" class="text-[11px] text-slate-400"></p>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" id="lockSetBtn" onclick="startPinFlow('set')" class="col-span-2 bg-slate-800 hover:bg-slate-700 text-xs text-cyan-400 font-semibold py-2 rounded-xl border border-slate-700">Set a 4-digit passcode</button>
+            <button type="button" id="lockChangeBtn" onclick="startPinFlow('change')" class="hidden bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 font-semibold py-2 rounded-xl border border-slate-700">Change</button>
+            <button type="button" id="lockOffBtn" onclick="startPinFlow('off')" class="hidden bg-slate-800 hover:bg-slate-700 text-xs text-rose-300 font-semibold py-2 rounded-xl border border-slate-700">Turn off</button>
+          </div>
+          <div id="lockGraceRow" class="hidden">
+            <label for="lockGrace" class="text-[11px] text-slate-400 block mb-1">Ask for the passcode again</label>
+            <select id="lockGrace" onchange="setLockGrace()" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><option value="0">Every time I leave the app</option><option value="1">After 1 minute away</option><option value="5">After 5 minutes away</option><option value="-1">Only on a fresh launch</option></select>
+          </div>
+          <p class="text-[10px] text-slate-500">A privacy screen against casual snooping, not encryption. Anyone who can read this phone's storage could get around it, so keep using backups and your iPhone's own lock. The app is also blurred in the app switcher while a passcode is on.</p>
+          <div class="flex justify-between items-center pt-1 border-t border-slate-800"><span class="text-xs text-slate-300">Daily welcome screen</span><input type="checkbox" id="settingWelcome" onchange="setWelcomeEnabled(this.checked)" class="w-4 h-4 rounded text-cyan-600 focus:ring-0 bg-slate-800 border-slate-700"></div>
+        </div>
+
         <div class="glass-card p-4 rounded-2xl border border-rose-900/60 space-y-2">
           <h3 class="text-xs font-bold text-white flex items-center gap-2"><i class="fa-solid fa-trash text-rose-400"></i> Erase All Data</h3>
-          <p class="text-[11px] text-slate-400">Deletes every scan, weight, injection, daily and food log, custom medication and your profile from this device. Export a backup first if you may want it again.</p>
-          <button onclick="resetAllData()" class="w-full bg-rose-950/60 hover:bg-rose-900/60 text-xs text-rose-300 font-semibold py-2 rounded-xl border border-rose-800/70">Erase everything on this device</button>
+          <p class="text-[11px] text-slate-400">Deletes every scan, weight, injection, daily and food log, custom medication and your profile from this device. You will be asked to type ERASE, and can export a backup first.</p>
+          <button onclick="openEraseModal()" class="w-full bg-rose-950/60 hover:bg-rose-900/60 text-xs text-rose-300 font-semibold py-2 rounded-xl border border-rose-800/70">Erase everything on this device</button>
         </div>
 
         <button onclick="toggleOnboardingModal(true)" class="w-full text-center text-xs text-slate-400 hover:text-slate-200 underline">
           Re-open First-Open Onboarding Screen
         </button>
+
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-2">
+          <h3 class="text-xs font-bold text-white flex items-center gap-2"><i class="fa-solid fa-scale-balanced text-slate-400"></i> About &amp; Legal</h3>
+          <p class="text-[11px] text-slate-400">Visbody &amp; Mounjaro Tracker v8.9 &middot; prepared by Yusrie</p>
+          <pre class="text-[10px] leading-relaxed whitespace-pre-wrap text-slate-300 bg-slate-950 border border-slate-800 rounded-xl p-3">Copyright (c) 2026 Yusrie. All rights reserved.
+
+This software and its source code belong to Yusrie.
+No permission is granted to copy, modify, distribute,
+sublicense or sell this software or any part of it
+without prior written permission from the copyright owner.</pre>
+          <p class="text-[10px] text-slate-500">Informational only, not medical advice.</p>
+        </div>
       </div>
     </div>
 
@@ -1651,11 +1762,96 @@
   <div id="backupSnack" class="hidden fixed left-0 right-0 z-[55] px-4 flex justify-center pointer-events-none" style="bottom: calc(env(safe-area-inset-bottom) + 9rem);">
     <div class="glass-card pointer-events-auto w-full max-w-sm rounded-2xl border border-cyan-800/60 px-3.5 py-3 shadow-xl flex items-center gap-3">
       <span class="w-9 h-9 rounded-xl bg-cyan-500/15 border border-cyan-700/40 flex items-center justify-center flex-none"><i class="fa-solid fa-cloud-arrow-down text-cyan-300"></i></span>
-      <div class="min-w-0 flex-1"><div class="text-xs font-bold text-white">Weigh-in saved</div><div class="text-[11px] text-slate-400">Back up your data to Files or iCloud?</div></div>
+      <div class="min-w-0 flex-1"><div id="backupSnackTitle" class="text-xs font-bold text-white">Weigh-in saved</div><div id="backupSnackSub" class="text-[11px] text-slate-400">Back up your data to Files or iCloud?</div></div>
       <button type="button" onclick="hideBackupSnack(); exportJsonBackup()" class="flex-none bg-cyan-600 hover:bg-cyan-500 text-white text-[11px] font-semibold px-3 py-2 rounded-xl">Export JSON</button>
       <button type="button" onclick="hideBackupSnack()" aria-label="Dismiss" class="flex-none p-1.5 text-slate-500"><i class="fa-solid fa-xmark text-xs"></i></button>
     </div>
   </div>
+  <!-- v8.9 modals -->
+  <input type="file" id="restoreFileInput" accept=".json,application/json" onchange="importJsonBackup(event)" class="hidden">
+  <div id="storageAlert" class="hidden fixed left-0 right-0 top-0 z-[65] px-3" style="padding-top:calc(env(safe-area-inset-top) + .5rem)"><div class="glass-card rounded-2xl border border-rose-800/70 bg-rose-950/80 px-3.5 py-3 flex items-center gap-3"><i class="fa-solid fa-triangle-exclamation text-rose-400"></i><div class="flex-1 text-[11px] text-rose-100">Saving to this phone's storage failed. Your newest entry may not be kept. Export a backup now.</div><button type="button" onclick="exportJsonBackup()" class="text-[11px] font-semibold bg-rose-600 text-white px-3 py-1.5 rounded-lg">Export</button><button type="button" onclick="document.getElementById('storageAlert').classList.add('hidden')" aria-label="Dismiss" class="text-rose-300"><i class="fa-solid fa-xmark"></i></button></div></div>
+
+  <div id="inspectModal" class="sheet-modal fixed inset-0 z-[70] bg-slate-950/80 backdrop-blur-md hidden flex items-end justify-center">
+    <div class="glass-card p-5 border border-slate-800 space-y-3">
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0"><span class="w-9 h-9 rounded-xl flex items-center justify-center flex-none bg-cyan-500/15 border border-cyan-700/40"><i class="fa-solid fa-magnifying-glass-chart text-cyan-300"></i></span><div class="min-w-0"><h2 class="text-base font-bold text-white leading-tight">Backup inspector</h2><p id="inspSub" class="text-[11px] text-slate-400 truncate"></p></div></div>
+        <button type="button" onclick="closeInspector()" aria-label="Close" class="p-2 text-slate-400 hover:text-white rounded-xl bg-slate-800"><i class="fa-solid fa-xmark text-sm"></i></button>
+      </div>
+      <div id="inspBody" class="space-y-3"></div>
+      <div id="inspActions" class="space-y-2"></div>
+    </div>
+  </div>
+
+  <div id="eraseModal" class="sheet-modal fixed inset-0 z-[70] bg-slate-950/80 backdrop-blur-md hidden flex items-end justify-center">
+    <div class="glass-card p-5 border border-rose-900/60 space-y-3">
+      <div class="flex items-center gap-3"><span class="w-9 h-9 rounded-xl flex items-center justify-center flex-none bg-rose-500/15 border border-rose-800/60"><i class="fa-solid fa-trash text-rose-400"></i></span><div><h2 class="text-base font-bold text-white leading-tight">Erase all data</h2><p class="text-[11px] text-slate-400">Everything on this phone will be deleted.</p></div></div>
+      <button type="button" onclick="exportJsonBackup()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold py-3 rounded-xl shadow-lg shadow-cyan-600/30"><i class="fa-solid fa-cloud-arrow-down mr-1.5"></i>Export Backup First</button>
+      <label class="flex items-start gap-2 text-[11px] text-slate-300"><input type="checkbox" id="eraseKeepSnap" checked class="mt-0.5 w-4 h-4 rounded text-cyan-600 bg-slate-800 border-slate-700"><span>Keep a recovery snapshot on this phone so I can undo this from Settings. Untick to delete everything, including snapshots and recently deleted items.</span></label>
+      <div><label for="eraseConfirm" class="text-[11px] text-slate-400 block mb-1">Type <b class="text-white">ERASE</b> to enable the button</label><input type="text" id="eraseConfirm" oninput="onEraseInput()" autocomplete="off" autocapitalize="characters" spellcheck="false" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white w-full tracking-widest"></div>
+      <button type="button" id="eraseFinalBtn" onclick="performErase()" disabled class="w-full bg-rose-600 text-white text-xs font-semibold py-3 rounded-xl opacity-40">Erase everything</button>
+      <button type="button" onclick="closeEraseModal()" class="w-full text-xs text-slate-400 py-1.5">Cancel</button>
+    </div>
+  </div>
+
+  <div id="forgotModal" class="sheet-modal fixed inset-0 z-[230] bg-slate-950/90 backdrop-blur-md hidden flex items-end justify-center">
+    <div class="p-5 space-y-3 rounded-t-3xl border border-slate-700" style="background:#0f172a;color:#fff">
+      <h2 class="text-base font-bold" style="color:#fff">Forgot your passcode?</h2>
+      <p class="text-[12px]" style="color:#cbd5e1">There is no way to recover a passcode. The only way back in is to erase this app's data on this phone, including snapshots and recently deleted items. You can then restore from a backup file.</p>
+      <div><label for="forgotConfirm" class="text-[11px] block mb-1" style="color:#94a3b8">Type <b style="color:#fff">ERASE</b> to continue</label><input type="text" id="forgotConfirm" oninput="onForgotInput()" autocomplete="off" autocapitalize="characters" spellcheck="false" class="rounded-xl px-3 py-2.5 text-sm w-full tracking-widest" style="background:#1e293b;border:1px solid #334155;color:#fff"></div>
+      <button type="button" id="forgotFinalBtn" onclick="performForgotErase()" disabled class="w-full bg-rose-600 text-white text-xs font-semibold py-3 rounded-xl opacity-40">Erase and remove passcode</button>
+      <button type="button" onclick="document.getElementById('forgotModal').classList.add('hidden')" class="w-full text-xs py-1.5" style="color:#94a3b8">Cancel</button>
+    </div>
+  </div>
+
+  <div id="pinModal" class="sheet-modal fixed inset-0 z-[70] bg-slate-950/80 backdrop-blur-md hidden flex items-end justify-center">
+    <div class="p-5 rounded-t-3xl border border-slate-700" style="background:radial-gradient(120% 90% at 50% 0%,#0e3a4a 0%,#0b1220 60%);color:#fff">
+      <div class="text-center mb-4"><h2 id="pinTitle" class="text-base font-bold" style="color:#fff">Passcode</h2><p id="pinSub" class="text-[12px]" style="color:#94a3b8"></p></div>
+      <div id="pinPadHost"></div>
+      <button type="button" onclick="closePinModal()" class="w-full text-xs mt-4 py-1.5" style="color:#94a3b8">Cancel</button>
+    </div>
+  </div>
+
+  <div id="snapModal" class="sheet-modal fixed inset-0 z-[70] bg-slate-950/80 backdrop-blur-md hidden flex items-end justify-center">
+    <div class="glass-card p-5 border border-slate-800 space-y-3">
+      <div class="flex items-start justify-between gap-3"><div class="flex items-center gap-3"><span class="w-9 h-9 rounded-xl flex items-center justify-center flex-none bg-indigo-500/15 border border-indigo-700/40"><i class="fa-solid fa-clock-rotate-left text-indigo-300"></i></span><div><h2 class="text-base font-bold text-white leading-tight">Snapshots</h2><p class="text-[11px] text-slate-400">The last 3 states, saved automatically before an import, erase or update.</p></div></div><button type="button" onclick="document.getElementById('snapModal').classList.add('hidden')" aria-label="Close" class="p-2 text-slate-400 rounded-xl bg-slate-800"><i class="fa-solid fa-xmark text-sm"></i></button></div>
+      <div id="snapList" class="space-y-2"></div>
+      <button type="button" onclick="clearSnapshots()" class="w-full text-[11px] text-rose-300 py-1.5">Delete all snapshots</button>
+    </div>
+  </div>
+
+  <div id="binModal" class="sheet-modal fixed inset-0 z-[70] bg-slate-950/80 backdrop-blur-md hidden flex items-end justify-center">
+    <div class="glass-card p-5 border border-slate-800 space-y-3">
+      <div class="flex items-start justify-between gap-3"><div class="flex items-center gap-3"><span class="w-9 h-9 rounded-xl flex items-center justify-center flex-none bg-amber-500/15 border border-amber-700/40"><i class="fa-solid fa-trash-can-arrow-up text-amber-300"></i></span><div><h2 class="text-base font-bold text-white leading-tight">Recently deleted</h2><p class="text-[11px] text-slate-400">Kept for 30 days, then removed for good.</p></div></div><button type="button" onclick="document.getElementById('binModal').classList.add('hidden')" aria-label="Close" class="p-2 text-slate-400 rounded-xl bg-slate-800"><i class="fa-solid fa-xmark text-sm"></i></button></div>
+      <div id="binList" class="space-y-2"></div>
+      <button type="button" onclick="emptyBin()" class="w-full text-[11px] text-rose-300 py-1.5">Empty recently deleted</button>
+    </div>
+  </div>
+
+  <div id="anomalyModal" class="sheet-modal fixed inset-0 z-[75] bg-slate-950/90 backdrop-blur-md hidden flex items-end justify-center">
+    <div class="glass-card p-5 border border-rose-800/70 space-y-3">
+      <div class="flex items-center gap-3"><span class="w-9 h-9 rounded-xl flex items-center justify-center flex-none bg-rose-500/15 border border-rose-800/60"><i class="fa-solid fa-triangle-exclamation text-rose-400"></i></span><div><h2 class="text-base font-bold text-white leading-tight">Your health records appear missing</h2><p class="text-[11px] text-slate-400">iOS may have cleared part of this app's storage.</p></div></div>
+      <p class="text-[12px] text-slate-300">Your settings are here, but there are no weights, scans or food logs, and this phone had data before. Restore from a backup to get your history back.</p>
+      <button type="button" id="anomalySnapBtn" onclick="restoreLatestSnapshot()" class="hidden w-full bg-indigo-600 text-white text-xs font-semibold py-3 rounded-xl">Restore latest snapshot</button>
+      <button type="button" onclick="document.getElementById('restoreFileInput').click()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold py-3 rounded-xl shadow-lg shadow-cyan-600/30"><i class="fa-solid fa-file-import mr-1.5"></i>Restore from Backup</button>
+      <div class="grid grid-cols-2 gap-2"><button type="button" onclick="anomalyLater()" class="bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold py-2.5 rounded-xl">Not now</button><button type="button" onclick="anomalyFresh()" class="bg-slate-800 border border-slate-700 text-slate-400 text-xs py-2.5 rounded-xl">I'm starting fresh</button></div>
+    </div>
+  </div>
+
+  <div id="guideModal" class="sheet-modal fixed inset-0 z-[70] bg-slate-950/80 backdrop-blur-md hidden flex items-end justify-center">
+    <div class="glass-card p-5 border border-slate-800 space-y-4">
+      <div class="flex items-start justify-between gap-3"><div class="flex items-center gap-3"><span class="w-9 h-9 rounded-xl flex items-center justify-center flex-none bg-cyan-500/15 border border-cyan-700/40"><i class="fa-solid fa-mobile-screen-button text-cyan-300"></i></span><div><h2 class="text-base font-bold text-white leading-tight">Switching phones</h2><p class="text-[11px] text-slate-400">Four steps. Your data moves with a backup file.</p></div></div><button type="button" onclick="document.getElementById('guideModal').classList.add('hidden')" aria-label="Close" class="p-2 text-slate-400 rounded-xl bg-slate-800"><i class="fa-solid fa-xmark text-sm"></i></button></div>
+      <ol class="space-y-0">
+        <li class="flex gap-3"><div class="flex flex-col items-center"><span class="w-9 h-9 rounded-xl flex items-center justify-center flex-none bg-cyan-500/15 border border-cyan-700/40"><i class="fa-solid fa-cloud-arrow-down text-cyan-300 text-sm"></i></span><span class="w-px flex-1 bg-slate-700 my-1"></span></div><div class="pb-4"><div class="text-xs font-bold text-white">1. Export a backup</div><p class="text-[11px] text-slate-400">On this phone tap <b>Backup Now</b> and choose Save to Files (iCloud Drive).</p></div></li>
+        <li class="flex gap-3"><div class="flex flex-col items-center"><span class="w-9 h-9 rounded-xl flex items-center justify-center flex-none bg-emerald-500/15 border border-emerald-700/40"><i class="fa-brands fa-safari text-emerald-300 text-sm"></i></span><span class="w-px flex-1 bg-slate-700 my-1"></span></div><div class="pb-4"><div class="text-xs font-bold text-white">2. Open the app on the new iPhone</div><p class="text-[11px] text-slate-400">Open the same app address in Safari, tap Share, then Add to Home Screen.</p></div></li>
+        <li class="flex gap-3"><div class="flex flex-col items-center"><span class="w-9 h-9 rounded-xl flex items-center justify-center flex-none bg-violet-500/15 border border-violet-700/40"><i class="fa-solid fa-file-import text-violet-300 text-sm"></i></span><span class="w-px flex-1 bg-slate-700 my-1"></span></div><div class="pb-4"><div class="text-xs font-bold text-white">3. Import the backup</div><p class="text-[11px] text-slate-400">In the installed app open Settings, tap <b>Check / Import Backup</b>, pick the file, then choose Replace Everything.</p></div></li>
+        <li class="flex gap-3"><div class="flex flex-col items-center"><span class="w-9 h-9 rounded-xl flex items-center justify-center flex-none bg-amber-500/15 border border-amber-700/40"><i class="fa-solid fa-list-check text-amber-300 text-sm"></i></span></div><div><div class="text-xs font-bold text-white">4. Check the record counts</div><p class="text-[11px] text-slate-400">They should match what this phone has now:</p></div></li>
+      </ol>
+      <div id="guideCounts" class="grid grid-cols-5 gap-1.5 text-center"></div>
+      <button type="button" onclick="exportJsonBackup()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold py-2.5 rounded-xl">Backup Now</button>
+      <p class="text-[10px] text-slate-500">Data lives per web address, so use exactly the same address on the new phone. Keep the backup file private.</p>
+    </div>
+  </div>
+
   <div id="toastHost" aria-live="polite" class="fixed left-0 right-0 z-[60] pointer-events-none flex justify-center px-4" style="bottom: calc(env(safe-area-inset-bottom) + 5.25rem);"></div>
 
   <!-- JAVASCRIPT APPLICATION CORE -->
@@ -1951,7 +2147,7 @@
     async function dbPut(store, value) {
       const tx = db.transaction(store, 'readwrite');
       tx.objectStore(store).put(value);
-      await txDone(tx);
+      try { await txDone(tx); } catch (e) { reportStorageError(e); throw e; }
     }
 
     /* ---- Chart.js: readable defaults on the dark background ---- */
@@ -2091,9 +2287,591 @@
 
     let charts = {};
 
+    /* ==========================================================================
+       v8.9  DATA SAFETY, PRIVACY AND DAILY WELCOME
+       Safety copies (snapshots, recently deleted) live in a separate small database, so the main
+       data schema is untouched.
+       ========================================================================== */
+    const APP_VERSION = '8.9';
+    const $id = id => document.getElementById(id);
+    const fmtWhen = iso => { try { return new Date(iso).toLocaleString([], { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' }); } catch (e) { return ''; } };
+    const fmtBytes = n => (n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(n < 10240 ? 1 : 0)} KB` : `${(n / 1048576).toFixed(1)} MB`);
+    const agoText = ms => { const m = Math.round(ms / 60000); if (m < 1) return 'just now'; if (m < 60) return `${m} min ago`; const h = Math.round(m / 60); if (h < 24) return `${h} h ago`; const d = Math.round(h / 24); return `${d} day${d === 1 ? '' : 's'} ago`; };
+    const STORE_LABEL = { visbodyScans: 'Visbody scans', amScaleLogs: 'AM weights', mjShots: 'Injections', dailyLogs: 'Daily logs', foodLogs: 'Food days' };
+    const totalCount = c => Object.values(c || {}).reduce((a, b) => a + (Number(b) || 0), 0);
+    let bootDone = false;
+
+    /* ---- separate safety database ---- */
+    let sdb = null;
+    function openSafetyDb() {
+      return new Promise((res, rej) => {
+        if (sdb) return res(sdb);
+        const r = indexedDB.open('vmt_safety', 1);
+        r.onupgradeneeded = () => { r.result.createObjectStore('snapshots', { keyPath: 'id' }); r.result.createObjectStore('recentlyDeleted', { keyPath: 'id' }); };
+        r.onsuccess = () => { sdb = r.result; res(sdb); };
+        r.onerror = () => rej(r.error);
+      });
+    }
+    async function sdbReq(store, mode, fn) {
+      const d = await openSafetyDb();
+      return new Promise((res, rej) => {
+        const tx = d.transaction(store, mode), rq = fn(tx.objectStore(store));
+        tx.oncomplete = () => res(rq ? rq.result : undefined);
+        tx.onerror = tx.onabort = () => rej(tx.error);
+      });
+    }
+    const sAll = s => sdbReq(s, 'readonly', o => o.getAll());
+    const sPut = (s, v) => sdbReq(s, 'readwrite', o => o.put(v));
+    const sDel = (s, k) => sdbReq(s, 'readwrite', o => o.delete(k));
+    const sClear = s => sdbReq(s, 'readwrite', o => o.clear());
+
+    /* ---- helpers: compression, stable compare, checksum ---- */
+    async function gz(str) {
+      if (typeof CompressionStream === 'undefined') return { enc: 'none', data: str };
+      const cs = new CompressionStream('gzip'), w = cs.writable.getWriter();
+      w.write(new TextEncoder().encode(str)); w.close();
+      return { enc: 'gzip', data: await new Response(cs.readable).arrayBuffer() };
+    }
+    async function gunz(rec) {
+      if (rec.enc !== 'gzip') return rec.data;
+      const ds = new DecompressionStream('gzip'), w = ds.writable.getWriter();
+      w.write(new Uint8Array(rec.data)); w.close();
+      return new TextDecoder().decode(await new Response(ds.readable).arrayBuffer());
+    }
+    function stable(v) {
+      if (Array.isArray(v)) return '[' + v.map(stable).join(',') + ']';
+      if (v && typeof v === 'object') return '{' + Object.keys(v).sort().map(k => JSON.stringify(k) + ':' + stable(v[k])).join(',') + '}';
+      return JSON.stringify(v);
+    }
+    async function sha256Hex(str) {
+      if (!(window.crypto && crypto.subtle)) return null;
+      const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+      return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join('');
+    }
+    const dataSection = o => ({ visbodyScans: o.visbodyScans, amScaleLogs: o.amScaleLogs, mjShots: o.mjShots, dailyLogs: o.dailyLogs, foodLogs: o.foodLogs });
+    // Adds the app version, record counts, every setting and an integrity checksum to a backup. The passcode is never included.
+    async function finishPayload(out) {
+      out.schema = 2; out.appVersion = 'v' + APP_VERSION;
+      out.counts = {}; BACKUP_STORES.forEach(s => { out.counts[s] = (out[s] || []).length; });
+      const { lastBackup, lastBackupAt, backupSnooze, backupNagAt, ...rest } = prefs;
+      out.settings = rest;
+      out.checksum = await sha256Hex(JSON.stringify(dataSection(out)));
+      return out;
+    }
+    async function dataCounts() { const c = {}; for (const s of BACKUP_STORES) c[s] = await countStore(s); return c; }
+
+    /* ---- storage protection and status ---- */
+    let storageProtected = false;
+    async function initStoragePersistence() {
+      try {
+        if (navigator.storage && navigator.storage.persisted) {
+          storageProtected = await navigator.storage.persisted();
+          if (!storageProtected && navigator.storage.persist) storageProtected = await navigator.storage.persist();
+        }
+      } catch (e) { storageProtected = false; }
+    }
+    function backupAgeMs() {
+      const t = prefs.lastBackupAt ? Date.parse(prefs.lastBackupAt) : (prefs.lastBackup ? Date.parse(prefs.lastBackup + 'T12:00:00') : NaN);
+      return isFinite(t) ? Date.now() - t : null;
+    }
+    async function renderDataSafety() {
+      const pill = $id('dsStoragePill'); if (!pill) return;
+      pill.textContent = storageProtected ? 'iOS Storage Protected' : 'Standard';
+      pill.className = 'mt-1 inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border ' + (storageProtected ? 'border-emerald-700/60 text-emerald-300 bg-emerald-950/50' : 'border-slate-600 text-slate-300 bg-slate-800');
+      const ms = backupAgeMs();
+      $id('dsLast').textContent = prefs.lastBackupAt ? fmtWhen(prefs.lastBackupAt) : (prefs.lastBackup ? shortDate(prefs.lastBackup, true) : 'Never');
+      $id('dsLast').style.color = ms === null ? '#fb7185' : ms > 7 * 86400000 ? '#fbbf24' : '';
+      try { const p = await buildBackupPayload(); $id('dsSize').textContent = fmtBytes(JSON.stringify(p).length); } catch (e) { /* ignore */ }
+      let usage = '';
+      try { if (navigator.storage && navigator.storage.estimate) { const e = await navigator.storage.estimate(); if (e.usage) usage = ` App storage in use: ${fmtBytes(e.usage)}.`; } } catch (e) { /* ignore */ }
+      $id('dsNote').textContent = (storageProtected ? 'iOS has agreed not to clear this app\'s storage when space runs low.' : 'iOS may clear this app\'s storage if the phone runs low on space.') + ' Backups are still the real protection.' + usage;
+      try { $id('dsSnapCount').textContent = `${(await sAll('snapshots')).length} of 3`; $id('dsBinCount').textContent = String((await sAll('recentlyDeleted')).length); } catch (e) { /* ignore */ }
+      const wl = $id('settingWelcome'); if (wl) wl.checked = prefs.welcomeOff !== true;
+      renderCspToggle();
+    }
+
+    /* ---- snapshots (last 3 states) ---- */
+    async function takeSnapshot(reason) {
+      try {
+        const payload = await buildBackupPayload();
+        if (totalCount(payload.counts) === 0) return null;
+        const json = JSON.stringify(payload), c = await gz(json);
+        const rec = { id: Date.now(), at: new Date().toISOString(), reason, enc: c.enc, data: c.data, size: json.length, counts: payload.counts };
+        await sPut('snapshots', rec);
+        const all = (await sAll('snapshots')).sort((a, b) => b.id - a.id);
+        for (const old of all.slice(3)) await sDel('snapshots', old.id);
+        return rec;
+      } catch (e) { console.warn('Snapshot failed', e); return null; }
+    }
+    async function openSnapshots() {
+      const snaps = (await sAll('snapshots').catch(() => [])).sort((a, b) => b.id - a.id);
+      $id('snapList').innerHTML = snaps.length ? snaps.map(r => `<div class="p-3 rounded-xl bg-slate-800/70 border border-slate-700 space-y-1.5"><div class="flex items-center justify-between gap-2"><div class="min-w-0"><div class="text-xs font-semibold text-white truncate">${esc(r.reason)}</div><div class="text-[10px] text-slate-400">${esc(fmtWhen(r.at))} \u00b7 ${esc(fmtBytes(r.size))}</div></div><button type="button" onclick="snapInspect(${r.id})" class="flex-none text-[11px] font-semibold bg-indigo-600 text-white px-3 py-1.5 rounded-lg">Inspect</button></div><div class="text-[10px] text-slate-400">${BACKUP_STORES.map(s => `${(r.counts || {})[s] || 0} ${STORE_LABEL[s].toLowerCase()}`).join(' \u00b7 ')}</div><button type="button" onclick="snapDelete(${r.id})" class="text-[10px] text-rose-300">Delete</button></div>`).join('')
+        : '<p class="text-[11px] text-slate-400 py-2">No snapshots yet. One is saved automatically before an import, an erase or an app update.</p>';
+      $id('snapModal').classList.remove('hidden');
+    }
+    async function snapInspect(id) {
+      const rec = (await sAll('snapshots')).find(r => r.id === id); if (!rec) return;
+      try { const payload = JSON.parse(await gunz(rec)); $id('snapModal').classList.add('hidden'); openInspector(payload, { label: `Snapshot: ${rec.reason}, ${fmtWhen(rec.at)}`, source: 'snapshot' }); }
+      catch (e) { showToast("Couldn't open that snapshot", 'error'); }
+    }
+    async function snapDelete(id) { await sDel('snapshots', id); openSnapshots(); renderDataSafety(); }
+    async function clearSnapshots() { await sClear('snapshots'); openSnapshots(); renderDataSafety(); showToast('Snapshots deleted'); }
+    async function restoreLatestSnapshot() {
+      const snaps = (await sAll('snapshots')).sort((a, b) => b.id - a.id); if (!snaps.length) return;
+      $id('anomalyModal').classList.add('hidden'); snapInspect(snaps[0].id);
+    }
+
+    /* ---- backup inspector: look first, then merge or replace ---- */
+    let insp = null;
+    const recDate = (s, r) => (s === 'mjShots' ? String(r.dateTime || '').slice(0, 10) : r.date) || '';
+    async function buildDiff(payload) {
+      const diff = {};
+      for (const s of BACKUP_STORES) {
+        const file = Array.isArray(payload[s]) ? payload[s] : [], key = BACKUP_KEYS[s];
+        const phone = await dbGetAll(s), pm = new Map(phone.map(r => [r[key], r])), fm = new Set(file.map(r => r[key]));
+        let same = 0, differ = 0; const freshRecs = [];
+        file.forEach(r => { const e = pm.get(r[key]); if (!e) freshRecs.push(r); else if (stable(e) === stable(r)) same++; else differ++; });
+        const dates = file.map(r => recDate(s, r)).filter(Boolean).sort();
+        diff[s] = { inFile: file.length, onPhone: phone.length, fresh: freshRecs.length, same, differ, onlyPhone: phone.filter(r => !fm.has(r[key])).length, freshRecs, min: dates[0] || null, max: dates[dates.length - 1] || null };
+      }
+      return diff;
+    }
+    async function checkIntegrity(payload) {
+      if (!payload.checksum) return 'none';
+      const h = await sha256Hex(JSON.stringify(dataSection(payload)));
+      return h === null ? 'none' : (h === payload.checksum ? 'ok' : 'bad');
+    }
+    async function openInspector(payload, meta) {
+      const [diff, integrity] = await Promise.all([buildDiff(payload), checkIntegrity(payload)]);
+      insp = { payload, meta, diff, integrity, armed: false };
+      renderInspector(); $id('inspectModal').classList.remove('hidden');
+    }
+    function closeInspector() { $id('inspectModal').classList.add('hidden'); insp = null; }
+    function renderInspector() {
+      const { payload, meta, diff, integrity, armed } = insp;
+      $id('inspSub').textContent = meta.label || 'Backup file';
+      const T = BACKUP_STORES.reduce((a, s) => ({ fresh: a.fresh + diff[s].fresh, same: a.same + diff[s].same, differ: a.differ + diff[s].differ, only: a.only + diff[s].onlyPhone, inFile: a.inFile + diff[s].inFile }), { fresh: 0, same: 0, differ: 0, only: 0, inFile: 0 });
+      const allMin = BACKUP_STORES.map(s => diff[s].min).filter(Boolean).sort()[0], allMax = BACKUP_STORES.map(s => diff[s].max).filter(Boolean).sort().pop();
+      const chip = integrity === 'ok' ? ['File intact', '#34d399', 'rgba(16,185,129,.15)'] : integrity === 'bad' ? ['Checksum mismatch', '#fb7185', 'rgba(244,63,94,.15)'] : ['No checksum (older backup)', '#94a3b8', 'rgba(148,163,184,.15)'];
+      const row = s => { const d = diff[s]; return `<div class="grid grid-cols-5 gap-1 items-center text-[11px] py-1.5 border-t border-slate-800"><span class="col-span-2 text-slate-300">${STORE_LABEL[s]}</span><span class="text-right text-white tabular-nums">${d.inFile}</span><span class="text-right text-slate-400 tabular-nums">${d.onPhone}</span><span class="text-right tabular-nums font-semibold ${d.fresh ? 'text-emerald-400' : 'text-slate-500'}">${d.fresh ? '+' + d.fresh : '0'}</span></div>`; };
+      $id('inspBody').innerHTML = `<div class="flex flex-wrap items-center gap-2 text-[10px]"><span class="px-2 py-0.5 rounded-full font-semibold" style="color:${chip[1]};background:${chip[2]}">${chip[0]}</span>${payload.appVersion ? `<span class="text-slate-400">${esc(payload.appVersion)}</span>` : ''}${payload.exportedAt ? `<span class="text-slate-400">exported ${esc(fmtWhen(payload.exportedAt))}</span>` : ''}</div>
+        <div class="p-3 rounded-xl bg-slate-800/60 border border-slate-700"><div class="grid grid-cols-5 gap-1 text-[10px] text-slate-500 pb-1"><span class="col-span-2">Records</span><span class="text-right">File</span><span class="text-right">Phone</span><span class="text-right">New</span></div>${BACKUP_STORES.map(row).join('')}</div>
+        <div class="text-[11px] text-slate-300 leading-relaxed"><b class="text-white">+${T.fresh} new records</b>, ${T.same + T.differ} already on this phone${T.differ ? ` (${T.differ} differ, your phone's version is kept when merging)` : ''}.${allMin ? ` Dates run ${esc(shortDate(allMin, true))} to ${esc(shortDate(allMax, true))}.` : ''}</div>
+        <div class="text-[10px] text-slate-500">${payload.profile || payload.settings ? 'Profile and settings are in this file. Replace applies them, Merge leaves yours as they are.' : 'This file has no profile or settings.'}</div>
+        ${integrity === 'bad' ? '<div class="p-2.5 rounded-xl bg-rose-950/50 border border-rose-800/60 text-[11px] text-rose-200">The checksum does not match, so this file may be damaged or edited. Replace is switched off. Merge still only adds new records.</div>' : ''}
+        ${armed ? `<div class="p-2.5 rounded-xl bg-amber-950/40 border border-amber-800/50 text-[11px] text-amber-200">Replace Everything deletes ${T.only} record${T.only === 1 ? '' : 's'} that are only on this phone and uses the file's data instead. A snapshot is saved first so you can undo it.</div>` : ''}`;
+      const canMerge = T.fresh > 0, canReplace = integrity !== 'bad';
+      $id('inspActions').innerHTML = `<button type="button" onclick="inspectMerge()" ${canMerge ? '' : 'disabled'} class="w-full text-xs font-semibold py-3 rounded-xl ${canMerge ? 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-600/30' : 'bg-slate-800 text-slate-500'}">${canMerge ? `Merge ${T.fresh} new record${T.fresh === 1 ? '' : 's'}` : 'Nothing new to merge'}</button>
+        <button type="button" onclick="inspectReplace()" ${canReplace ? '' : 'disabled'} class="w-full text-xs font-semibold py-3 rounded-xl border ${canReplace ? (armed ? 'bg-rose-600 text-white border-rose-500' : 'bg-rose-950/50 text-rose-300 border-rose-800/70') : 'bg-slate-800 text-slate-500 border-slate-700'}">${armed ? 'Tap again to confirm: Replace Everything' : 'Replace Everything'}</button>
+        <button type="button" onclick="closeInspector()" class="w-full text-xs text-slate-400 py-2">Close (inspect only)</button>`;
+    }
+    function mergeImportedLists(p) {
+      if (Array.isArray(p.customMeds)) { const cur = getCustomMeds(), ids = new Set(cur.map(m => m.id)); LS.set('vmt_custom_meds', [...cur, ...p.customMeds.filter(m => m && m.id && !ids.has(m.id))]); }
+      if (Array.isArray(p.savedMeals)) { const cur = getMeals(), names = new Set(cur.map(m => String(m.label || '').toLowerCase())); prefs.meals = [...cur, ...p.savedMeals.filter(m => m && m.label && !names.has(String(m.label).toLowerCase()))].slice(0, 20); LS.set('vmt_prefs', prefs); }
+    }
+    async function afterImport(msg) {
+      await loadAllData(); applyProfileAndPrefs(); renderDashboard(); renderActiveTab(); renderDataSafety();
+      playSfx('win'); showToast(msg);
+    }
+    async function inspectMerge() {
+      if (!insp) return;
+      const { payload, diff } = insp; let n = 0; closeInspector();
+      await takeSnapshot('Before merge import');
+      try {
+        for (const s of BACKUP_STORES) { const recs = diff[s].freshRecs; if (!recs.length) continue; const tx = db.transaction(s, 'readwrite'); recs.forEach(r => tx.objectStore(s).put(r)); await txDone(tx); n += recs.length; }
+        mergeImportedLists(payload);
+      } catch (e) { showToast("Couldn't merge that backup", 'error'); return; }
+      await afterImport(`Merged ${n} new record${n === 1 ? '' : 's'}`);
+    }
+    async function inspectReplace() {
+      if (!insp) return;
+      if (!insp.armed) { insp.armed = true; renderInspector(); return; }
+      const { payload } = insp; closeInspector();
+      await takeSnapshot('Before replace import');
+      try {
+        const tx = db.transaction(BACKUP_STORES, 'readwrite');
+        BACKUP_STORES.forEach(s => { tx.objectStore(s).clear(); if (Array.isArray(payload[s])) payload[s].forEach(r => tx.objectStore(s).put(r)); });
+        await txDone(tx);
+        applyImportedSettings(payload);
+      } catch (e) { showToast("Couldn't restore that backup. Your data was not changed.", 'error'); return; }
+      await afterImport('Backup restored');
+    }
+    function applyImportedSettings(imported) {
+      if (Array.isArray(imported.customMeds)) LS.set('vmt_custom_meds', imported.customMeds);
+      if (Array.isArray(imported.customExercises)) LS.set('vmt_exercises', imported.customExercises);
+      if (imported.visTargets && typeof imported.visTargets === 'object') LS.set('vmt_vis_targets', imported.visTargets);
+      if (imported.sizeSettings && typeof imported.sizeSettings === 'object') {
+        if (FIT_LABEL[imported.sizeSettings.fit]) prefs.fit = imported.sizeSettings.fit;
+        if (imported.sizeSettings.sizeCal && typeof imported.sizeSettings.sizeCal === 'object') prefs.sizeCal = imported.sizeSettings.sizeCal;
+      }
+      if (imported.nutritionTargets && typeof imported.nutritionTargets === 'object') {
+        const nt = imported.nutritionTargets;
+        if (isNum(nt.proteinTarget) && nt.proteinTarget > 0) prefs.proteinTarget = nt.proteinTarget;
+        prefs.calorieFloor = isNum(nt.calorieFloor) && nt.calorieFloor > 0 ? nt.calorieFloor : null;
+        ['sugarMax', 'fatMax', 'calorieMax', 'activity', 'deficit', 'waterTarget', 'stepTarget'].forEach(k => { if (nt[k] === null || isNum(nt[k])) prefs[k] = nt[k]; });
+        if (nt.targetsAt && typeof nt.targetsAt === 'object') prefs.targetsAt = nt.targetsAt;
+      }
+      if (Array.isArray(imported.savedMeals)) prefs.meals = imported.savedMeals;
+      if (['dark', 'light', 'auto'].includes(imported.appearance)) prefs.theme = imported.appearance;
+      // v8.9 backups carry every setting. The passcode is never part of a backup.
+      if (imported.settings && typeof imported.settings === 'object') Object.keys(imported.settings).forEach(k => { if (k !== '__proto__' && k !== 'constructor' && k !== 'prototype') prefs[k] = imported.settings[k]; });
+      LS.set('vmt_prefs', prefs);
+      if (imported.profile && typeof imported.profile === 'object') { profile = { ...DEFAULT_PROFILE, ...imported.profile }; LS.set('vmt_profile', profile); }
+    }
+    function importJsonBackup(e) {
+      const input = e.target, file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        try {
+          const imported = JSON.parse(event.target.result);
+          validateBackup(imported); // checked up front so a bad file can't half-import
+          $id('anomalyModal').classList.add('hidden');
+          await openInspector(imported, { label: `${file.name} \u00b7 ${fmtBytes(file.size)}`, source: 'file' });
+        } catch (err) { showToast("That file isn't a valid backup", 'error'); }
+        finally { input.value = ''; }
+      };
+      reader.readAsText(file);
+    }
+
+    /* ---- recently deleted (30 days) ---- */
+    async function softDelete(store, key, record, label) {
+      const id = `${store}:${key}:${Date.now()}`;
+      try { await sPut('recentlyDeleted', { id, store, key, record, label, deletedAt: Date.now() }); return id; } catch (e) { return null; }
+    }
+    async function purgeBin() {
+      const cutoff = Date.now() - 30 * 86400000;
+      for (const x of (await sAll('recentlyDeleted'))) if (x.deletedAt < cutoff) await sDel('recentlyDeleted', x.id);
+    }
+    async function restoreDeleted(id) {
+      const item = (await sAll('recentlyDeleted')).find(x => x.id === id); if (!item) return false;
+      const kf = BACKUP_KEYS[item.store], existing = (await dbGetAll(item.store)).find(r => r[kf] === item.record[kf]);
+      if (existing) await softDelete(item.store, existing[kf], existing, 'Replaced by a restore');
+      const tx = db.transaction(item.store, 'readwrite'); tx.objectStore(item.store).put(item.record); await txDone(tx);
+      await sDel('recentlyDeleted', id);
+      await loadAllData(); renderDashboard(); renderActiveTab(); renderDataSafety();
+      return true;
+    }
+    async function openBin() {
+      const items = (await sAll('recentlyDeleted').catch(() => [])).sort((a, b) => b.deletedAt - a.deletedAt);
+      const ICON = { visbodyScans: 'fa-person text-cyan-300', amScaleLogs: 'fa-weight-scale text-emerald-300', mjShots: 'fa-syringe text-violet-300' };
+      const rows = [];
+      for (const x of items) {
+        const kf = BACKUP_KEYS[x.store], clash = (await dbGetAll(x.store)).some(r => r[kf] === x.record[kf]), left = Math.max(0, 30 - Math.floor((Date.now() - x.deletedAt) / 86400000));
+        rows.push(`<div class="p-3 rounded-xl bg-slate-800/70 border border-slate-700 space-y-1.5"><div class="flex items-center gap-3"><i class="fa-solid ${ICON[x.store] || 'fa-file'} w-5 text-center"></i><div class="min-w-0 flex-1"><div class="text-xs font-semibold text-white truncate">${esc(x.label)}</div><div class="text-[10px] text-slate-400">Deleted ${esc(agoText(Date.now() - x.deletedAt))} \u00b7 ${left} day${left === 1 ? '' : 's'} left</div></div><button type="button" onclick="binRestore('${x.id}')" class="flex-none text-[11px] font-semibold bg-amber-600 text-white px-3 py-1.5 rounded-lg">Restore</button></div>${clash ? '<div class="text-[10px] text-amber-300">A newer record exists for this date. Restoring puts that one in this list.</div>' : ''}<button type="button" onclick="binForget('${x.id}')" class="text-[10px] text-rose-300">Delete for good</button></div>`);
+      }
+      $id('binList').innerHTML = rows.length ? rows.join('') : '<p class="text-[11px] text-slate-400 py-2">Nothing here. Deleted scans, weights and injections are kept for 30 days.</p>';
+      $id('binModal').classList.remove('hidden');
+    }
+    async function binRestore(id) { if (await restoreDeleted(id)) { playSfx('chime'); showToast('Restored'); } openBin(); }
+    async function binForget(id) { await sDel('recentlyDeleted', id); openBin(); renderDataSafety(); }
+    async function emptyBin() { await sClear('recentlyDeleted'); openBin(); renderDataSafety(); showToast('Recently deleted emptied'); }
+    async function deleteAmLog(date) {
+      const rec = appState.amScaleLogs.find(l => l.date === date);
+      const binId = rec ? await softDelete('amScaleLogs', date, rec, `AM weight ${rec.amWeight} kg, ${date}`) : null;
+      if (binId === null && !confirm(`Delete the AM weight logged on ${date}?`)) return;
+      try { const tx = db.transaction('amScaleLogs', 'readwrite'); tx.objectStore('amScaleLogs').delete(date); await txDone(tx); }
+      catch (err) { showToast("Couldn't delete that entry", 'error'); return; }
+      await loadAllData(); renderDashboard();
+      showUndoToast('AM weight deleted', async () => { if (binId) { await restoreDeleted(binId); showToast('Weight restored'); } });
+    }
+    async function deleteSelectedScan() {
+      const date = $id('visbodyDateSelect').value, rec = appState.visbodyScans.find(s => s.date === date);
+      if (!date || !rec) { showToast('No scan selected.', 'warn'); return; }
+      const binId = await softDelete('visbodyScans', date, rec, `Visbody scan, ${date}`);
+      if (binId === null && !confirm(`Delete the scan from ${date}?`)) return;
+      try { const tx = db.transaction('visbodyScans', 'readwrite'); tx.objectStore('visbodyScans').delete(date); await txDone(tx); }
+      catch (err) { showToast("Couldn't delete that scan", 'error'); return; }
+      await loadAllData(); renderVisbodyView(); renderDashboard();
+      showUndoToast('Scan deleted', async () => { if (binId) { await restoreDeleted(binId); showToast('Scan restored'); } });
+    }
+    async function deleteMjShot(id) {
+      const rec = appState.mjShots.find(x => x.id === id); if (!rec) return;
+      const binId = await softDelete('mjShots', id, rec, `Injection ${rec.dose} mg, ${String(rec.dateTime).slice(0, 10)}`);
+      if (binId === null && !confirm('Delete this injection shot log?')) return;
+      const tx = db.transaction('mjShots', 'readwrite'); tx.objectStore('mjShots').delete(id); await txDone(tx);
+      await loadAllData(); renderMounjaroView();
+      showUndoToast('Injection deleted', async () => { if (binId) { await restoreDeleted(binId); showToast('Injection restored'); } });
+    }
+
+    /* ---- data-loss detector ---- */
+    async function checkAnomaly() {
+      const c = await dataCounts();
+      if (totalCount(c) > 0) { LS.set('vmt_had_data', true); return false; }
+      if (!(LS.get('vmt_had_data', false) || prefs.lastBackup)) return false;
+      if (LS.get('vmt_anomaly_snooze', '') === localDateStr()) return false;
+      const snaps = await sAll('snapshots').catch(() => []);
+      $id('anomalySnapBtn').classList.toggle('hidden', !snaps.length);
+      $id('anomalyModal').classList.remove('hidden');
+      return true;
+    }
+    function anomalyLater() { LS.set('vmt_anomaly_snooze', localDateStr()); $id('anomalyModal').classList.add('hidden'); maybeShowWelcome(); }
+    function anomalyFresh() { LS.set('vmt_had_data', false); prefs.lastBackup = null; prefs.lastBackupAt = null; LS.set('vmt_prefs', prefs); $id('anomalyModal').classList.add('hidden'); renderBackupBanner(); maybeShowWelcome(); }
+
+    /* ---- guarded erase, forgot-passcode erase, phone guide ---- */
+    function openEraseModal() { $id('eraseConfirm').value = ''; onEraseInput(); $id('eraseModal').classList.remove('hidden'); }
+    function closeEraseModal() { $id('eraseModal').classList.add('hidden'); }
+    function onEraseInput() { const ok = $id('eraseConfirm').value.trim().toUpperCase() === 'ERASE', b = $id('eraseFinalBtn'); b.disabled = !ok; b.classList.toggle('opacity-40', !ok); }
+    async function wipeEverything(keepLock) {
+      try { const tx = db.transaction(BACKUP_STORES, 'readwrite'); BACKUP_STORES.forEach(st => tx.objectStore(st).clear()); await txDone(tx); }
+      catch (err) { showToast("Couldn't erase the data", 'error'); return false; }
+      const keys = []; for (let i = 0; i < localStorage.length; i++) keys.push(localStorage.key(i));
+      keys.forEach(k => { if (k && (k.startsWith('vmt_') || k === 'onboardingDone') && k !== 'vmt_csp_off' && !(keepLock && k === 'vmt_lock')) { try { localStorage.removeItem(k); } catch (e) { /* ignore */ } } });
+      return true;
+    }
+    async function performErase() {
+      if ($id('eraseConfirm').value.trim().toUpperCase() !== 'ERASE') return;
+      const keep = $id('eraseKeepSnap').checked;
+      if (keep) await takeSnapshot('Before Erase All Data'); else { await sClear('snapshots').catch(() => {}); await sClear('recentlyDeleted').catch(() => {}); }
+      if (await wipeEverything(true)) location.reload();
+    }
+    const resetAllData = openEraseModal;
+    function openForgotPin() { $id('forgotConfirm').value = ''; onForgotInput(); $id('forgotModal').classList.remove('hidden'); }
+    function onForgotInput() { const ok = $id('forgotConfirm').value.trim().toUpperCase() === 'ERASE', b = $id('forgotFinalBtn'); b.disabled = !ok; b.classList.toggle('opacity-40', !ok); }
+    async function performForgotErase() {
+      if ($id('forgotConfirm').value.trim().toUpperCase() !== 'ERASE') return;
+      await sClear('snapshots').catch(() => {}); await sClear('recentlyDeleted').catch(() => {});
+      if (await wipeEverything(false)) location.reload();
+    }
+    async function openPhoneGuide() {
+      const c = await dataCounts();
+      $id('guideCounts').innerHTML = BACKUP_STORES.map(s => `<div class="p-2 rounded-xl bg-slate-800/70 border border-slate-700"><div class="text-sm font-bold text-white tabular-nums">${c[s]}</div><div class="text-[9px] text-slate-400 leading-tight">${STORE_LABEL[s]}</div></div>`).join('');
+      $id('guideModal').classList.remove('hidden');
+    }
+
+    /* ---- backup reminders ---- */
+    function setBackupBadge(on) {
+      const b = $id('openSettingsBtn'); if (!b) return;
+      let dot = $id('backupBadge');
+      if (on && !dot) { b.style.position = 'relative'; dot = document.createElement('span'); dot.id = 'backupBadge'; dot.setAttribute('aria-label', 'Backup overdue'); dot.style.cssText = 'position:absolute;top:4px;right:4px;width:10px;height:10px;border-radius:9999px;background:#f59e0b;border:2px solid #0f172a'; b.appendChild(dot); }
+      if (dot) dot.style.display = on ? 'block' : 'none';
+    }
+    // After a high-value event, offer a one-tap backup unless one was made in the last 24 hours.
+    function offerBackup(reason) {
+      const ms = backupAgeMs(); if (ms !== null && ms < 86400000) return;
+      const e = $id('backupSnack'); if (!e) return;
+      $id('backupSnackTitle').textContent = reason; $id('backupSnackSub').textContent = 'Back up your data to Files or iCloud?';
+      e.classList.remove('hidden'); clearTimeout(snackTimer); snackTimer = setTimeout(hideBackupSnack, 15000);
+    }
+    function reportStorageError(err) { console.warn('Storage error', err); const e = $id('storageAlert'); if (e) e.classList.remove('hidden'); }
+
+    /* ---- privacy card ---- */
+    function cspIsOff() { try { return localStorage.getItem('vmt_csp_off') === '1'; } catch (e) { return false; } }
+    function renderCspToggle() { const b = $id('cspToggleBtn'); if (b) b.textContent = cspIsOff() ? 'Off: turn on' : 'On: turn off'; }
+    function toggleCsp() { try { if (cspIsOff()) localStorage.removeItem('vmt_csp_off'); else localStorage.setItem('vmt_csp_off', '1'); } catch (e) { /* ignore */ } renderCspToggle(); showToast('Reloading with the policy ' + (cspIsOff() ? 'off' : 'on')); setTimeout(() => location.reload(), 700); }
+    function copyGitignore() { const t = $id('gitignoreBox').textContent; try { navigator.clipboard.writeText(t).then(() => showToast('Copied')); } catch (e) { showToast('Select the text and copy it', 'warn'); } }
+    function runPrivacyTest() {
+      const out = $id('privacyTestResult'); let blocked = false;
+      if (localStorage.getItem('vmt_csp_off') === '1') { out.textContent = 'The Content Security Policy is switched off (safety switch). Open the app address with ?nocsp=0 to turn it back on.'; return; }
+      out.textContent = 'Testing...';
+      const onV = () => { blocked = true; };
+      document.addEventListener('securitypolicyviolation', onV);
+      const done = () => setTimeout(() => { document.removeEventListener('securitypolicyviolation', onV); out.textContent = blocked ? 'Passed: an attempt to reach another website was blocked by the Content Security Policy.' : 'Could not confirm the block on this device. Nothing was sent from this app.'; out.style.color = blocked ? '#34d399' : ''; }, 200);
+      try { fetch('https://example.com/vmt-privacy-test', { mode: 'no-cors', cache: 'no-store' }).then(done, done); } catch (e) { done(); }
+    }
+
+    /* ---- passcode lock ---- */
+    const LOCK_KEY = 'vmt_lock';
+    const getLock = () => LS.get(LOCK_KEY, null);
+    let appLocked = false, hiddenAt = Date.now(), lockPad = null, lockTimer = null, pinFlow = null, pinPad = null;
+    const hashPin = (pin, salt) => sha256Hex(`${salt}:${pin}`);
+    function makePad(host, onComplete) {
+      let buf = '';
+      const keys = [1, 2, 3, 4, 5, 6, 7, 8, 9, '', 0, 'back'];
+      host.innerHTML = `<div class="pad-dots flex justify-center gap-4 mb-5" aria-hidden="true">${'<span class="pad-dot"></span>'.repeat(4)}</div><div class="pad-msg text-center text-xs mb-5" style="min-height:1.25rem;color:#94a3b8" aria-live="polite"></div><div class="grid grid-cols-3 gap-3 mx-auto" style="width:16.5rem">${keys.map(k => (k === '' ? '<span></span>' : `<button type="button" class="pin-key" data-k="${k}" aria-label="${k === 'back' ? 'Delete' : k}">${k === 'back' ? '<i class="fa-solid fa-delete-left"></i>' : k}</button>`)).join('')}</div>`;
+      const dots = host.querySelectorAll('.pad-dot'), msgEl = host.querySelector('.pad-msg');
+      const paint = () => dots.forEach((d, i) => d.classList.toggle('on', i < buf.length));
+      const pad = {
+        disabled: false,
+        reset() { buf = ''; paint(); },
+        msg(t, c) { msgEl.textContent = t; msgEl.style.color = c || '#94a3b8'; },
+        shake() { host.classList.remove('shake'); void host.offsetWidth; host.classList.add('shake'); }
+      };
+      host.querySelectorAll('.pin-key').forEach(b => b.addEventListener('click', () => {
+        if (pad.disabled) return;
+        const k = b.dataset.k;
+        if (k === 'back') buf = buf.slice(0, -1); else if (buf.length < 4) buf += k;
+        paint();
+        if (buf.length === 4) { const v = buf; setTimeout(() => onComplete(v), 120); }
+      }));
+      return pad;
+    }
+    function initLock() {
+      if (!getLock()) { document.documentElement.classList.remove('app-locked'); appLocked = false; return; }
+      appLocked = true; document.documentElement.classList.add('app-locked');
+      if (!lockPad) lockPad = makePad($id('lockPadHost'), verifyLockPin);
+      lockPad.reset(); refreshLockoutUI();
+    }
+    function refreshLockoutUI() {
+      const lock = getLock(); if (!lock || !lockPad) return;
+      clearInterval(lockTimer);
+      const tick = () => {
+        const left = Math.ceil(((lock.until || 0) - Date.now()) / 1000);
+        if (left > 0) { lockPad.disabled = true; lockPad.msg(`Too many attempts. Try again in ${left}s`, '#fbbf24'); }
+        else { lockPad.disabled = false; lockPad.msg('Enter your passcode'); clearInterval(lockTimer); }
+      };
+      tick(); if ((lock.until || 0) > Date.now()) lockTimer = setInterval(tick, 500);
+    }
+    async function verifyLockPin(pin) {
+      const lock = getLock(); if (!lock) { unlockApp(); return; }
+      const h = await hashPin(pin, lock.salt);
+      if (h === lock.hash) { lock.fails = 0; lock.until = 0; LS.set(LOCK_KEY, lock); lockPad.reset(); unlockApp(); return; }
+      lock.fails = (lock.fails || 0) + 1;
+      if (lock.fails % 5 === 0) lock.until = Date.now() + [30, 60, 300, 900][Math.min(3, lock.fails / 5 - 1)] * 1000;
+      LS.set(LOCK_KEY, lock);
+      lockPad.shake(); lockPad.reset();
+      if (lock.until > Date.now()) refreshLockoutUI();
+      else { const left = 5 - (lock.fails % 5); lockPad.msg(left <= 2 ? `Wrong passcode (${left} tries before a pause)` : 'Wrong passcode', '#fb7185'); }
+    }
+    function unlockApp() { appLocked = false; document.documentElement.classList.remove('app-locked'); showShield(false); afterUnlock(); }
+    function lockApp() {
+      if (!getLock()) return;
+      appLocked = true; document.documentElement.classList.add('app-locked');
+      try { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); } catch (e) { /* ignore */ }
+      if (!lockPad) lockPad = makePad($id('lockPadHost'), verifyLockPin);
+      lockPad.reset(); refreshLockoutUI(); showShield(false);
+    }
+    function showShield(on) { const s = $id('privacyShield'); if (s) s.style.display = on && getLock() && !appLocked ? 'flex' : 'none'; }
+    function maybeRelock() {
+      const lock = getLock(); if (!lock || appLocked) return;
+      if (lock.grace === -1) return;
+      if (!lock.grace || Date.now() - hiddenAt >= lock.grace * 60000) lockApp();
+    }
+    // The shield covers the app while it is in the app switcher, so no health numbers show in the preview.
+    document.addEventListener('visibilitychange', () => { if (!getLock()) return; if (document.visibilityState === 'hidden') { hiddenAt = Date.now(); showShield(true); } else { showShield(false); maybeRelock(); } });
+    window.addEventListener('pagehide', () => { if (getLock()) { hiddenAt = Date.now(); showShield(true); } });
+    window.addEventListener('pageshow', () => { showShield(false); maybeRelock(); });
+    window.addEventListener('blur', () => { if (getLock() && document.visibilityState !== 'hidden') { showShield(true); setTimeout(() => { if (document.visibilityState === 'visible') showShield(false); }, 2500); } });
+    window.addEventListener('focus', () => showShield(false));
+    function renderLockStatus() {
+      const lock = getLock(), on = !!lock;
+      if (!$id('lockStatus')) return;
+      $id('lockStatus').textContent = on ? 'Passcode is on. The app locks when you open it and blurs in the app switcher.' : 'Off. Anyone who opens this app on an unlocked phone can see your data.';
+      $id('lockSetBtn').classList.toggle('hidden', on); $id('lockChangeBtn').classList.toggle('hidden', !on); $id('lockOffBtn').classList.toggle('hidden', !on); $id('lockGraceRow').classList.toggle('hidden', !on);
+      if (on) $id('lockGrace').value = String(lock.grace === undefined ? 1 : lock.grace);
+    }
+    function setLockGrace() { const lock = getLock(); if (!lock) return; lock.grace = parseInt($id('lockGrace').value, 10); LS.set(LOCK_KEY, lock); }
+    function startPinFlow(mode) {
+      if (!(window.crypto && crypto.subtle)) { showToast('Passcodes need a secure (https) connection.', 'warn'); return; }
+      pinFlow = { mode, step: mode === 'set' ? 'new' : 'current', first: '' };
+      if (!pinPad) pinPad = makePad($id('pinPadHost'), onPinEntered);
+      pinPad.reset(); pinPad.disabled = false; renderPinStep();
+      $id('pinModal').classList.remove('hidden');
+    }
+    function closePinModal() { $id('pinModal').classList.add('hidden'); pinFlow = null; }
+    function renderPinStep(note) {
+      const t = { current: ['Enter your passcode', pinFlow.mode === 'off' ? 'to turn it off' : 'to change it'], new: [pinFlow.mode === 'change' ? 'New passcode' : 'Set a passcode', 'Choose 4 digits'], confirm: ['Confirm passcode', 'Enter the same 4 digits again'] }[pinFlow.step];
+      $id('pinTitle').textContent = t[0]; $id('pinSub').textContent = note || t[1]; pinPad.msg('');
+    }
+    async function onPinEntered(pin) {
+      if (!pinFlow) return;
+      const lock = getLock();
+      if (pinFlow.step === 'current') {
+        const ok = lock && (await hashPin(pin, lock.salt)) === lock.hash;
+        if (!ok) { pinPad.shake(); pinPad.reset(); pinPad.msg('Wrong passcode', '#fb7185'); return; }
+        if (pinFlow.mode === 'off') { try { localStorage.removeItem(LOCK_KEY); } catch (e) { /* ignore */ } document.documentElement.classList.remove('app-locked'); closePinModal(); renderLockStatus(); showToast('Passcode turned off'); return; }
+        pinFlow.step = 'new'; pinPad.reset(); renderPinStep(); return;
+      }
+      if (pinFlow.step === 'new') { pinFlow.first = pin; pinFlow.step = 'confirm'; pinPad.reset(); renderPinStep(); return; }
+      if (pin !== pinFlow.first) { pinFlow.step = 'new'; pinPad.shake(); pinPad.reset(); renderPinStep('Those did not match. Try again'); return; }
+      const saltBytes = new Uint8Array(16); crypto.getRandomValues(saltBytes);
+      const salt = Array.from(saltBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+      LS.set(LOCK_KEY, { salt, hash: await hashPin(pin, salt), grace: lock && lock.grace !== undefined ? lock.grace : 1, fails: 0, until: 0 });
+      closePinModal(); renderLockStatus(); playSfx('chime'); showToast('Passcode saved');
+    }
+
+    /* ---- daily welcome ---- */
+    function setWelcomeEnabled(on) { prefs.welcomeOff = !on; LS.set('vmt_prefs', prefs); }
+    async function computeStreak() {
+      let logs = []; try { logs = await dbGetAll('foodLogs'); } catch (e) { return 0; }
+      const today = localDateStr(), was = d => { const r = logs.find(l => l.date === d); return !!r && (r.calories != null || r.protein != null || r.fat != null || r.sugar != null || r.water > 0); };
+      let sd = was(today) ? today : addDaysStr(today, -1), n = 0;
+      while (was(sd) && n < 400) { n++; sd = addDaysStr(sd, -1); }
+      return n;
+    }
+    function backupHealth() {
+      const ms = backupAgeMs(); if (ms === null) return { text: 'No backup yet', c: '#fb7185' };
+      const d = Math.floor(ms / 86400000), age = d < 1 ? 'today' : `${d}d ago`;
+      return d >= 7 ? { text: `Backup due \u00b7 ${age}`, c: '#fbbf24' } : { text: `Backup OK \u00b7 ${age}`, c: '#34d399' };
+    }
+    function injectionStatus() {
+      const last = appState.mjShots[appState.mjShots.length - 1]; if (!last) return null;
+      const d = daysUntil(addDaysStr(String(last.dateTime).slice(0, 10), 7));
+      if (d > 1) return { text: `Next injection in ${d} days`, c: '#94a3b8', hot: false };
+      if (d === 1) return { text: 'Next injection tomorrow', c: '#fbbf24', hot: false };
+      if (d === 0) return { text: 'Injection day today', c: '#fbbf24', hot: true };
+      return { text: `Injection ${-d} day${d === -1 ? '' : 's'} overdue`, c: '#fb7185', hot: true };
+    }
+    async function maybeShowWelcome() {
+      if (prefs.welcomeOff === true || appLocked || !LS.get('onboardingDone', false)) return;
+      const today = localDateStr(); if (LS.get('vmt_welcome_last', '') === today) return;
+      LS.set('vmt_welcome_last', today);
+      const now = new Date(), hr = now.getHours(), part = hr < 12 ? 'morning' : hr < 18 ? 'afternoon' : 'evening';
+      const bg = { morning: 'linear-gradient(160deg,#0c4a6e 0%,#0e7490 38%,#0b1220 100%)', afternoon: 'linear-gradient(160deg,#134e4a 0%,#0f766e 36%,#0b1220 100%)', evening: 'linear-gradient(160deg,#312e81 0%,#4c1d95 36%,#0b1220 100%)' }[part];
+      const icon = { morning: 'fa-sun', afternoon: 'fa-cloud-sun', evening: 'fa-moon' }[part];
+      const name = (profile.name || 'Yusrie').trim(), streak = await computeStreak(), inj = injectionStatus(), bh = backupHealth();
+      const wd = Number(profile.weighDay), weighDay = isFinite(wd) ? wd : 2, weighToday = now.getDay() === weighDay && !appState.amScaleLogs.some(l => l.date === today);
+      const apptD = profile.nextAppt ? daysUntil(profile.nextAppt) : null, apptSoon = apptD !== null && apptD >= 0 && apptD <= 1;
+      let focus;
+      if (weighToday) focus = { i: 'fa-weight-scale', t: `${weighDayName()} weigh-in`, s: apptSoon ? 'Log your AM weight. Your scan is coming up, so check the prep list.' : 'Log your fasted AM weight before breakfast.', c: '#22d3ee' };
+      else if (inj && inj.hot) focus = { i: 'fa-syringe', t: inj.text, s: 'Log it on the Mounjaro tab once it is done.', c: inj.c };
+      else if (apptSoon) focus = { i: 'fa-clipboard-check', t: apptD === 0 ? 'Appointment today' : 'Appointment tomorrow', s: 'Open the Dashboard for your prep checklist.', c: '#22d3ee' };
+      else focus = { i: 'fa-bullseye', t: "Today's goals", s: `${(waterTarget() / 1000).toFixed(waterTarget() % 1000 ? 1 : 0)} L of water and ${stepGoal().toLocaleString()} steps.`, c: '#34d399' };
+      const chip = (txt, c, ic) => `<span style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:9999px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.14);font-size:11px;font-weight:600;color:${c}">${ic ? `<i class="fa-solid ${ic}"></i>` : ''}${txt}</span>`;
+      const chips = [];
+      if (inj && !inj.hot) chips.push(chip(esc(inj.text), inj.c, 'fa-syringe'));
+      if (focus.t !== "Today's goals") chips.push(chip(`${(waterTarget() / 1000).toFixed(waterTarget() % 1000 ? 1 : 0)} L water \u00b7 ${stepGoal().toLocaleString()} steps`, '#cbd5e1', 'fa-bullseye'));
+      chips.push(chip(esc(bh.text), bh.c, 'fa-shield-heart'));
+      const date = now.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
+      $id('welcomeOverlay').innerHTML = `<div class="absolute inset-0" style="background:${bg}"></div>
+        <div class="w-glow absolute" style="width:340px;height:340px;border-radius:9999px;top:-90px;right:-110px;background:radial-gradient(circle,rgba(255,255,255,.22),transparent 70%)"></div>
+        <div class="w-glow absolute" style="width:300px;height:300px;border-radius:9999px;bottom:80px;left:-120px;background:radial-gradient(circle,rgba(34,211,238,.18),transparent 70%);animation-delay:-3s"></div>
+        <div class="relative h-full w-full flex flex-col justify-between px-6" style="padding-top:calc(env(safe-area-inset-top) + 2.5rem);padding-bottom:calc(env(safe-area-inset-bottom) + 1.75rem);max-width:30rem;margin:0 auto">
+          <div class="w-rise flex items-center justify-between"><div class="flex items-center gap-2.5"><svg class="w-9 h-9 rounded-xl" aria-hidden="true"><use href="#vmMark"/></svg><span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.85)">Visbody &amp; Mounjaro</span></div><i class="fa-solid ${icon}" style="font-size:20px;color:rgba(255,255,255,.8)"></i></div>
+          <div class="space-y-5">
+            <div class="w-rise" style="animation-delay:.08s"><div style="font-size:13px;color:rgba(255,255,255,.7);font-weight:600">${esc(date)}</div><div style="font-size:34px;line-height:1.1;font-weight:800;letter-spacing:-.02em;margin-top:6px;color:#fff">Good ${part},<br>${esc(name)}</div>${streak >= 1 ? `<div style="margin-top:12px;display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:9999px;background:rgba(251,146,60,.18);border:1px solid rgba(251,146,60,.4);font-size:12px;font-weight:700;color:#fdba74"><i class="fa-solid fa-fire"></i>${streak}-day streak</div>` : ''}</div>
+            <div class="w-rise" style="animation-delay:.18s;padding:16px;border-radius:20px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;gap:14px;align-items:flex-start"><span style="width:42px;height:42px;border-radius:14px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;flex:none"><i class="fa-solid ${focus.i}" style="color:${focus.c};font-size:18px"></i></span><div><div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:rgba(255,255,255,.6)">Today's focus</div><div style="font-size:17px;font-weight:700;margin-top:2px;color:#fff">${esc(focus.t)}</div><div style="font-size:12px;color:rgba(255,255,255,.75);margin-top:3px;line-height:1.4">${esc(focus.s)}</div></div></div>
+            <div class="w-rise" style="animation-delay:.26s;display:flex;flex-wrap:wrap;gap:8px">${chips.join('')}</div>
+          </div>
+          <div class="w-rise space-y-3" style="animation-delay:.34s">
+            <div style="display:flex;gap:10px"><button type="button" onclick="event.stopPropagation();dismissWelcome('tab-mounjaro')" style="flex:1;padding:11px;border-radius:14px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:12px;font-weight:600"><i class="fa-solid fa-weight-scale" style="margin-right:6px"></i>Log weight</button><button type="button" onclick="event.stopPropagation();dismissWelcome('tab-food')" style="flex:1;padding:11px;border-radius:14px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:12px;font-weight:600"><i class="fa-solid fa-utensils" style="margin-right:6px"></i>Log food</button></div>
+            <button type="button" onclick="event.stopPropagation();dismissWelcome()" style="width:100%;padding:15px;border-radius:16px;background:#fff;color:#0b1220;font-size:14px;font-weight:800;box-shadow:0 10px 30px rgba(0,0,0,.3)">Enter app</button>
+            <div style="text-align:center;font-size:10px;color:rgba(255,255,255,.5)">Tap anywhere to continue</div>
+          </div>
+        </div>`;
+      const ov = $id('welcomeOverlay'); ov.style.opacity = '0'; ov.classList.remove('hidden');
+      requestAnimationFrame(() => requestAnimationFrame(() => { ov.style.opacity = '1'; }));
+    }
+    function dismissWelcome(tab) {
+      const ov = $id('welcomeOverlay'); if (ov.classList.contains('hidden')) return;
+      playSfx('chime'); ov.style.opacity = '0';
+      setTimeout(() => { ov.classList.add('hidden'); ov.innerHTML = ''; }, 280);
+      if (tab) switchTab(tab);
+    }
+
+    /* ---- startup ---- */
+    async function afterUnlock() {
+      if (!bootDone || appLocked) return;
+      const blocked = await checkAnomaly().catch(() => false);
+      if (!blocked) maybeShowWelcome();
+    }
+    async function bootSafety() {
+      bootDone = true;
+      initStoragePersistence().then(renderDataSafety);
+      try { await openSafetyDb(); await purgeBin(); } catch (e) { console.warn('Safety database unavailable', e); }
+      try {
+        // An app update is a good moment for a snapshot, so the version change can be undone.
+        const prev = LS.get('vmt_app_ver', null);
+        if (prev !== APP_VERSION) { if (totalCount(await dataCounts()) > 0) await takeSnapshot(`Before update to v${APP_VERSION}`); LS.set('vmt_app_ver', APP_VERSION); }
+      } catch (e) { /* ignore */ }
+      renderLockStatus(); renderBackupBanner();
+      afterUnlock();
+    }
+
     window.onload = async function() {
       loadProfileAndPrefs();
       applyProfileAndPrefs();
+      initLock();
       try {
         await initDB();
         await loadAllData();
@@ -2111,6 +2889,7 @@
       initSwipes();
       initSheets();
       renderMealChips();
+      bootSafety();
     };
 
     async function loadAllData() {
@@ -2119,6 +2898,7 @@
       appState.amScaleLogs = await getAllFromStore(tx.objectStore("amScaleLogs"));
       appState.mjShots = await getAllFromStore(tx.objectStore("mjShots"));
       appState.dailyLogs = await getAllFromStore(tx.objectStore("dailyLogs"));
+      if (appState.visbodyScans.length || appState.amScaleLogs.length || appState.mjShots.length) LS.set('vmt_had_data', true);
 
       appState.visbodyScans.sort((a, b) => a.date.localeCompare(b.date));
       appState.amScaleLogs.sort((a, b) => a.date.localeCompare(b.date));
@@ -2253,18 +3033,6 @@
         `;
         tbody.appendChild(tr);
       });
-    }
-
-    async function deleteAmLog(date) {
-      if (!confirm(`Delete the AM weight logged on ${date}?`)) return;
-      try {
-        const tx = db.transaction("amScaleLogs", "readwrite");
-        tx.objectStore("amScaleLogs").delete(date);
-        await txDone(tx);
-      } catch (err) { showToast("Couldn't delete that entry", 'error'); return; }
-      playSfx('click');
-      await loadAllData();
-      renderDashboard();
     }
 
     function renderDashboardCharts() {
@@ -2473,21 +3241,6 @@
       renderVisbodyView();
       renderDashboard();
       showToast(existing ? 'Scan updated' : 'Scan saved');
-    }
-
-    async function deleteSelectedScan() {
-      const date = document.getElementById('visbodyDateSelect').value;
-      if (!date || !appState.visbodyScans.some(s => s.date === date)) { showToast('No scan selected.', 'warn'); return; }
-      if (!confirm(`Delete the scan from ${date}?`)) return;
-      try {
-        const tx = db.transaction("visbodyScans", "readwrite");
-        tx.objectStore("visbodyScans").delete(date);
-        await txDone(tx);
-      } catch (err) { showToast("Couldn't delete that scan", 'error'); return; }
-      playSfx('click');
-      await loadAllData();
-      renderVisbodyView();
-      renderDashboard();
     }
 
     function renderVisbodyView() {
@@ -3105,6 +3858,7 @@
       if (blanks.length) notes.push(`Not in this report: ${blanks.join(', ')}.`);
       setPdfStatus(`${existing ? 'Updated' : 'Imported'} scan for ${parsed.date} (${found} values). ${notes.join(' ')}`.trim(), parsed.spineEstimated ? 'warn' : 'ok');
       showToast(existing ? 'Scan updated from PDF' : 'Scan imported from PDF');
+      setTimeout(() => offerBackup('Visbody scan imported'), 900);
     }
 
     /* ==========================================================================
@@ -3182,12 +3936,15 @@
         notes
       };
 
+      const prevShot = appState.mjShots.filter(x => x.id !== shot.id && x.dateTime < dateTime).slice(-1)[0];
+      const doseChanged = !!prevShot && Number(prevShot.dose) !== dose;
       const tx = db.transaction("mjShots", "readwrite");
       tx.objectStore("mjShots").put(shot);
       await txDone(tx);
 
       playSfx('chime');
       await loadAllData();
+      if (doseChanged) setTimeout(() => offerBackup('Dose change logged'), 700);
       resetMjForm();
       renderMounjaroView();
     }
@@ -3206,17 +3963,6 @@
       document.getElementById('mounjaroFormTitle').innerText = "Editing Logged Injection Shot";
       document.getElementById('cancelMjEditBtn').classList.remove('hidden');
       document.getElementById('mounjaroFormTitle').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-
-    async function deleteMjShot(id) {
-      if (!confirm("Delete this injection shot log?")) return;
-      const tx = db.transaction("mjShots", "readwrite");
-      tx.objectStore("mjShots").delete(id);
-      await txDone(tx);
-
-      playSfx('click');
-      await loadAllData();
-      renderMounjaroView();
     }
 
     function resetMjForm() {
@@ -3341,7 +4087,7 @@
       await loadAllData();
       renderDashboard();
       showToast(hitTarget ? `Target reached: ${weight} kg. Amazing work!` : drop > 0.04 ? `Saved ${weight} kg. Down ${drop.toFixed(1)} kg, well done!` : `Saved AM fasted scale: ${weight} kg`);
-      setTimeout(maybeOfferBackup, 700);
+      if (parseLocalDate(date).getDay() === (isFinite(Number(profile.weighDay)) ? Number(profile.weighDay) : 2)) setTimeout(() => offerBackup('Weekly weigh-in saved'), 700);
     }
 
     /* ==========================================================================
@@ -4004,26 +4750,22 @@
 
     let snackTimer = null;
     function hideBackupSnack() { const e = document.getElementById('backupSnack'); if (e) e.classList.add('hidden'); clearTimeout(snackTimer); }
-    // After a weigh-in: offer a one-tap backup if you have not exported in the last 7 days.
-    function maybeOfferBackup() {
-      const last = prefs.lastBackup, days = last ? Math.round((parseLocalDate(localDateStr()) - parseLocalDate(last)) / 86400000) : null;
-      if (days !== null && days < 7) return;
-      const e = document.getElementById('backupSnack'); if (!e) return;
-      e.classList.remove('hidden'); clearTimeout(snackTimer); snackTimer = setTimeout(hideBackupSnack, 15000);
-    }
     function renderBackupBanner() {
-      const el = document.getElementById('backupBanner'); if (!el) return;
+      const el = document.getElementById('backupBanner');
       const hasData = (appState.visbodyScans.length + appState.amScaleLogs.length + appState.mjShots.length) > 0;
-      const today = localDateStr(), last = prefs.lastBackup;
-      const days = last ? Math.round((parseLocalDate(today) - parseLocalDate(last)) / 86400000) : null;
-      const due = hasData && (days === null || days >= 14) && !(prefs.backupSnooze && prefs.backupSnooze > today);
+      const ms = backupAgeMs(), days = ms === null ? null : Math.floor(ms / 86400000), today = localDateStr();
+      const overdue = hasData && (days === null || days >= 7);
+      setBackupBadge(overdue);
+      if (!el) return;
+      // overdue: the banner comes back every 24 hours until a backup is exported
+      const due = overdue && !(prefs.backupSnooze && prefs.backupSnooze > today);
       el.classList.toggle('hidden', !due);
       if (due) document.getElementById('backupBannerText').innerText = days === null
         ? 'You have not backed up yet. Your data lives only on this phone, so export a copy now.'
         : `Your last backup was ${days} days ago. Export a fresh copy so a deleted app or cleared Safari data cannot take your history.`;
     }
-    function snoozeBackupBanner() { prefs.backupSnooze = addDaysStr(localDateStr(), 3); LS.set('vmt_prefs', prefs); renderBackupBanner(); }
-    function markBackedUp() { hideBackupSnack(); prefs.lastBackup = localDateStr(); prefs.backupSnooze = null; LS.set('vmt_prefs', prefs); renderBackupBanner(); }
+    function snoozeBackupBanner() { prefs.backupSnooze = addDaysStr(localDateStr(), 1); LS.set('vmt_prefs', prefs); renderBackupBanner(); }
+    function markBackedUp() { hideBackupSnack(); prefs.lastBackup = localDateStr(); prefs.lastBackupAt = new Date().toISOString(); prefs.backupSnooze = null; LS.set('vmt_prefs', prefs); renderBackupBanner(); renderDataSafety(); }
 
     async function renderTodayGlance() {
       const grid = document.getElementById('glanceGrid'); if (!grid) return;
@@ -5323,7 +6065,7 @@ const RISE_NAME = { navel: 'navel waist', below: 'low waist', hip: 'upper hip' }
     function toggleSettingsDrawer(show) {
       playSfx('click');
       const drawer = document.getElementById('settingsDrawer');
-      if (show) { drawer.classList.remove('hidden'); renderProfileSummary(); }
+      if (show) { drawer.classList.remove('hidden'); renderProfileSummary(); renderDataSafety(); renderLockStatus(); }
       else drawer.classList.add('hidden');
     }
 
@@ -5729,7 +6471,7 @@ const RISE_NAME = { navel: 'navel waist', below: 'low waist', hip: 'upper hip' }
 
     async function buildBackupPayload() {
       const [visbodyScans, amScaleLogs, mjShots, dailyLogs, foodLogs] = await Promise.all(BACKUP_STORES.map(s => dbGetAll(s)));
-      return {
+      const out = {
         app: 'visbody-mounjaro-tracker',
         version: 9,
         exportedAt: new Date().toISOString(),
@@ -5743,22 +6485,24 @@ const RISE_NAME = { navel: 'navel waist', below: 'low waist', hip: 'upper hip' }
         appearance: prefs.theme,
         profile
       };
+      return finishPayload(out);
     }
 
     // iOS home-screen apps can't download data: URLs, so use the native share sheet ("Save to Files") when available.
     async function exportJsonBackup() {
       playSfx('chime');
-      let json;
-      try { json = JSON.stringify(await buildBackupPayload(), null, 2); }
+      let payload, json;
+      try { payload = await buildBackupPayload(); json = JSON.stringify(payload, null, 2); }
       catch (err) { showToast("Couldn't read your data for the backup", 'error'); return; }
 
-      const name = `Visbody_Mounjaro_Backup_${localDateStr()}.json`;
+      const d = new Date(), name = `VMT-PRIVATE-backup_${localDateStr(d)}_${pad2(d.getHours())}${pad2(d.getMinutes())}.json`;
+      const c = payload.counts, summary = `Exported: ${c.visbodyScans} scans, ${c.amScaleLogs} weights, ${c.foodLogs} food days, ${c.mjShots} injections`;
       try {
         const file = new File([json], name, { type: 'application/json' });
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           await navigator.share({ files: [file], title: name });
           markBackedUp();
-          showToast('Backup ready');
+          showToast(summary);
           return;
         }
       } catch (err) {
@@ -5774,7 +6518,7 @@ const RISE_NAME = { navel: 'navel waist', below: 'low waist', hip: 'upper hip' }
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 4000);
       markBackedUp();
-      showToast('Backup file saved');
+      showToast(summary);
     }
 
     const BACKUP_KEYS = { visbodyScans: 'date', amScaleLogs: 'date', mjShots: 'id', dailyLogs: 'date', foodLogs: 'date' };
@@ -5793,73 +6537,6 @@ const RISE_NAME = { navel: 'navel waist', below: 'low waist', hip: 'upper hip' }
         });
       }
       if (!found) throw new Error('No data found');
-    }
-
-    function importJsonBackup(e) {
-      const input = e.target;
-      const file = input.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        try {
-          const imported = JSON.parse(event.target.result);
-          validateBackup(imported); // checked up front so a bad file can't half-import
-          const cnt = k => (Array.isArray(imported[k]) ? imported[k].length : 0);
-          const dts = [...(imported.foodLogs || []), ...(imported.amScaleLogs || [])].map(r => r.date).filter(Boolean).sort();
-          if (!confirm(`This backup contains:\n\u2022 ${cnt('visbodyScans')} Visbody scans\n\u2022 ${cnt('amScaleLogs')} AM weights\n\u2022 ${cnt('mjShots')} injections\n\u2022 ${cnt('dailyLogs')} daily logs\n\u2022 ${cnt('foodLogs')} food days${dts.length ? `\nDates ${dts[0]} to ${dts[dts.length - 1]}` : ''}\n\nImporting merges these into your data and replaces records on the same dates. Continue?`)) { input.value = ''; return; }
-
-          const tx = db.transaction(BACKUP_STORES, "readwrite");
-          BACKUP_STORES.forEach(s => {
-            if (Array.isArray(imported[s])) imported[s].forEach(r => tx.objectStore(s).put(r));
-          });
-          await txDone(tx);
-
-          if (Array.isArray(imported.customMeds)) LS.set('vmt_custom_meds', imported.customMeds);
-          if (Array.isArray(imported.customExercises)) LS.set('vmt_exercises', imported.customExercises);
-          if (imported.visTargets && typeof imported.visTargets === 'object') LS.set('vmt_vis_targets', imported.visTargets);
-          if (imported.sizeSettings && typeof imported.sizeSettings === 'object') {
-            if (FIT_LABEL[imported.sizeSettings.fit]) prefs.fit = imported.sizeSettings.fit;
-            if (imported.sizeSettings.sizeCal && typeof imported.sizeSettings.sizeCal === 'object') prefs.sizeCal = imported.sizeSettings.sizeCal;
-            LS.set('vmt_prefs', prefs);
-          }
-          if (imported.nutritionTargets && typeof imported.nutritionTargets === 'object') {
-            const nt = imported.nutritionTargets;
-            if (isNum(nt.proteinTarget) && nt.proteinTarget > 0) prefs.proteinTarget = nt.proteinTarget;
-            prefs.calorieFloor = isNum(nt.calorieFloor) && nt.calorieFloor > 0 ? nt.calorieFloor : null;
-            ['sugarMax', 'fatMax', 'calorieMax', 'activity', 'deficit', 'waterTarget', 'stepTarget'].forEach(k => { if (nt[k] === null || isNum(nt[k])) prefs[k] = nt[k]; });
-            if (nt.targetsAt && typeof nt.targetsAt === 'object') prefs.targetsAt = nt.targetsAt;
-            LS.set('vmt_prefs', prefs);
-          }
-          if (Array.isArray(imported.savedMeals)) { prefs.meals = imported.savedMeals; LS.set('vmt_prefs', prefs); }
-          if (['dark', 'light', 'auto'].includes(imported.appearance)) { prefs.theme = imported.appearance; LS.set('vmt_prefs', prefs); }
-          if (imported.profile && typeof imported.profile === 'object') {
-            profile = { ...DEFAULT_PROFILE, ...imported.profile };
-            LS.set('vmt_profile', profile);
-          }
-          await loadAllData();
-          applyProfileAndPrefs();
-          renderDashboard();
-          showToast('Backup imported successfully');
-        } catch (err) {
-          showToast("That file isn't a valid backup", 'error');
-        } finally {
-          input.value = ''; // lets the same file be picked again
-        }
-      };
-      reader.readAsText(file);
-    }
-
-    // Wipes everything this app stored on the device: IndexedDB records plus profile, preferences and custom meds.
-    async function resetAllData() {
-      if (!confirm('Erase ALL data on this device? This cannot be undone.')) return;
-      if (!confirm('Last check: every scan, weight, injection, daily log, food log and your profile will be deleted.')) return;
-      try {
-        const tx = db.transaction(BACKUP_STORES, "readwrite");
-        BACKUP_STORES.forEach(st => tx.objectStore(st).clear());
-        await txDone(tx);
-      } catch (err) { showToast("Couldn't erase the data", 'error'); return; }
-      ['vmt_profile', 'vmt_prefs', 'vmt_custom_meds', 'vmt_exercises', 'vmt_vis_targets', 'onboardingDone'].forEach(k => { try { localStorage.removeItem(k); } catch (e) { /* ignore */ } });
-      location.reload();
     }
 
     /* ==========================================================================

@@ -3,6 +3,26 @@
 A single-page tracker that installs on an iPhone home screen, runs full-screen, and works offline.
 Everything you enter stays on your device (IndexedDB and localStorage). Nothing is sent to a server.
 
+## What's new in v8.9
+
+**Data safety**
+- **Data safety card (Settings):** a storage status pill (iOS Storage Protected or Standard), total data size, last backup date and time, and a **Backup Now** button. Backup Now uses the iPhone share sheet (Save to Files) and then shows what was exported, for example "Exported: 12 scans, 40 weights, 90 food days, 6 injections". Backup files are named `VMT-PRIVATE-backup_DATE_TIME.json`.
+- **Smarter reminders:** a one-tap backup offer after a Visbody PDF import, your weekly weigh-in (on your chosen weigh-in day) and a Mounjaro dose change, unless you backed up in the last 24 hours. If no backup has been exported for 7 days, a banner and an amber dot on the settings button return every 24 hours until you export. The app can only remind you while it is open.
+- **Check / Import Backup:** the file is inspected before anything changes. It shows the counts, date range, an integrity check and how many records are new, the same or different compared with this phone. Choose **Close (inspect only)**, **Merge new records** (adds only what is missing, your phone's version wins on clashes) or **Replace everything** (asks twice). New backups carry the app version, record counts, every setting and a checksum. A passcode is never included.
+- **3 rollback snapshots:** a compressed snapshot is saved automatically before every import, an erase and the first launch after an app update. **Restore previous snapshot (Undo)** lists them with timestamps.
+- **Recently deleted (30 days):** deleted Visbody scans, AM weights and injections go to a bin you can browse and restore from Settings, with an Undo toast at the moment of deleting. Items are removed for good after 30 days. Restoring over a newer record keeps the newer one in the bin.
+- **Data-loss detector:** if the phone had data before and now has none, the app offers to restore from the latest snapshot or a backup file.
+- **Guarded Erase All Data:** type ERASE to enable the button, with an **Export Backup First** button in the same sheet. You can keep a recovery snapshot or delete everything including snapshots and the bin.
+- **Switching phones guide** with the 4 steps and your current record counts to compare.
+- Snapshots and the bin live in a separate small database (`vmt_safety`), so your main data is untouched.
+
+**Privacy and security**
+- **Content Security Policy:** limits where the page may connect to your own site and the library host used for the PDF reader (cdnjs). Libraries are still loaded from their CDNs. A **Run privacy test** button and a troubleshooting switch are in Settings. If the policy ever causes trouble, open the app address in Safari with `?nocsp=1` (or use the switch in Settings), and upload the previous `index.html` to roll back.
+- **Privacy & what leaves my phone** card, the public-repository warning, and a suggested `.gitignore` (also provided as a file).
+- **Optional 4-digit passcode** (salted SHA-256), locking on launch and after the delay you choose, blur in the app switcher, pauses after wrong attempts and a Forgot passcode path that erases the data. It is a privacy screen, not encryption.
+- **Daily welcome screen:** once per day, with a time-aware greeting, your streak, today's focus (weigh-in day, injection status, appointment or goals) and a backup health pill. Tap anywhere or Enter app. It can be switched off in Settings.
+- `noindex` meta tags, a referrer policy, the copyright notice in the HTML source and in **About & Legal**.
+
 ## What's new in v8.8
 
 - **Profile adds sex, birth year and a goal mode** (Cut, Lean recomp, Maintain) as one source of truth, plus an appointment time and an editable pre-scan checklist. A Visbody PDF upload never changes sex, birth year or height, so a clinic kiosk typo cannot skew the maths.
@@ -90,7 +110,7 @@ Everything you enter stays on your device (IndexedDB and localStorage). Nothing 
 | --- | --- |
 | `index.html` | The whole app |
 | `manifest.webmanifest` | Name, colours and icons for installing |
-| `sw.js` | Offline support (service worker). Version `v8.8.0` |
+| `sw.js` | Offline support (service worker). Version `v8.9.0` |
 | `apple-touch-icon-v2.png`, `apple-touch-icon-167-v2.png`, `apple-touch-icon-152-v2.png` | The icon iOS uses for Add to Home Screen |
 | `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `favicon-32.png`, `icon.svg` | Manifest, browser tab and source artwork |
 

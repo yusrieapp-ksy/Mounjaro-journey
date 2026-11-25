@@ -8,7 +8,7 @@
  * User data lives in IndexedDB / localStorage, never in these caches, so updating the app can't touch it.
  * Bump VERSION when you change this file or the pre-cache lists.
  */
-const VERSION = 'v8.8.0';
+const VERSION = 'v8.9.0';
 const SHELL_CACHE = `vmt-shell-${VERSION}`;
 const RUNTIME_CACHE = 'vmt-runtime';
 
