@@ -1192,6 +1192,7 @@ without prior written permission from the copyright owner.
           <div id="advisorCoachList" class="space-y-1.5"></div>
         </div>
         <div id="advisorReconContainer" class="space-y-3"></div>
+        <div id="advisorV91Container" class="space-y-3"></div>
 
         <!-- Live Cross-Data Briefings -->
         <div class="space-y-3" id="advisorBriefingsContainer">
@@ -1445,6 +1446,12 @@ without prior written permission from the copyright owner.
           <button type="button" onclick="exportCsv()" class="w-full bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 font-semibold py-2 rounded-xl border border-slate-700">Export CSV files (weights, scans, injections, intake)</button>
         </div>
 
+<!-- Medications & supplements (v9.1) -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between"><h3 class="text-xs font-bold text-white flex items-center gap-2"><i class="fa-solid fa-pills text-cyan-400"></i> Medications &amp; supplements</h3><button type="button" onclick="openAddMedModal()" class="text-xs text-cyan-400">+ Add</button></div>
+          <div id="medSettingsList" class="space-y-1.5"></div>
+        </div>
+
         <!-- Daily helpers (v9.0) -->
         <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
           <h3 class="text-xs font-bold text-white flex items-center gap-2"><i class="fa-solid fa-wand-magic-sparkles text-cyan-400"></i> Daily helpers</h3>
@@ -1563,32 +1570,27 @@ without prior written permission from the copyright owner.</pre>
 
   </div>
 
-  <!-- CUSTOM MEDICATION MODAL -->
+  <!-- MEDICATION EDITOR MODAL (v9.1: add or edit any medication or supplement) -->
   <div id="addMedModal" class="sheet-modal fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-end justify-center">
     <form id="addMedForm" onsubmit="saveCustomMed(event)" class="glass-card w-full max-w-md p-5 rounded-3xl border border-slate-800 space-y-4 max-h-full overflow-y-auto">
       <div class="flex items-center justify-between">
-        <h2 class="text-base font-bold text-white">Add a custom medication</h2>
-        <button type="button" onclick="closeAddMedModal()" aria-label="Close" class="p-2 text-slate-400 hover:text-white rounded-xl bg-slate-800">
-          <i class="fa-solid fa-xmark text-sm"></i>
-        </button>
+        <h2 id="medModalTitle" class="text-base font-bold text-white">Add a medication</h2>
+        <button type="button" onclick="closeAddMedModal()" aria-label="Close" class="p-2 text-slate-400 hover:text-white rounded-xl bg-slate-800"><i class="fa-solid fa-xmark text-sm"></i></button>
       </div>
+      <input type="hidden" id="medEditId">
       <div class="space-y-3 text-xs">
-        <div>
-          <label for="customMedName" class="text-[11px] text-slate-400 block mb-1">Name and strength</label>
-          <input type="text" id="customMedName" required maxlength="80" placeholder="e.g. Vitamin D3 1000 IU" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white w-full">
+        <div><label for="customMedName" class="text-[11px] text-slate-400 block mb-1">Name</label><input type="text" id="customMedName" required maxlength="80" placeholder="e.g. Heal Apple Creatine" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white w-full"></div>
+        <div class="grid grid-cols-2 gap-2">
+          <div><label for="customMedDose" class="text-[11px] text-slate-400 block mb-1">Dosage / quantity</label><input type="text" id="customMedDose" maxlength="40" placeholder="e.g. 5.0 g (250 ml)" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white w-full"></div>
+          <div><label for="customMedSchedule" class="text-[11px] text-slate-400 block mb-1">Scheduled time</label><input type="text" id="customMedSchedule" maxlength="40" placeholder="e.g. 9:00 PM" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white w-full"></div>
         </div>
-        <div>
-          <label for="customMedSchedule" class="text-[11px] text-slate-400 block mb-1">When you take it</label>
-          <input type="text" id="customMedSchedule" maxlength="60" placeholder="e.g. Daily Morning" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white w-full">
-        </div>
-        <div>
-          <label for="customMedNote" class="text-[11px] text-slate-400 block mb-1">Note (optional)</label>
-          <input type="text" id="customMedNote" maxlength="80" placeholder="e.g. With food" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white w-full">
-        </div>
+        <div><label for="medRule" class="text-[11px] text-slate-400 block mb-1">Schedule rule</label>
+          <select id="medRule" onchange="medRuleChanged()" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white w-full"><option value="daily">Daily</option><option value="dumbbell">Dumbbell Days only</option><option value="days">Specific days of the week</option></select>
+          <div id="medDaysRow" class="hidden flex gap-1 mt-2"></div></div>
+        <div><label for="customMedNote" class="text-[11px] text-slate-400 block mb-1">Notes / instructions (optional)</label><input type="text" id="customMedNote" maxlength="120" placeholder="e.g. Take 30 min pre-lifting with 250 ml water" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white w-full"></div>
       </div>
-      <button type="submit" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs py-3 rounded-xl shadow-lg shadow-cyan-600/30">
-        Add to checklist
-      </button>
+      <button type="submit" id="medSaveBtn" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs py-3 rounded-xl shadow-lg shadow-cyan-600/30">Save</button>
+      <button type="button" id="medDeleteBtn" onclick="deleteMedFromEditor()" class="hidden w-full text-xs text-rose-400 py-2">Delete / hide this item</button>
     </form>
   </div>
 
@@ -2294,7 +2296,7 @@ without prior written permission from the copyright owner.</pre>
        Safety copies (snapshots, recently deleted) live in a separate small database, so the main
        data schema is untouched.
        ========================================================================== */
-    const APP_VERSION = '9.0';
+    const APP_VERSION = '9.1';
     const $id = id => document.getElementById(id);
     const fmtWhen = iso => { try { return new Date(iso).toLocaleString([], { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' }); } catch (e) { return ''; } };
     const fmtBytes = n => (n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(n < 10240 ? 1 : 0)} KB` : `${(n / 1048576).toFixed(1)} MB`);
@@ -2468,6 +2470,7 @@ without prior written permission from the copyright owner.</pre>
         <button type="button" onclick="closeInspector()" class="w-full text-xs text-slate-400 py-2">Close (inspect only)</button>`;
     }
     function mergeImportedLists(p) {
+      if (p.medConfig && typeof p.medConfig === 'object') LS.set('vmt_med_cfg', { ...p.medConfig, ...getMedCfg() });
       if (Array.isArray(p.customMeds)) { const cur = getCustomMeds(), ids = new Set(cur.map(m => m.id)); LS.set('vmt_custom_meds', [...cur, ...p.customMeds.filter(m => m && m.id && !ids.has(m.id))]); }
       if (Array.isArray(p.savedMeals)) { const cur = getMeals(), names = new Set(cur.map(m => String(m.label || '').toLowerCase())); prefs.meals = [...cur, ...p.savedMeals.filter(m => m && m.label && !names.has(String(m.label).toLowerCase()))].slice(0, 20); LS.set('vmt_prefs', prefs); }
     }
@@ -2500,6 +2503,7 @@ without prior written permission from the copyright owner.</pre>
     }
     function applyImportedSettings(imported) {
       if (Array.isArray(imported.customMeds)) LS.set('vmt_custom_meds', imported.customMeds);
+      if (imported.medConfig && typeof imported.medConfig === 'object') LS.set('vmt_med_cfg', imported.medConfig);
       if (Array.isArray(imported.customExercises)) LS.set('vmt_exercises', imported.customExercises);
       if (imported.visTargets && typeof imported.visTargets === 'object') LS.set('vmt_vis_targets', imported.visTargets);
       if (imported.sizeSettings && typeof imported.sizeSettings === 'object') {
@@ -4472,19 +4476,19 @@ without prior written permission from the copyright owner.</pre>
       const custom = getCustomMeds();
       if (lifting === undefined) lifting = !!document.getElementById('dailyIsWorkoutDay').checked;
 
-      [...DEFAULT_MEDS, ...custom].forEach(med => {
-        const isCustom = custom.some(c => c.id === med.id);
+      const dateNow = document.getElementById('dailyLogDateInput').value || localDateStr();
+      effMeds().forEach(med => {
         const item = document.createElement('label');
-        item.id = `medrow_${med.id}`;
+        item.id = `medrow_${med.id}`; item.dataset.rule = med.rule;
         item.className = "p-3 bg-slate-800/80 rounded-xl border border-slate-700 flex justify-between items-center gap-3 text-xs cursor-pointer transition-colors";
         item.innerHTML = `
           <div class="min-w-0">
             <div class="font-bold text-white">${esc(med.name)}</div>
-            <div class="text-[11px] text-slate-400">${esc([med.schedule, med.note].filter(Boolean).join(' • '))}</div>
-            ${med.id === 'creatine' ? '<div id="creatineBadge" class="mt-1"></div>' : ''}
+            <div class="text-[11px] text-slate-400">${esc([med.dose, med.time, med.rule === 'daily' ? '' : medRuleText(med), med.note].filter(Boolean).join(' • '))}</div>
+            ${med.rule !== 'daily' ? `<div id="medbadge_${med.id}" class="mt-1"></div>` : ''}
           </div>
           <div class="flex items-center gap-2 flex-none">
-            ${isCustom ? `<button type="button" onclick="removeCustomMed('${med.id}')" aria-label="Remove ${esc(med.name)}" class="p-1.5 text-slate-500 hover:text-rose-400"><i class="fa-solid fa-xmark"></i></button>` : ''}
+            <button type="button" onclick="event.preventDefault();openAddMedModal('${med.id}')" aria-label="Edit ${esc(med.name)}" class="p-1.5 text-slate-500 hover:text-cyan-300"><i class="fa-solid fa-pencil"></i></button>
             <input type="checkbox" data-med="${med.id}" ${state[med.id] ? 'checked' : ''} onchange="toggleMedState('${med.id}')" class="w-5 h-5 rounded text-indigo-600 bg-slate-900 border-slate-700">
           </div>
         `;
@@ -4497,14 +4501,19 @@ without prior written permission from the copyright owner.</pre>
         }
       });
       applyCreatineHighlight(lifting);
+      const hid = effMeds(true).filter(m => m.hidden);
+      if (hid.length) { const h = document.createElement('div'); h.className = 'text-[10px] text-slate-500 px-1'; h.innerHTML = `${hid.length} hidden: ` + hid.map(m => `<button type="button" onclick="restoreMed('${m.id}')" class="text-cyan-400 underline">${esc(m.name.slice(0, 22))}</button>`).join(', '); container.appendChild(h); }
       updateSoreUI();
     }
-    // Creatine is a lifting-day supplement: it lights up on a lifting day and dims on a rest day.
+    // v9.1: any item with a rule lights up when due and dims when not (Dumbbell Day items follow the toggle).
     function applyCreatineHighlight(lifting) {
-      const row = document.getElementById('medrow_creatine'), badge = document.getElementById('creatineBadge');
-      if (!row) return;
-      row.className = `p-3 rounded-xl border flex justify-between items-center gap-3 text-xs cursor-pointer transition-colors ${lifting ? 'bg-emerald-950/40 border-emerald-600/60 ring-1 ring-emerald-500/30' : 'bg-slate-800/80 border-slate-700 opacity-70'}`;
-      if (badge) badge.innerHTML = lifting ? '<span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-600/40 rounded-full px-2 py-0.5"><i class="fa-solid fa-bolt"></i> Dumbbell day: take before training</span>' : '<span class="text-[10px] text-slate-500">Core-only day</span>';
+      const date = document.getElementById('dailyLogDateInput').value || localDateStr(), rec = { isWorkoutDay: !!lifting };
+      effMeds().forEach(m => {
+        const row = document.getElementById('medrow_' + m.id), badge = document.getElementById('medbadge_' + m.id); if (!row || m.rule === 'daily') return;
+        const due = medDueOnDate(m, date, rec);
+        row.className = `p-3 rounded-xl border flex justify-between items-center gap-3 text-xs cursor-pointer transition-colors ${due ? 'bg-emerald-950/40 border-emerald-600/60 ring-1 ring-emerald-500/30' : 'bg-slate-800/80 border-slate-700 opacity-70'}`;
+        if (badge) badge.innerHTML = due ? '<span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-600/40 rounded-full px-2 py-0.5"><i class="fa-solid fa-bolt"></i> Due today</span>' : `<span class="text-[10px] text-slate-500">${m.rule === 'dumbbell' ? 'Core-only day: not due' : 'Not due today'}</span>`;
+      });
     }
     function onLiftToggle() {
       const on = document.getElementById('dailyIsWorkoutDay').checked;
@@ -4536,35 +4545,78 @@ without prior written permission from the copyright owner.</pre>
       saveDailyLogState();
     }
 
-    /* ---- Custom medication (the "+ Custom Med" button previously did nothing) ---- */
-    function openAddMedModal() {
+    /* ---- Medications and supplements (v9.1: every item is editable) ----
+       Settings live in `vmt_med_cfg` keyed by the stable item id; daily check-offs are stored by that same id,
+       so editing, hiding or deleting never changes what you ticked on past days. */
+    const getMedCfg = () => LS.get('vmt_med_cfg', {}) || {};
+    function normMed(m, custom) {
+      const base = { id: m.id, name: m.name, dose: m.dose || '', time: m.time ?? m.schedule ?? '', note: m.note || '', rule: m.rule || (/only/i.test(m.schedule || '') ? 'dumbbell' : 'daily'), days: m.days || [], custom };
+      const o = getMedCfg()[m.id] || {};
+      const e = { ...base, ...o, custom };
+      e.schedule = [e.dose, e.time].filter(Boolean).join(' \u00b7 ') || (e.rule === 'dumbbell' ? 'Dumbbell Days Only' : '');
+      return e;
+    }
+    function effMeds(withHidden) {
+      const all = [...DEFAULT_MEDS.map(m => normMed(m, false)), ...getCustomMeds().map(m => normMed(m, true))];
+      return withHidden ? all : all.filter(m => !m.hidden);
+    }
+    const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    function medRuleText(m) { return m.rule === 'dumbbell' ? 'Dumbbell Days only' : m.rule === 'days' ? (m.days.length ? m.days.map(d => DOW[d]).join(', ') : 'No days chosen') : 'Daily'; }
+    function medDueOnDate(m, date, rec) {
+      if (m.hidden) return false;
+      if (m.rule === 'dumbbell') return !!(rec && rec.isWorkoutDay);
+      if (m.rule === 'days') return m.days.includes(parseLocalDate(date).getDay());
+      return true;
+    }
+    function medRuleChanged() {
+      document.getElementById('medDaysRow').classList.toggle('hidden', document.getElementById('medRule').value !== 'days');
+    }
+    function drawMedDays(sel) {
+      document.getElementById('medDaysRow').innerHTML = DOW.map((d, i) => `<label class="flex-1 text-center"><input type="checkbox" class="peer hidden med-day" value="${i}" ${sel.includes(i) ? 'checked' : ''}><span class="block py-2 rounded-lg border border-slate-700 bg-slate-800 text-[10px] text-slate-400 peer-checked:bg-cyan-600 peer-checked:text-white peer-checked:border-cyan-500">${d}</span></label>`).join('');
+    }
+    document.addEventListener('DOMContentLoaded', () => setTimeout(renderMedSettings, 600));
+    function openAddMedModal(id) {
       playSfx('click');
-      document.getElementById('addMedForm').reset();
+      const f = document.getElementById('addMedForm'); f.reset();
+      const m = id ? effMeds(true).find(x => x.id === id) : null;
+      document.getElementById('medEditId').value = m ? m.id : '';
+      document.getElementById('medModalTitle').textContent = m ? 'Edit medication' : 'Add a medication';
+      document.getElementById('medSaveBtn').textContent = m ? 'Save changes' : 'Add to checklist';
+      document.getElementById('medDeleteBtn').classList.toggle('hidden', !m);
+      if (m) {
+        document.getElementById('customMedName').value = m.name; document.getElementById('customMedDose').value = m.dose;
+        document.getElementById('customMedSchedule').value = m.time; document.getElementById('customMedNote').value = m.note;
+        document.getElementById('medRule').value = m.rule;
+      }
+      drawMedDays(m ? m.days : []); medRuleChanged();
       document.getElementById('addMedModal').classList.remove('hidden');
       setTimeout(() => document.getElementById('customMedName').focus(), 50);
     }
     function closeAddMedModal() { document.getElementById('addMedModal').classList.add('hidden'); }
     function saveCustomMed(e) {
       e.preventDefault();
-      const name = document.getElementById('customMedName').value.trim();
-      if (!name) return;
-      const meds = getCustomMeds();
-      meds.push({
-        id: `custom_${Date.now()}`,
-        name,
-        schedule: document.getElementById('customMedSchedule').value.trim(),
-        note: document.getElementById('customMedNote').value.trim()
-      });
-      LS.set('vmt_custom_meds', meds);
-      closeAddMedModal();
-      playSfx('chime');
-      showToast('Medication added to the checklist');
-      loadDailyLogForSelectedDate();
+      const v = id => document.getElementById(id).value.trim(), name = v('customMedName'); if (!name) return;
+      const rule = document.getElementById('medRule').value, days = [...document.querySelectorAll('.med-day:checked')].map(x => Number(x.value));
+      if (rule === 'days' && !days.length) { showToast('Pick at least one day', 'error'); return; }
+      const f = { name, dose: v('customMedDose'), time: v('customMedSchedule'), note: v('customMedNote'), rule, days: rule === 'days' ? days : [] };
+      const id = v('medEditId');
+      if (!id) { const meds = getCustomMeds(); meds.push({ id: `custom_${Date.now()}`, ...f }); LS.set('vmt_custom_meds', meds); }
+      else if (getCustomMeds().some(m => m.id === id)) LS.set('vmt_custom_meds', getCustomMeds().map(m => m.id === id ? { ...m, ...f, schedule: undefined } : m));
+      else { const c = getMedCfg(); c[id] = { ...(c[id] || {}), ...f }; LS.set('vmt_med_cfg', c); }
+      closeAddMedModal(); playSfx('chime'); showToast(id ? 'Medication updated' : 'Medication added to the checklist');
+      loadDailyLogForSelectedDate(); renderMedSettings();
     }
-    function removeCustomMed(id) {
-      if (!confirm('Remove this medication from the checklist?')) return;
-      LS.set('vmt_custom_meds', getCustomMeds().filter(m => m.id !== id));
-      loadDailyLogForSelectedDate();
+    function deleteMedFromEditor() {
+      const id = document.getElementById('medEditId').value; if (!id) return;
+      if (!confirm('Remove this item from your checklist? Your past ticks stay saved.')) return;
+      if (getCustomMeds().some(m => m.id === id)) LS.set('vmt_custom_meds', getCustomMeds().filter(m => m.id !== id));
+      else { const c = getMedCfg(); c[id] = { ...(c[id] || {}), hidden: true }; LS.set('vmt_med_cfg', c); }
+      closeAddMedModal(); loadDailyLogForSelectedDate(); renderMedSettings();
+    }
+    function restoreMed(id) { const c = getMedCfg(); if (c[id]) { delete c[id].hidden; LS.set('vmt_med_cfg', c); } loadDailyLogForSelectedDate(); renderMedSettings(); }
+    function renderMedSettings() {
+      const el = document.getElementById('medSettingsList'); if (!el) return;
+      el.innerHTML = effMeds(true).map(m => `<div class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-800/70 border border-slate-700 ${m.hidden ? 'opacity-60' : ''}"><div class="min-w-0 flex-1"><div class="text-xs font-semibold text-white truncate">${esc(m.name)}</div><div class="text-[10px] text-slate-400">${esc([m.dose, m.time, medRuleText(m)].filter(Boolean).join(' \u2022 '))}${m.hidden ? ' \u2022 hidden' : ''}</div></div>${m.hidden ? `<button type="button" onclick="restoreMed('${m.id}')" class="text-[11px] text-cyan-400 px-2">Restore</button>` : `<button type="button" onclick="openAddMedModal('${m.id}')" aria-label="Edit ${esc(m.name)}" class="p-2 text-slate-400 hover:text-cyan-300"><i class="fa-solid fa-pencil"></i></button>`}</div>`).join('');
     }
 
     /* ---- Editable core & posture circuit (v8.1: every day keeps its own list) ----
@@ -5711,8 +5763,116 @@ without prior written permission from the copyright owner.</pre>
       return isFinite(t) ? Math.max(0, Math.floor((Date.now() - t) / 86400000)) : null;
     }
 
+    /* ==========================================================================
+       v9.1 EMPIRICAL & PREDICTIVE ADVISOR (all maths runs on this phone, from your own logs)
+       ========================================================================== */
+    const sim91 = { kcal: null, db: null, steps: null };
+    const avg91 = a => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : null);
+    const med91 = a => { if (!a.length) return null; const b = [...a].sort((x, y) => x - y), m = b.length >> 1; return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2; };
+    const kc91 = v => Math.round(v / 10) * 10;
+    const card91 = (icon, color, title, body, badge) => `<div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-2"><div class="flex items-start justify-between gap-2"><h3 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid ${icon} ${color}"></i> ${title}</h3>${badge || ''}</div>${body}</div>`;
+    const pill91 = (t, c) => `<span class="text-[10px] font-semibold px-2 py-1 rounded-lg border whitespace-nowrap ${c}">${t}</span>`;
+    const WAIT = 'text-amber-300 bg-amber-950/50 border-amber-800/60', OKP = 'text-emerald-300 bg-emerald-950/50 border-emerald-800/60';
+
+    // 2.1 Empirical burn: average logged intake plus the energy implied by the AM weight trend (7,700 kcal per kg), 28-day window.
+    function adaptiveBurn91(foods) {
+      const today = localDateStr(), from = addDaysStr(today, -27);
+      const fl = foods.filter(f => f.date >= from && f.date <= today && isNum(f.calories) && f.calories > 300);
+      const ws = (appState.amScaleLogs || []).filter(l => l.date >= from && l.date <= today && isNum(l.amWeight)).sort((a, b) => a.date.localeCompare(b.date));
+      const out = { loggedDays: fl.length, weights: ws.length, span: 0, ready: false, provisional: false };
+      if (ws.length < 2) return out;
+      const d0 = parseLocalDate(ws[0].date), span = Math.round((parseLocalDate(ws[ws.length - 1].date) - d0) / 86400000);
+      out.span = span; if (span < 7 || fl.length < 5) return out;
+      // least-squares slope when 3+ weigh-ins, otherwise the two end points
+      let slope;
+      if (ws.length >= 3) { const xs = ws.map(l => (parseLocalDate(l.date) - d0) / 86400000), ys = ws.map(l => l.amWeight), mx = avg91(xs), my = avg91(ys); const den = xs.reduce((a, x) => a + (x - mx) ** 2, 0); slope = den > 0 ? xs.reduce((a, x, i) => a + (x - mx) * (ys[i] - my), 0) / den : null; }
+      else slope = (ws[1].amWeight - ws[0].amWeight) / span;
+      if (!isNum(slope)) return out;
+      const intake = avg91(fl.map(f => f.calories)), mid = intake - slope * 7700, half = Math.max(60, 7700 * 0.45 / Math.max(span, 7));
+      out.intake = intake; out.slope = slope; out.mid = mid; out.lo = kc91(mid - half); out.hi = kc91(mid + half);
+      const cover = fl.length / 28;
+      out.ready = cover >= 0.7 && span >= 21 && ws.length >= 3; out.provisional = !out.ready; out.cover = cover;
+      return out;
+    }
+    function weekdayCounts91(dailies, days) { return dailies.filter(d => d.isWorkoutDay && d.date >= addDaysStr(localDateStr(), -days + 1)).length; }
+
+    function simProject91(burn, dailies) {
+      const w0 = (() => { const a = (appState.amScaleLogs || []).filter(l => isNum(l.amWeight)).sort((x, y) => x.date.localeCompare(y.date)); return a.length ? a[a.length - 1].amWeight : null; })();
+      if (!isNum(w0) || !burn) return null;
+      const baseDb = weekdayCounts91(dailies, 28) / 4, stepsLog = dailies.filter(d => isNum(d.steps) && d.steps > 0 && d.date >= addDaysStr(localDateStr(), -27)).map(d => d.steps), baseSteps = avg91(stepsLog) || 6000;
+      const adj = (sim91.steps - baseSteps) * 0.04 + (sim91.db - baseDb) * 200 / 7; // about 40 kcal per 1,000 steps, about 200 kcal per dumbbell session
+      const pace = b => (b + adj - sim91.kcal) * 7 / 7700; // kg per week, positive = loss
+      const proj = wk => { const f = wk > 4 ? 0.9 : 1, lo = pace(burn.lo) * wk * f, hi = pace(burn.hi) * wk * f; return { wLo: w0 - Math.max(lo, hi), wHi: w0 - Math.min(lo, hi), lo: Math.min(lo, hi), hi: Math.max(lo, hi) }; };
+      const sc = (appState.visbodyScans || []).filter(x => isNum(x.bfm)), bfm0 = sc.length ? sc[sc.length - 1].bfm : null;
+      return { w0, p4: proj(4), p8: proj(8), bfm0, fatShare: sim91.db >= 2 ? [0.8, 0.95] : [0.7, 0.9] };
+    }
+    function simHtml91(burn, dailies) {
+      const pr = simProject91(burn, dailies); if (!pr) return '<div class="text-[11px] text-slate-400">Add at least one AM weight and some food logs to project.</div>';
+      const rng = (a, b, u) => { const x = Math.min(a, b), y = Math.max(a, b); return `${x.toFixed(1)} to ${y.toFixed(1)} ${u}`; };
+      const fat = p => { if (!isNum(pr.bfm0)) return ''; const l = Math.max(0, p.lo) * 0, a = [p.lo * pr.fatShare[0], p.hi * pr.fatShare[1], p.lo * pr.fatShare[1], p.hi * pr.fatShare[0]]; return ` \u00b7 body fat ${rng(pr.bfm0 - Math.max(...a), pr.bfm0 - Math.min(...a), 'kg')}`; };
+      return `<div class="rounded-xl bg-slate-900/60 border border-slate-700 p-2.5 text-[11px] text-slate-200 space-y-1"><div><b>4 weeks:</b> weight ${rng(pr.p4.wLo, pr.p4.wHi, 'kg')}${fat(pr.p4)}</div><div><b>8 weeks:</b> weight ${rng(pr.p8.wLo, pr.p8.wHi, 'kg')}${fat(pr.p8)}</div></div><div class="text-[10px] text-slate-500">Projection range, not a guarantee. Starts from your latest AM weight (${pr.w0.toFixed(1)} kg) and ${burn.ready ? 'your adaptive burn range' : 'a provisional burn range'}. Real loss usually slows over time.</div>`;
+    }
+    function simUpdate91() {
+      sim91.kcal = Number(document.getElementById('simKcal').value); sim91.db = Number(document.getElementById('simDb').value); sim91.steps = Number(document.getElementById('simSteps').value);
+      document.getElementById('simKcalV').textContent = sim91.kcal.toLocaleString() + ' kcal'; document.getElementById('simDbV').textContent = sim91.db + ' / week'; document.getElementById('simStepsV').textContent = sim91.steps.toLocaleString() + ' steps';
+      document.getElementById('simOut').innerHTML = simHtml91(window._burn91, window._dailies91);
+    }
+
+    // 2.3 observational checks, each with its sample size
+    function patterns91(foods, dailies) {
+      const out = [], cav = '<div class="text-[10px] text-slate-500">Observational only. It shows a pattern in your own logs, not proof of cause.</div>';
+      const row = (t, body, n) => `<div class="rounded-xl bg-slate-900/60 border border-slate-700 p-2.5 space-y-1"><div class="text-[11px] font-semibold text-slate-200">${t}</div><div class="text-[11px] text-slate-300">${body}</div><div class="text-[10px] text-cyan-300 font-semibold">${n}</div></div>`;
+      // a) dumbbell frequency vs SMM change between consecutive scans
+      const sc = (appState.visbodyScans || []).filter(x => isNum(x.smm)).sort((a, b) => a.date.localeCompare(b.date)), iv = [];
+      for (let i = 1; i < sc.length; i++) { const wks = Math.max(1, (parseLocalDate(sc[i].date) - parseLocalDate(sc[i - 1].date)) / 604800000), n = dailies.filter(d => d.isWorkoutDay && d.date > sc[i - 1].date && d.date <= sc[i].date).length; iv.push({ f: n / wks, d: sc[i].smm - sc[i - 1].smm }); }
+      if (iv.length >= 4) { const m = med91(iv.map(x => x.f)), hi = iv.filter(x => x.f > m), lo = iv.filter(x => x.f <= m); out.push(row('Dumbbell frequency vs muscle (SMM)', hi.length && lo.length ? `Scan gaps with more dumbbell days (above ${m.toFixed(1)} a week): SMM changed ${avg91(hi.map(x => x.d)).toFixed(2)} kg on average. Fewer: ${avg91(lo.map(x => x.d)).toFixed(2)} kg.` : 'The gaps are too alike to compare.', `n = ${iv.length} scan gaps`)); }
+      else out.push(row('Dumbbell frequency vs muscle (SMM)', 'Needs at least 4 gaps between scans.', `n = ${iv.length} scan gap${iv.length === 1 ? '' : 's'}`));
+      // b) sugar ceiling vs calorie control, by week (Mon to Sun, 4+ logged days)
+      const wk = new Map(); foods.filter(f => isNum(f.calories) && f.calories > 300).forEach(f => { const k = mondayOf(f.date); if (!wk.has(k)) wk.set(k, []); wk.get(k).push(f); });
+      const ws = [...wk.values()].filter(a => a.length >= 4).map(a => { const lim = a.map(f => (f.limits && isNum(f.limits.calMax)) ? f.limits.calMax : null); return { sugarOk: avg91(a.map(f => ((isNum(f.sugar) ? f.sugar : 0) <= ((f.limits && f.limits.sugar) || sugarMax())) ? 1 : 0)), over: avg91(a.map((f, i) => (lim[i] ? f.calories - lim[i] : null)).filter(isNum)) }; }).filter(x => isNum(x.over));
+      const g1 = ws.filter(x => x.sugarOk >= 0.7), g2 = ws.filter(x => x.sugarOk < 0.7);
+      out.push(row(`Added sugar under ${sugarMax()} g vs weekly calories`, ws.length >= 4 && g1.length && g2.length ? `Weeks mostly under the sugar ceiling ended ${Math.abs(avg91(g1.map(x => x.over))).toFixed(0)} kcal a day ${avg91(g1.map(x => x.over)) <= 0 ? 'under' : 'over'} your calorie limit on average. Other weeks: ${Math.abs(avg91(g2.map(x => x.over))).toFixed(0)} kcal ${avg91(g2.map(x => x.over)) <= 0 ? 'under' : 'over'}.` : 'Needs 4 weeks with 4+ logged days, some above and some below the ceiling.', `n = ${ws.length} week${ws.length === 1 ? '' : 's'}`));
+      // c) water vs next-day weight, needs consecutive-day AM weights
+      const am = new Map((appState.amScaleLogs || []).filter(l => isNum(l.amWeight)).map(l => [l.date, l.amWeight])), fw = new Map(foods.filter(f => isNum(f.water) && f.water > 0).map(f => [f.date, f.water]));
+      const pr = []; fw.forEach((w, d) => { const n = addDaysStr(d, 1); if (am.has(d) && am.has(n)) pr.push({ low: w < 2000, d: am.get(n) - am.get(d) }); });
+      const lo = pr.filter(x => x.low), hi = pr.filter(x => !x.low);
+      out.push(row('Water under 2.0 L vs next-day weight', lo.length >= 3 && hi.length >= 3 ? `After days under 2.0 L, next-morning weight moved ${avg91(lo.map(x => x.d)).toFixed(2)} kg on average. After 2.0 L or more: ${avg91(hi.map(x => x.d)).toFixed(2)} kg.` : 'Not enough back-to-back morning weigh-ins yet. With one weigh-in a week there are very few day-to-day pairs. Optional daily morning weigh-ins would fix that.', `n = ${pr.length} day pair${pr.length === 1 ? '' : 's'} (${lo.length} low-water)`));
+      return out.join('') + cav;
+    }
+
+    // 2.4 day-type protein coaching, kept apart from the doctor's fixed target
+    function protein91() {
+      const a = (appState.amScaleLogs || []).filter(l => isNum(l.amWeight)).sort((x, y) => x.date.localeCompare(y.date)), w = a.length ? a[a.length - 1].amWeight : latestWeightKg();
+      const doc = proteinTarget(); if (!isNum(w)) return `<div class="text-[11px] text-slate-400">Log an AM weight to get day-type protein coaching. Your doctor's target: <b>${doc} g</b>.</div>`;
+      const r5 = v => Math.round(v / 5) * 5, dbT = r5(w * 2.0), coT = r5(w * 1.6), rec = dailyRec(localDateStr()), isDb = !!(rec && rec.isWorkoutDay);
+      return `<div class="flex flex-wrap gap-2 items-center"><span class="text-[11px] px-2.5 py-1.5 rounded-lg border border-slate-600 bg-slate-800 text-slate-200">Doctor's target (fixed): <b>${doc} g</b></span><span class="text-[11px] px-2.5 py-1.5 rounded-lg border border-indigo-700/60 bg-indigo-950/50 text-indigo-200"><i class="fa-solid fa-lightbulb"></i> Coaching today (${isDb ? 'dumbbell day' : 'core / rest day'}): <b>${isDb ? dbT : coT} g</b></span></div><div class="text-[10px] text-slate-500">Suggestion: about 2.0 g/kg on dumbbell days (${dbT} g) and 1.6 g/kg on core-only or rest days (${coT} g), from your latest AM weight. It never replaces your doctor's target. Check with your doctor before changing it.</div>`;
+    }
+
+    async function renderV91Advisor() {
+      const el = document.getElementById('advisorV91Container'); if (!el) return;
+      let foods = [], dailies = []; try { [foods, dailies] = await Promise.all([dbGetAll('foodLogs'), dbGetAll('dailyLogs')]); } catch (e) { return; }
+      const b = adaptiveBurn91(foods), T = tdeeFor(localDateStr()), formula = T ? `${T.maint.toLocaleString()} kcal/day` : 'needs profile or scan BMR';
+      let body;
+      if (b.lo !== undefined) body = `<div class="text-xl font-bold text-white">${b.lo.toLocaleString()} \u2013 ${b.hi.toLocaleString()} <span class="text-xs font-normal text-slate-400">kcal/day</span></div><div class="text-[11px] text-slate-300">Your formula estimate is ${formula}. This range comes from ${Math.round(b.intake).toLocaleString()} kcal logged on average (${b.loggedDays} days) and a weight trend of ${(b.slope * 7).toFixed(2)} kg a week (${b.weights} weigh-ins).</div>`;
+      else body = `<div class="text-[11px] text-slate-300">Not enough data for a real-world estimate yet (${b.loggedDays} food days, ${b.weights} AM weights in 4 weeks). Your formula estimate is ${formula}.</div>`;
+      const badge = b.ready ? pill91('Ready', OKP) : pill91(b.lo !== undefined ? 'Provisional: needs ~4 weeks of consistent food logs' : 'Needs ~4 weeks of consistent food logs', WAIT);
+      const burn = b.lo !== undefined ? b : (T ? { lo: T.maint - 100, hi: T.maint + 100, ready: false } : null);
+      window._burn91 = burn; window._dailies91 = dailies;
+      if (sim91.kcal === null) sim91.kcal = Math.min(3000, Math.max(1200, Math.round((T ? T.target : (b.intake || 1800)) / 50) * 50));
+      if (sim91.db === null) sim91.db = Math.min(6, Math.round(weekdayCounts91(dailies, 28) / 4));
+      if (sim91.steps === null) sim91.steps = Math.min(12000, Math.max(2000, Math.round((typicalSteps(addDaysStr(localDateStr(), 1)) || 6000) / 500) * 500));
+      const sl = (id, min, max, step, val, lab) => `<div><div class="flex justify-between text-[11px] text-slate-300"><span>${lab}</span><span id="${id}V" class="font-semibold text-white"></span></div><input id="${id}" type="range" min="${min}" max="${max}" step="${step}" value="${val}" oninput="simUpdate91()" class="w-full h-8 accent-cyan-500" style="touch-action:pan-y"></div>`;
+      const sim = `<div class="text-[11px] text-slate-400">Move the sliders to see a scenario range. It is anchored to ${burn && burn.ready ? 'your adaptive burn' : 'a provisional burn'}.</div>${sl('simKcal', 1200, 3000, 50, sim91.kcal, 'Target daily calories')}${sl('simDb', 0, 6, 1, sim91.db, 'Dumbbell sessions per week')}${sl('simSteps', 2000, 12000, 500, sim91.steps, 'Average daily steps')}<div id="simOut"></div>`;
+      el.innerHTML = card91('fa-fire-flame-curved', 'text-orange-400', 'Adaptive calorie burn', body, badge)
+        + card91('fa-sliders', 'text-cyan-400', 'What-if scenario simulator', sim)
+        + card91('fa-magnifying-glass-chart', 'text-violet-400', 'Pattern observations', patterns91(foods, dailies))
+        + card91('fa-drumstick-bite', 'text-indigo-400', 'Day-type protein coaching', protein91());
+      simUpdate91();
+    }
+
     function renderAdvisorTab() {
       renderAdvisorBriefings();
+      renderV91Advisor();
       renderCoach();
       renderReconCard();
       renderAdvisorScorecard();
@@ -5882,7 +6042,7 @@ without prior written permission from the copyright owner.</pre>
     // Medications marked "... only" in their schedule (e.g. weight days only) are not due on other days.
     function medsDueOn(day, daily, meds) {
       const rec = daily.get(day);
-      return meds.filter(m => !(/only/i.test(m.schedule || '') && !(rec && rec.isWorkoutDay)));
+      return meds.filter(m => medDueOnDate(m.rule ? m : normMed(m, false), day, rec));
     }
 
     function scoreWeek(monday, ctx) {
@@ -6050,7 +6210,7 @@ without prior written permission from the copyright owner.</pre>
         food: new Map(foods.map(f => [f.date, f])),
         daily: new Map(dailies.map(d => [d.date, d])),
         ams: appState.amScaleLogs, shots: appState.mjShots,
-        exercises: getDefaultExercises(), meds: [...DEFAULT_MEDS, ...getCustomMeds()]
+        exercises: getDefaultExercises(), meds: effMeds()
       };
       const monday = addDaysStr(mondayOf(localDateStr()), scoreWeekOffset * 7);
       const cur = scoreWeek(monday, ctx);
@@ -6799,6 +6959,7 @@ const RISE_NAME = { navel: 'navel waist', below: 'low waist', hip: 'upper hip' }
         exportedAt: new Date().toISOString(),
         visbodyScans, amScaleLogs, mjShots, dailyLogs, foodLogs,
         customMeds: getCustomMeds(),
+        medConfig: getMedCfg(),
         customExercises: LS.get('vmt_exercises', null),
         visTargets: getVisTargetMap(),
         sizeSettings: { fit: prefs.fit, sizeCal: prefs.sizeCal },

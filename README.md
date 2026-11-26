@@ -3,6 +3,14 @@
 A single-page tracker that installs on an iPhone home screen, runs full-screen, and works offline.
 Everything you enter stays on your device (IndexedDB and localStorage). Nothing is sent to a server.
 
+## What's new in v9.1
+
+- **Every medication and supplement is editable.** A pencil icon sits on each item in the Daily tab, and Settings has a new Medications & supplements card. Edit name, dosage, scheduled time, schedule rule (Daily, Dumbbell Days only, or specific days of the week) and notes. Built-in items (Rosuvastatin, Omega-3, Creatine) can be edited too. Delete removes a custom item or hides a built-in one (restore from the hidden list). Past ticks are stored by item id, so history is never changed. The settings are in JSON export, import (merge and replace) and snapshots as `medConfig`.
+- **Adaptive calorie burn:** a kcal/day range from your logged intake and AM weight trend over 28 days, shown beside your formula estimate. It shows a "Needs ~4 weeks of consistent food logs" badge until coverage is good enough.
+- **What-if simulator:** sliders for daily calories, dumbbell sessions a week and steps. Shows a 4 and 8 week weight and body fat range, labelled as a projection range.
+- **Pattern observations:** dumbbell frequency vs SMM, added sugar vs calorie control, and water vs next-day weight. Each shows its sample size (n) and says it is observational.
+- **Day-type protein coaching:** about 2.0 g/kg on dumbbell days and 1.6 g/kg on core or rest days, in its own pill, separate from your doctor's fixed target.
+
 ## What's new in v9.0
 
 - **One version number** drives the About line, the lock screen and the service worker. Settings (About & Legal) also shows the offline cache version and tells you if it is older than the app. The version pill left the header.
@@ -124,7 +132,7 @@ Everything you enter stays on your device (IndexedDB and localStorage). Nothing 
 | --- | --- |
 | `index.html` | The whole app |
 | `manifest.webmanifest` | Name, colours and icons for installing |
-| `sw.js` | Offline support (service worker). Version `v9.0.0` |
+| `sw.js` | Offline support (service worker). Version `v9.1.0` |
 | `apple-touch-icon-v2.png`, `apple-touch-icon-167-v2.png`, `apple-touch-icon-152-v2.png` | The icon iOS uses for Add to Home Screen |
 | `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `favicon-32.png`, `icon.svg` | Manifest, browser tab and source artwork |
 
