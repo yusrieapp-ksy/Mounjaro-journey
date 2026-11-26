@@ -3,6 +3,31 @@
 A single-page tracker that installs on an iPhone home screen, runs full-screen, and works offline.
 Everything you enter stays on your device (IndexedDB and localStorage). Nothing is sent to a server.
 
+## What's new in v9.0
+
+**Housekeeping**
+- One version constant (`APP_VERSION` in `index.html`) feeds Settings, the lock screen and the About text. Settings also shows the **cached service worker version** next to it, with a **Check for an update** button, so a stale iOS cache is visible. `sw.js` must be bumped to the same number (it is `v9.0` now).
+- The version pill, the theme button and the Size Predictor button left the top header. Theme stays in Settings. **Size Predictor** now lives in the Visbody tab.
+
+**Dynamic calories (Food tab)**
+- Maintenance now follows the selected day's Daily tab: **1.20** base, **1.275** when the whole core circuit is ticked, plus a **Dumbbell Day** bonus (+0.125 on top of core, so **1.40**; +0.10 without core), plus a step bonus from that day's logged steps (+0.04 at 5,000, +0.08 at 8,000, +0.12 at 10,000). Fat max (30% of calories) follows automatically. Added sugar stays at 20 g.
+- The calorie subtitle shows the live formula, for example `Maintenance 2,058 kcal = BMR 1,614 x 1.275 (Core Day, 2,745 steps), Lean recomp, minus 250`.
+- A **+/-25 kcal tolerance** at the top of the target zone: a few kcal over reads "On target", not yellow.
+- **Macro-only mode** hides saved meals, combos and Copy yesterday. **Quick paste** takes `420 32 14 2` (kcal, protein, fat, sugar) with a live preview and Fill or Add. The sticky bar now shows what is **left**; tap it to switch to what you have eaten.
+
+**Training and medications**
+- "Lifting Day" is now **Dumbbell Day**, for extra dumbbell sessions only. The daily kettlebell circuit does not turn it on.
+- **Settings, Training, Apply updated daily circuit (one time):** swaps the default circuit. Days already logged are frozen to the circuit they used, so history is unchanged.
+- **Every medication and supplement is editable** (pencil in the Daily tab and in Settings): name, dose, time, rule (Daily, Dumbbell Days only, specific weekdays) and notes. Built-ins (Rosuvastatin, Omega-3, Creatine, Mounjaro) are included. **Delete** hides an item from today on, keeps its past ticks, and can be undone from Settings. Edits are in JSON backups (`medConfig`), and v8.x backups still import.
+
+**Weigh-in day and Visbody**
+- A **check-in card** on your weigh-in day: fasted weight, a shortcut to the Visbody PDF upload, the diurnal offset (scan weight minus AM weight), and that day's water and macros.
+- The PDF reader also looks for **scan time, ICW, ECW and ECW/TBW**. Anything missing is left empty.
+- The four secondary Dashboard charts are now **one chart with a Fat Mass / SMM / Visceral Fat / Waist switcher**.
+
+**Advisor (rules, not AI)**
+- A time-aware **Right now** prompt, a **Mon to Sun budget** (kcal, protein, added sugar), a **Recomposition and water check** (Active Recomposition, Transient Water Retention or True Fat Stall, with a Low / Moderate / High confidence label), **.ics reminders** (weigh-in and scan, weekly injection, evening supplements) and a one-tap **Pre-appointment summary**.
+
 ## What's new in v8.9
 
 **Data safety**
