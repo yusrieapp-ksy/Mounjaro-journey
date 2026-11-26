@@ -280,6 +280,8 @@ without prior written permission from the copyright owner.
     /* ---- v8.5 ---- */
     #foodPinned { top: -1rem; background: #0f172a; -webkit-backdrop-filter: none; backdrop-filter: none; }
     html.light #foodPinned { background: #ffffff; }
+    /* v9.0 */
+    html.macro-only .preset-ui { display: none !important; }
     /* v8.9: passcode lock, privacy shield, welcome overlay */
     #lockScreen { display: none; }
     html.app-locked #lockScreen { display: flex; }
@@ -305,8 +307,6 @@ without prior written permission from the copyright owner.
     @media (prefers-reduced-motion: reduce) {
       * { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
     }
-    body.macro-only [data-macro-hide] { display: none !important; }
-    #foodPinned { cursor: pointer; }
   </style>
 </head>
 
@@ -315,8 +315,8 @@ without prior written permission from the copyright owner.
 <div id="lockScreen" class="fixed inset-0 z-[200] flex-col items-center justify-center px-6" role="dialog" aria-label="App locked" style="background:radial-gradient(120% 90% at 50% 0%,#0e3a4a 0%,#0b1220 55%,#070b14 100%);color:#fff;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)">
   <svg class="w-16 h-16 rounded-2xl shadow-xl" style="box-shadow:0 10px 30px rgba(8,145,178,.35)" aria-hidden="true"><use href="#vmMark"/></svg>
   <div class="mt-4 text-lg font-extrabold tracking-tight" style="color:#fff">Visbody &amp; Mounjaro</div>
-  <div class="text-xs mb-1" style="color:#94a3b8">Enter your passcode</div>
-  <div class="text-[10px] mb-6 appVerLabel" style="color:#64748b"></div>
+  <div id="lockVersion" class="text-[10px] mt-0.5" style="color:#64748b"></div>
+  <div class="text-xs mb-7" style="color:#94a3b8">Enter your passcode</div>
   <div id="lockPadHost"></div>
   <button type="button" onclick="openForgotPin()" class="mt-6 text-xs underline" style="color:#94a3b8">Forgot passcode?</button>
 </div>
@@ -401,11 +401,16 @@ without prior written permission from the copyright owner.
           </div>
         </div>
 
-        <div id="tuesdayCard" class="hidden glass-card p-4 rounded-2xl border border-cyan-800/60 space-y-2.5"></div>
-
         <div id="apptChip" class="hidden glass-card p-3 rounded-2xl border border-slate-800 flex items-center gap-2 text-xs text-slate-300"><i class="fa-solid fa-calendar-check text-cyan-400"></i><span id="apptChipText"></span></div>
 
         <div id="prepCard" class="hidden relative overflow-hidden rounded-2xl border border-cyan-800/50 bg-gradient-to-br from-cyan-950/50 via-slate-900/70 to-slate-900/60 p-4 space-y-3"></div>
+
+        <div id="checkinCard" class="hidden relative overflow-hidden rounded-2xl border border-cyan-800/50 bg-gradient-to-br from-slate-900/80 via-cyan-950/30 to-slate-900/60 p-4 space-y-3"></div>
+
+        <div id="coachCard" class="glass-card p-4 rounded-2xl border border-slate-800 space-y-2.5">
+          <div class="flex items-center justify-between gap-2"><h3 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-comment-dots text-cyan-400"></i> Coach</h3><button type="button" onclick="openPlainSummary()" class="text-[11px] font-semibold text-cyan-400"><i class="fa-solid fa-file-lines mr-1"></i>Pre-appointment summary</button></div>
+          <div id="coachList" class="space-y-1.5"></div>
+        </div>
 
         <button type="button" onclick="switchTab('tab-food')" class="glass-card w-full text-left p-3.5 rounded-2xl border border-slate-800 space-y-2">
           <div class="flex items-center justify-between"><h2 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-bullseye text-cyan-400"></i> Today at a glance <span id="glanceStreak" class="hidden ml-1 text-[10px] font-semibold text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded-full border border-amber-800/60"></span></h2><span class="text-[11px] text-cyan-400">Open Food</span></div>
@@ -576,25 +581,17 @@ without prior written permission from the copyright owner.
           </div>
         </div>
 
-        <!-- v9.0: one switchable Visbody trend chart -->
-        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
-          <h2 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-chart-line text-amber-400"></i> Visbody trends</h2>
-          <div id="trendSeg" class="flex bg-slate-950 p-0.5 rounded-lg border border-slate-800 text-[11px] font-semibold" role="tablist">
-            <button type="button" data-seg="fat" onclick="setTrendSeg('fat')" class="flex-1 py-1.5 rounded-md">Fat Mass</button>
-            <button type="button" data-seg="smm" onclick="setTrendSeg('smm')" class="flex-1 py-1.5 rounded-md">SMM</button>
-            <button type="button" data-seg="vfl" onclick="setTrendSeg('vfl')" class="flex-1 py-1.5 rounded-md">Visceral Fat</button>
-            <button type="button" data-seg="waist" onclick="setTrendSeg('waist')" class="flex-1 py-1.5 rounded-md">Waist</button>
-          </div>
-          <div data-seg-pane="fat"><div class="h-56 w-full relative"><canvas id="chartFatTrend"></canvas></div></div>
-          <div data-seg-pane="smm" class="hidden"><div class="h-56 w-full relative"><canvas id="chartSmmTrend"></canvas></div></div>
-          <div data-seg-pane="vfl" class="hidden"><div class="h-56 w-full relative"><canvas id="chartVisceralTrend"></canvas></div></div>
-          <div data-seg-pane="waist" class="hidden"><div class="h-56 w-full relative"><canvas id="chartWaistTrend"></canvas></div></div>
+        <!-- Chart 2: body composition trends, one chart with a pill switcher (v9.0) -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-800">
+          <h2 id="visTrendTitle" class="text-sm font-bold text-white flex items-center gap-2 mb-3"></h2>
+          <div id="visTrendPills" class="flex bg-slate-950 p-0.5 rounded-lg border border-slate-800 text-[11px] font-semibold mb-3 overflow-x-auto"></div>
+          <div class="h-56 w-full relative"><canvas id="chartVisTrend"></canvas></div>
         </div>
       </section>
 
       <!-- TAB 2: VISBODY REPORTS & COMPARISONS -->
       <section id="tab-visbody" class="tab-content hidden space-y-6">
-        <p id="scanAgeLine" class="text-[11px] text-slate-400"></p>
+        <div class="flex items-center justify-between gap-3"><p id="scanAgeLine" class="text-[11px] text-slate-400 min-w-0"></p><button type="button" onclick="toggleSizeDrawer(true)" class="flex-none flex items-center gap-1.5 text-[11px] font-semibold text-amber-400 bg-slate-800/80 border border-slate-700 rounded-xl px-3 py-1.5"><i class="fa-solid fa-shirt"></i> Size predictor</button></div>
         <!-- Scan Selector & Web View Launcher -->
         <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-4">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
@@ -603,7 +600,6 @@ without prior written permission from the copyright owner.
                 <i class="fa-solid fa-file-pdf text-cyan-400"></i> Visbody Scans & Multi-Date Analysis
               </h2>
               <p class="text-xs text-slate-400">Select scan date or upload official PDF to sync parameters</p>
-              <button type="button" onclick="toggleSizeDrawer(true)" class="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-amber-400 hover:text-amber-300"><i class="fa-solid fa-shirt"></i> Size Predictor</button>
             </div>
             
             <div class="flex items-center space-x-2 w-full sm:w-auto">
@@ -918,12 +914,12 @@ without prior written permission from the copyright owner.
           <div class="flex justify-between items-center border-b border-slate-800 pb-2">
             <div>
               <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                <i class="fa-solid fa-person-running text-emerald-400"></i> Workout & Kettlebell Circuit
+                <i class="fa-solid fa-person-running text-emerald-400"></i> Daily Core: Kettlebell Circuit
               </h3>
-              <p class="text-xs text-slate-400">Track core stability, posture correction, and steps</p>
+              <p class="text-xs text-slate-400">Your baseline every day. Tick Dumbbell Day only for extra dumbbell sessions.</p>
             </div>
             <label class="flex items-center gap-2 cursor-pointer">
-              <span class="text-xs font-semibold text-slate-300" title="Extra dumbbell session. The daily kettlebell circuit does not count.">Dumbbell Day</span>
+              <span class="text-xs font-semibold text-slate-300">Dumbbell Day</span>
               <input type="checkbox" id="dailyIsWorkoutDay" onchange="onLiftToggle()" class="w-4 h-4 rounded text-cyan-600 focus:ring-0 bg-slate-800 border-slate-700">
             </label>
           </div>
@@ -958,6 +954,7 @@ without prior written permission from the copyright owner.
               <p>Changes here apply to <strong class="text-slate-200">this day only</strong>. Other days keep their own routines. Tap the pencil to rename or the bin to remove.</p>
               <div class="flex items-center justify-between gap-3">
                 <button type="button" onclick="setCircuitAsDefault()" class="text-cyan-400 underline">Use as default for new days</button>
+                <button type="button" onclick="applyCoreRoutine()" class="text-emerald-400 underline">Use my core routine</button>
                 <button type="button" onclick="resetDayCircuit()" class="text-amber-400 underline">Reset this day to default</button>
               </div>
             </div>
@@ -975,7 +972,7 @@ without prior written permission from the copyright owner.
 
         <!-- SUB-TAB 1: FOOD INTAKE -->
         <div id="foodView-intake" class="space-y-4">
-          <div id="foodPinned" role="button" tabindex="0" onclick="togglePinnedMode()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();togglePinnedMode();}" aria-label="Tap to switch between what is left and what is eaten" class="glass-card sticky top-0 z-20 flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl border border-slate-800 text-[11px]"></div>
+          <div id="foodPinned" role="button" tabindex="0" onclick="togglePinMode()" aria-label="Switch between amounts left and amounts eaten" class="glass-card sticky top-0 z-20 flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl border border-slate-800 text-[11px] cursor-pointer"></div>
           <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-4">
             <div class="flex flex-wrap items-center justify-between gap-3">
               <h3 class="text-sm font-bold text-white flex items-center gap-2 min-w-0">
@@ -1045,7 +1042,7 @@ without prior written permission from the copyright owner.
                   <div><label for="targetCalFloorInput" class="text-[11px] text-slate-400 block mb-1">Calorie minimum <button type="button" onclick="resetTargetAuto('targetCalFloorInput')" class="text-[10px] text-cyan-400 underline">Reset to auto</button></label><input type="number" inputmode="decimal" step="any" min="0" id="targetCalFloorInput" placeholder="Blank = scan BMR" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"></div>
                   <div class="col-span-2"><label for="targetCalMaxInput" class="text-[11px] text-slate-400 block mb-1">Calorie maximum <button type="button" onclick="resetTargetAuto('targetCalMaxInput')" class="text-[10px] text-cyan-400 underline">Reset to auto</button></label><input type="number" inputmode="decimal" step="any" min="0" id="targetCalMaxInput" placeholder="Blank = auto" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"></div>
                   <div><label for="targetActivity" class="text-[11px] text-slate-400 block mb-1">Activity level</label>
-                    <select id="targetActivity" onchange="updateTargetsHint()" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><option value="auto">Auto (core, dumbbell day + steps)</option><option value="1.2">Sedentary</option><option value="1.375">Light (1-3 days/wk)</option><option value="1.55">Moderate (3-5 days/wk)</option><option value="1.725">Very active</option></select></div>
+                    <select id="targetActivity" onchange="updateTargetsHint()" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><option value="auto">Auto (steps + dumbbell day)</option><option value="1.2">Sedentary</option><option value="1.375">Light (1-3 days/wk)</option><option value="1.55">Moderate (3-5 days/wk)</option><option value="1.725">Very active</option></select></div>
                   <div><label for="targetDeficit" class="text-[11px] text-slate-400 block mb-1">Daily deficit (kcal)</label><input type="number" inputmode="decimal" step="any" min="0" id="targetDeficit" placeholder="e.g. 500" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"></div>
                 </div>
                 <p id="targetsHint" class="text-[11px] text-slate-500"></p>
@@ -1066,10 +1063,6 @@ without prior written permission from the copyright owner.
 
               <div id="foodAddPane" class="space-y-2">
                 <input type="hidden" id="foodItemLabel" value="">
-                <label class="flex items-center justify-between gap-3 text-[11px] text-slate-300 cursor-pointer">
-                  <span><b class="text-white">Macro-only mode</b> <span class="text-slate-500">numbers only, no saved meals</span></span>
-                  <input type="checkbox" id="macroOnlyToggle" onchange="setMacroOnly(this.checked)" class="w-5 h-5 rounded text-cyan-600 bg-slate-900 border-slate-700">
-                </label>
                 <div class="grid grid-cols-4 gap-1.5" role="group" aria-label="Which meal">
                   <button type="button" data-meal="Breakfast" onclick="pickMeal('Breakfast')" class="meal-chip py-2 rounded-xl border border-slate-700 bg-slate-800 text-xs font-semibold text-slate-300">Breakfast</button>
                   <button type="button" data-meal="Lunch" onclick="pickMeal('Lunch')" class="meal-chip py-2 rounded-xl border border-slate-700 bg-slate-800 text-xs font-semibold text-slate-300">Lunch</button>
@@ -1077,11 +1070,8 @@ without prior written permission from the copyright owner.
                   <button type="button" data-meal="Snack" onclick="pickMeal('Snack')" class="meal-chip py-2 rounded-xl border border-slate-700 bg-slate-800 text-xs font-semibold text-slate-300">Snack</button>
                 </div>
                 <div class="space-y-1">
-                  <input type="text" inputmode="decimal" id="quickPaste" oninput="renderQuickPaste()" onkeydown="if(event.key==='Enter'){event.preventDefault();quickPasteApply(true);}" placeholder="Quick paste: kcal protein fat sugar, e.g. 420 32 14 2" aria-label="Quick paste calories, protein, fat and added sugar" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
-                  <div id="quickPastePreview" class="hidden flex items-center justify-between gap-2 text-[11px]">
-                    <span id="quickPasteText" class="text-slate-300"></span>
-                    <span class="flex gap-3 flex-none"><button type="button" onclick="quickPasteApply(false)" class="text-cyan-400 underline">Fill fields</button><button type="button" onclick="quickPasteApply(true)" class="text-emerald-400 font-semibold underline">Add</button></span>
-                  </div>
+                  <div class="flex gap-2"><input type="text" id="foodQuickPaste" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Quick paste: 420 32 14 2" aria-label="Quick paste calories, protein, fat and added sugar" oninput="parseQuickPaste()" onpaste="setTimeout(parseQuickPaste,0)" onkeydown="if(event.key==='Enter'){event.preventDefault();addFoodEntry();}" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><button type="button" onclick="clearQuickPaste()" aria-label="Clear quick paste" class="flex-none px-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-400"><i class="fa-solid fa-xmark text-xs"></i></button></div>
+                  <div id="quickPasteHint" class="text-[10px] text-slate-500">kcal &middot; protein g &middot; fat g &middot; added sugar g</div>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                   <input type="number" inputmode="numeric" min="0" id="foodItemCal" placeholder="kcal" aria-label="Calories to add" onkeydown="if(event.key==='Enter'){event.preventDefault();addFoodEntry();}" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
@@ -1090,13 +1080,13 @@ without prior written permission from the copyright owner.
                   <input type="number" inputmode="decimal" step="0.1" min="0" id="foodItemSugar" placeholder="sugar g" aria-label="Added sugar to add in grams" onkeydown="if(event.key==='Enter'){event.preventDefault();addFoodEntry();}" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full">
                 </div>
                 <button type="button" onclick="addFoodEntry()" class="w-full bg-slate-800 hover:bg-slate-700 text-cyan-400 font-semibold text-xs py-2 rounded-xl border border-slate-700">+ Add to today</button>
-                <div id="mealMultRow" data-macro-hide style="display:none" class="items-center gap-1.5 text-[11px] text-slate-400"><span>Saved meal portion</span><button type="button" data-mult="0.5" onclick="setFoodMult(0.5)">0.5×</button><button type="button" data-mult="1" onclick="setFoodMult(1)">1×</button><button type="button" data-mult="1.5" onclick="setFoodMult(1.5)">1.5×</button><button type="button" data-mult="2" onclick="setFoodMult(2)">2×</button></div>
-                <button type="button" data-macro-hide onclick="copyPrevMeals()" class="w-full flex items-center justify-center gap-2 text-xs font-semibold py-2 rounded-xl border border-dashed border-slate-600 bg-slate-800/40 text-slate-300 active:bg-slate-800"><i class="fa-solid fa-clone text-cyan-400"></i> Copy yesterday's meals</button>
-                <div id="foodRecent" data-macro-hide class="flex flex-wrap gap-1.5"></div>
+                <div id="mealMultRow" style="display:none" class="preset-ui items-center gap-1.5 text-[11px] text-slate-400"><span>Saved meal portion</span><button type="button" data-mult="0.5" onclick="setFoodMult(0.5)">0.5×</button><button type="button" data-mult="1" onclick="setFoodMult(1)">1×</button><button type="button" data-mult="1.5" onclick="setFoodMult(1.5)">1.5×</button><button type="button" data-mult="2" onclick="setFoodMult(2)">2×</button></div>
+                <button type="button" onclick="copyPrevMeals()" class="preset-ui w-full flex items-center justify-center gap-2 text-xs font-semibold py-2 rounded-xl border border-dashed border-slate-600 bg-slate-800/40 text-slate-300 active:bg-slate-800"><i class="fa-solid fa-clone text-cyan-400"></i> Copy yesterday's meals</button>
+                <div id="foodRecent" class="preset-ui flex flex-wrap gap-1.5"></div>
                 <div id="foodMealSplit" class="hidden space-y-1"></div>
                 <div id="foodEntryList" class="space-y-1.5"></div>
-                <p class="text-[10px] text-slate-500">Swipe an entry left to delete, or right to save it as a meal. Swipe the page sideways to change the day.</p>
-                <button type="button" data-macro-hide onclick="openCombo()" class="text-[11px] text-cyan-400 underline">Save entries as a combo</button>
+                <p class="text-[10px] text-slate-500">Swipe an entry left to delete<span class="preset-ui">, or right to save it as a meal</span>. Swipe the page sideways to change the day.</p>
+                <button type="button" onclick="openCombo()" class="preset-ui text-[11px] text-cyan-400 underline">Save entries as a combo</button>
               </div>
 
               <div id="foodTotalPane" class="hidden space-y-2">
@@ -1152,6 +1142,8 @@ without prior written permission from the copyright owner.
             </div>
           </div>
 
+          <div id="weekBudgetCard" class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3"></div>
+
           <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
             <h3 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-scale-balanced text-emerald-400"></i> Weekly averages vs targets</h3>
             <div id="weeklyVsTargets"></div>
@@ -1195,7 +1187,11 @@ without prior written permission from the copyright owner.
           </div>
         </div>
 
-        <div id="v9AdvisorHost" class="space-y-3"></div>
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-2.5">
+          <h3 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-comment-dots text-cyan-400"></i> Right now</h3>
+          <div id="advisorCoachList" class="space-y-1.5"></div>
+        </div>
+        <div id="advisorReconContainer" class="space-y-3"></div>
 
         <!-- Live Cross-Data Briefings -->
         <div class="space-y-3" id="advisorBriefingsContainer">
@@ -1229,7 +1225,7 @@ without prior written permission from the copyright owner.
                 <span>Optimize Mon–Sun Nutrition Plan</span>
                 <i class="fa-solid fa-chevron-right text-slate-400 text-[10px]"></i>
               </div>
-              <p class="text-[11px] text-slate-400">Anchors calories to your scan BMR, Dumbbell days & a 2.5L water target</p>
+              <p class="text-[11px] text-slate-400">Anchors calories to your scan BMR, dumbbell days & a 2.5L water target</p>
             </button>
 
             <button onclick="runAdvisorDiagnostic('wardrobe')" class="p-3 bg-slate-800/80 hover:bg-slate-800 rounded-xl text-left border border-slate-700 text-xs space-y-1">
@@ -1424,31 +1420,6 @@ without prior written permission from the copyright owner.
           </div>
         </div>
 
-        <!-- v9.0: app version, cached service worker, training reset, medications -->
-        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
-          <h3 class="text-xs font-bold text-white flex items-center gap-2"><i class="fa-solid fa-code-branch text-cyan-400"></i> App version &amp; offline cache</h3>
-          <div class="grid grid-cols-2 gap-2 text-center">
-            <div class="rounded-xl bg-slate-900/80 border border-slate-800 p-2"><div class="text-[10px] text-slate-500">App</div><div class="text-sm font-bold text-white appVerLabel"></div></div>
-            <div class="rounded-xl bg-slate-900/80 border border-slate-800 p-2"><div class="text-[10px] text-slate-500">Cached service worker</div><div id="swVerLabel" class="text-sm font-bold text-white">checking…</div></div>
-          </div>
-          <p id="swVerHint" class="text-[11px] text-slate-400"></p>
-          <button type="button" onclick="refreshSwInfo(true)" class="text-[11px] text-cyan-400 underline">Check for an update</button>
-        </div>
-
-        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
-          <h3 class="text-xs font-bold text-white flex items-center gap-2"><i class="fa-solid fa-dumbbell text-emerald-400"></i> Training</h3>
-          <p class="text-[11px] text-slate-400">Swap in the updated daily kettlebell circuit (5 kg, 6 kg and 8 kg bells, 150 ab rollers, march). Past days keep the circuit they were logged with.</p>
-          <button type="button" id="coreResetBtn" onclick="applyCoreRoutineV9()" class="w-full text-xs font-semibold py-2.5 rounded-xl border border-emerald-700 bg-emerald-950/40 text-emerald-300">Apply updated daily circuit (one time)</button>
-        </div>
-
-        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
-          <div class="flex items-center justify-between">
-            <h3 class="text-xs font-bold text-white flex items-center gap-2"><i class="fa-solid fa-pills text-indigo-400"></i> Medications &amp; supplements</h3>
-            <button type="button" onclick="toggleSettingsDrawer(false);openAddMedModal()" class="text-[11px] text-cyan-400 underline">+ Add</button>
-          </div>
-          <div id="settingsMedList" class="space-y-1.5"></div>
-        </div>
-
         <!-- Data safety & backup (v8.9) -->
         <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
           <h3 class="text-xs font-bold text-white flex items-center gap-2"><i class="fa-solid fa-shield-heart text-emerald-400"></i> Data safety &amp; backup</h3>
@@ -1472,6 +1443,14 @@ without prior written permission from the copyright owner.
           <p class="text-[11px] text-slate-400">One page with your weight trend, latest Visbody numbers, injections, last 7 days of intake against your targets, and the targets themselves. Share it as text.</p>
           <button type="button" onclick="openDoctorSummary()" class="w-full bg-slate-800 hover:bg-slate-700 text-xs text-cyan-400 font-semibold py-2 rounded-xl border border-slate-700">Open summary</button>
           <button type="button" onclick="exportCsv()" class="w-full bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 font-semibold py-2 rounded-xl border border-slate-700">Export CSV files (weights, scans, injections, intake)</button>
+        </div>
+
+        <!-- Daily helpers (v9.0) -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
+          <h3 class="text-xs font-bold text-white flex items-center gap-2"><i class="fa-solid fa-wand-magic-sparkles text-cyan-400"></i> Daily helpers</h3>
+          <div class="flex justify-between items-center gap-3"><div class="min-w-0"><div class="text-xs text-slate-300">Macro-only food entry</div><div class="text-[10px] text-slate-500">Hides saved meals, combos and Copy yesterday's meals</div></div><input type="checkbox" id="settingMacroOnly" onchange="setMacroOnly(this.checked)" class="w-4 h-4 rounded text-cyan-600 focus:ring-0 bg-slate-800 border-slate-700"></div>
+          <button type="button" onclick="openCalendarModal()" class="w-full flex items-center gap-3 p-2.5 rounded-xl bg-slate-800/70 border border-slate-700 text-left"><i class="fa-solid fa-calendar-plus text-emerald-300 w-5 text-center"></i><span class="flex-1 text-xs text-slate-200">Calendar reminders (.ics)</span><i class="fa-solid fa-chevron-right text-[10px] text-slate-500"></i></button>
+          <button type="button" onclick="openPlainSummary()" class="w-full flex items-center gap-3 p-2.5 rounded-xl bg-slate-800/70 border border-slate-700 text-left"><i class="fa-solid fa-file-lines text-cyan-300 w-5 text-center"></i><span class="flex-1 text-xs text-slate-200">Pre-appointment summary</span><i class="fa-solid fa-chevron-right text-[10px] text-slate-500"></i></button>
         </div>
 
         <!-- Privacy & security (v8.9) -->
@@ -1525,7 +1504,8 @@ Body_*.pdf</pre>
 
         <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-2">
           <h3 class="text-xs font-bold text-white flex items-center gap-2"><i class="fa-solid fa-scale-balanced text-slate-400"></i> About &amp; Legal</h3>
-          <p class="text-[11px] text-slate-400">Visbody &amp; Mounjaro Tracker <span class="appVerLabel"></span> &middot; prepared by Yusrie</p>
+          <p id="aboutVersion" class="text-[11px] text-slate-400"></p>
+          <p id="aboutCache" class="text-[10px] text-slate-500"></p>
           <pre class="text-[10px] leading-relaxed whitespace-pre-wrap text-slate-300 bg-slate-950 border border-slate-800 rounded-xl p-3">Copyright (c) 2026 Yusrie. All rights reserved.
 
 This software and its source code belong to Yusrie.
@@ -1585,31 +1565,30 @@ without prior written permission from the copyright owner.</pre>
 
   <!-- CUSTOM MEDICATION MODAL -->
   <div id="addMedModal" class="sheet-modal fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-end justify-center">
-    <form id="addMedForm" onsubmit="saveMed(event)" class="glass-card w-full max-w-md p-5 rounded-3xl border border-slate-800 space-y-4 max-h-full overflow-y-auto">
+    <form id="addMedForm" onsubmit="saveCustomMed(event)" class="glass-card w-full max-w-md p-5 rounded-3xl border border-slate-800 space-y-4 max-h-full overflow-y-auto">
       <div class="flex items-center justify-between">
-        <h2 id="medModalTitle" class="text-base font-bold text-white">Add a medication or supplement</h2>
-        <button type="button" onclick="closeAddMedModal()" aria-label="Close" class="p-2 text-slate-400 hover:text-white rounded-xl bg-slate-800"><i class="fa-solid fa-xmark text-sm"></i></button>
+        <h2 class="text-base font-bold text-white">Add a custom medication</h2>
+        <button type="button" onclick="closeAddMedModal()" aria-label="Close" class="p-2 text-slate-400 hover:text-white rounded-xl bg-slate-800">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
       </div>
-      <input type="hidden" id="medEditId" value="">
       <div class="space-y-3 text-xs">
-        <div><label for="customMedName" class="text-[11px] text-slate-400 block mb-1">Name</label>
-          <input type="text" id="customMedName" required maxlength="80" placeholder="e.g. Vitamin D3" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white w-full"></div>
-        <div class="grid grid-cols-2 gap-2">
-          <div><label for="customMedDose" class="text-[11px] text-slate-400 block mb-1">Dose / quantity</label>
-            <input type="text" id="customMedDose" maxlength="40" placeholder="e.g. 20 mg, 2 softgels" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white w-full"></div>
-          <div><label for="customMedSchedule" class="text-[11px] text-slate-400 block mb-1">Time</label>
-            <input type="text" id="customMedSchedule" maxlength="40" placeholder="e.g. 9:00 PM, Post-dinner" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white w-full"></div>
+        <div>
+          <label for="customMedName" class="text-[11px] text-slate-400 block mb-1">Name and strength</label>
+          <input type="text" id="customMedName" required maxlength="80" placeholder="e.g. Vitamin D3 1000 IU" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white w-full">
         </div>
-        <div><label for="customMedRule" class="text-[11px] text-slate-400 block mb-1">Schedule rule</label>
-          <select id="customMedRule" onchange="syncMedRuleUi()" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white w-full">
-            <option value="daily">Daily</option><option value="dumbbell">Dumbbell Days only</option><option value="days">Specific days of the week</option></select></div>
-        <div id="medDaysRow" class="hidden"><div class="text-[11px] text-slate-400 mb-1">Days</div>
-          <div class="grid grid-cols-7 gap-1" id="medDayChips"></div></div>
-        <div><label for="customMedNote" class="text-[11px] text-slate-400 block mb-1">Notes / instructions</label>
-          <input type="text" id="customMedNote" maxlength="120" placeholder="e.g. Take after dinner with fats" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white w-full"></div>
+        <div>
+          <label for="customMedSchedule" class="text-[11px] text-slate-400 block mb-1">When you take it</label>
+          <input type="text" id="customMedSchedule" maxlength="60" placeholder="e.g. Daily Morning" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white w-full">
+        </div>
+        <div>
+          <label for="customMedNote" class="text-[11px] text-slate-400 block mb-1">Note (optional)</label>
+          <input type="text" id="customMedNote" maxlength="80" placeholder="e.g. With food" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white w-full">
+        </div>
       </div>
-      <button type="submit" id="medSaveBtn" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs py-3 rounded-xl shadow-lg shadow-cyan-600/30">Save</button>
-      <button type="button" id="medArchiveBtn" onclick="archiveMedFromModal()" class="hidden w-full text-xs font-semibold py-2.5 rounded-xl border border-rose-800/70 text-rose-300">Delete (hide) this item</button>
+      <button type="submit" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs py-3 rounded-xl shadow-lg shadow-cyan-600/30">
+        Add to checklist
+      </button>
     </form>
   </div>
 
@@ -1774,14 +1753,6 @@ without prior written permission from the copyright owner.</pre>
     </div>
   </div>
   <!-- v8.9 modals -->
-  <div id="preApptModal" class="sheet-modal fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-end justify-center">
-    <div class="glass-card w-full max-w-md p-5 rounded-3xl border border-slate-800 space-y-3 max-h-full overflow-y-auto">
-      <div class="flex items-center justify-between"><h2 class="text-base font-bold text-white">Pre-appointment summary</h2><button type="button" onclick="closePreAppt()" aria-label="Close" class="p-2 text-slate-400 hover:text-white rounded-xl bg-slate-800"><i class="fa-solid fa-xmark text-sm"></i></button></div>
-      <pre id="preApptBody" class="text-[11px] leading-relaxed whitespace-pre-wrap text-slate-200 bg-slate-950 border border-slate-800 rounded-xl p-3"></pre>
-      <button type="button" onclick="sharePreAppt()" class="w-full bg-cyan-600 text-white font-semibold text-xs py-3 rounded-xl">Share or copy</button>
-    </div>
-  </div>
-
   <input type="file" id="restoreFileInput" accept=".json,application/json" onchange="importJsonBackup(event)" class="hidden">
   <div id="storageAlert" class="hidden fixed left-0 right-0 top-0 z-[65] px-3" style="padding-top:calc(env(safe-area-inset-top) + .5rem)"><div class="glass-card rounded-2xl border border-rose-800/70 bg-rose-950/80 px-3.5 py-3 flex items-center gap-3"><i class="fa-solid fa-triangle-exclamation text-rose-400"></i><div class="flex-1 text-[11px] text-rose-100">Saving to this phone's storage failed. Your newest entry may not be kept. Export a backup now.</div><button type="button" onclick="exportJsonBackup()" class="text-[11px] font-semibold bg-rose-600 text-white px-3 py-1.5 rounded-lg">Export</button><button type="button" onclick="document.getElementById('storageAlert').classList.add('hidden')" aria-label="Dismiss" class="text-rose-300"><i class="fa-solid fa-xmark"></i></button></div></div>
 
@@ -1863,6 +1834,23 @@ without prior written permission from the copyright owner.</pre>
       <div id="guideCounts" class="grid grid-cols-5 gap-1.5 text-center"></div>
       <button type="button" onclick="exportJsonBackup()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold py-2.5 rounded-xl">Backup Now</button>
       <p class="text-[10px] text-slate-500">Data lives per web address, so use exactly the same address on the new phone. Keep the backup file private.</p>
+    </div>
+  </div>
+
+  <div id="summaryModal" class="sheet-modal fixed inset-0 z-[70] bg-slate-950/80 backdrop-blur-md hidden flex items-end justify-center">
+    <div class="glass-card p-5 border border-slate-800 space-y-3">
+      <div class="flex items-start justify-between gap-3"><div class="flex items-center gap-3"><span class="w-9 h-9 rounded-xl bg-cyan-500/15 border border-cyan-700/40 flex items-center justify-center flex-none"><i class="fa-solid fa-file-lines text-cyan-300"></i></span><div><h2 class="text-base font-bold text-white leading-tight">Pre-appointment summary</h2><p class="text-[11px] text-slate-400">Plain English, from your own logs</p></div></div><button type="button" onclick="document.getElementById('summaryModal').classList.add('hidden')" aria-label="Close" class="p-2 text-slate-400 rounded-xl bg-slate-800"><i class="fa-solid fa-xmark text-sm"></i></button></div>
+      <div id="summaryBody" class="text-[12px] leading-relaxed text-slate-200 whitespace-pre-wrap max-h-[50vh] overflow-y-auto p-3 rounded-xl bg-slate-950/60 border border-slate-800"></div>
+      <div class="grid grid-cols-2 gap-2"><button type="button" onclick="shareSummary()" class="bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold py-2.5 rounded-xl"><i class="fa-solid fa-share-nodes mr-1.5"></i>Share</button><button type="button" onclick="copySummary()" class="bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold py-2.5 rounded-xl"><i class="fa-solid fa-copy mr-1.5"></i>Copy</button></div>
+    </div>
+  </div>
+
+  <div id="calModal" class="sheet-modal fixed inset-0 z-[70] bg-slate-950/80 backdrop-blur-md hidden flex items-end justify-center">
+    <div class="glass-card p-5 border border-slate-800 space-y-3">
+      <div class="flex items-start justify-between gap-3"><div class="flex items-center gap-3"><span class="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-700/40 flex items-center justify-center flex-none"><i class="fa-solid fa-calendar-plus text-emerald-300"></i></span><div><h2 class="text-base font-bold text-white leading-tight">Calendar reminders</h2><p class="text-[11px] text-slate-400">iOS Calendar does the alerting, so it works offline</p></div></div><button type="button" onclick="document.getElementById('calModal').classList.add('hidden')" aria-label="Close" class="p-2 text-slate-400 rounded-xl bg-slate-800"><i class="fa-solid fa-xmark text-sm"></i></button></div>
+      <div id="calList" class="space-y-2"></div>
+      <button type="button" onclick="createCalendarFile()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-3 rounded-xl">Create calendar file</button>
+      <p class="text-[10px] text-slate-500">Repeating events with only a title, no health numbers. Open the file to add them to Calendar. Remove them there any time.</p>
     </div>
   </div>
 
@@ -2093,6 +2081,8 @@ without prior written permission from the copyright owner.</pre>
         const b = document.getElementById(`themeBtn-${m}`);
         if (b) b.className = `flex-1 py-1.5 rounded-md ${prefs.theme === m ? 'bg-slate-800 text-cyan-400' : 'text-slate-400'}`;
       });
+      const icon = document.getElementById('themeQuickIcon');
+      if (icon) icon.className = `fa-solid ${light ? 'fa-moon' : 'fa-sun'} text-base`;
     }
     function setTheme(mode) {
       playSfx('click');
@@ -2101,7 +2091,7 @@ without prior written permission from the copyright owner.</pre>
       applyTheme();
       renderActiveTab(); // charts pick up the new colours
     }
-    
+    function toggleThemeQuick() { setTheme(resolvedTheme() === 'light' ? 'dark' : 'light'); }
     try {
       matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
         if (prefs.theme === 'auto') { applyTheme(); renderActiveTab(); }
@@ -2304,7 +2294,7 @@ without prior written permission from the copyright owner.</pre>
        Safety copies (snapshots, recently deleted) live in a separate small database, so the main
        data schema is untouched.
        ========================================================================== */
-    const APP_VERSION = '9.0'; // single source of truth: Settings, lock screen, welcome and the service worker all read this
+    const APP_VERSION = '9.0';
     const $id = id => document.getElementById(id);
     const fmtWhen = iso => { try { return new Date(iso).toLocaleString([], { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' }); } catch (e) { return ''; } };
     const fmtBytes = n => (n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(n < 10240 ? 1 : 0)} KB` : `${(n / 1048576).toFixed(1)} MB`);
@@ -2478,7 +2468,6 @@ without prior written permission from the copyright owner.</pre>
         <button type="button" onclick="closeInspector()" class="w-full text-xs text-slate-400 py-2">Close (inspect only)</button>`;
     }
     function mergeImportedLists(p) {
-      if (p.medConfig && p.medConfig.overrides && typeof p.medConfig.overrides === 'object') { const cur = getMedOverrides(); LS.set('vmt_med_overrides', { ...p.medConfig.overrides, ...cur }); }
       if (Array.isArray(p.customMeds)) { const cur = getCustomMeds(), ids = new Set(cur.map(m => m.id)); LS.set('vmt_custom_meds', [...cur, ...p.customMeds.filter(m => m && m.id && !ids.has(m.id))]); }
       if (Array.isArray(p.savedMeals)) { const cur = getMeals(), names = new Set(cur.map(m => String(m.label || '').toLowerCase())); prefs.meals = [...cur, ...p.savedMeals.filter(m => m && m.label && !names.has(String(m.label).toLowerCase()))].slice(0, 20); LS.set('vmt_prefs', prefs); }
     }
@@ -2511,7 +2500,6 @@ without prior written permission from the copyright owner.</pre>
     }
     function applyImportedSettings(imported) {
       if (Array.isArray(imported.customMeds)) LS.set('vmt_custom_meds', imported.customMeds);
-      if (imported.medConfig && imported.medConfig.overrides && typeof imported.medConfig.overrides === 'object') LS.set('vmt_med_overrides', imported.medConfig.overrides);
       if (Array.isArray(imported.customExercises)) LS.set('vmt_exercises', imported.customExercises);
       if (imported.visTargets && typeof imported.visTargets === 'object') LS.set('vmt_vis_targets', imported.visTargets);
       if (imported.sizeSettings && typeof imported.sizeSettings === 'object') {
@@ -2882,11 +2870,354 @@ without prior written permission from the copyright owner.</pre>
       afterUnlock();
     }
 
+    /* ==========================================================================
+       v9.0  DAILY CORE vs DUMBBELL DAY, MACRO-ONLY FOOD, TUESDAY CHECK-IN, LOCAL ADVISOR
+       Everything here is plain rules over your own logs. No network, no new storage.
+       ========================================================================== */
+    const weighDayIdx = () => { const w = Number(profile.weighDay); return isFinite(w) && w >= 0 && w <= 6 ? w : 2; };
+    const WATER_LO = 1600, WATER_HI = 3500;
+    const clock12 = hhmm => { const [h, m] = String(hhmm).split(':').map(Number); const d = new Date(); d.setHours(h || 0, m || 0, 0, 0); return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); };
+    const sgn1 = v => `${v > 0 ? '+' : v < 0 ? '\u2212' : ''}${Math.abs(Math.round(v * 10) / 10)}`;
+    const liters = ml => `${(Math.round(ml / 100) / 10).toFixed(1)} L`;
+
+    /* ---- one version number for every label ---- */
+    function renderVersionLabels() {
+      const a = $id('aboutVersion'); if (a) a.textContent = `Visbody & Mounjaro Tracker v${APP_VERSION} \u00b7 prepared by Yusrie`;
+      const l = $id('lockVersion'); if (l) l.textContent = `v${APP_VERSION}`;
+      checkCacheVersion();
+    }
+    async function checkCacheVersion() {
+      const el = $id('aboutCache'); if (!el) return;
+      try {
+        const k = (await caches.keys()).find(x => x.startsWith('vmt-shell-'));
+        if (!k) { el.textContent = 'Offline cache: not created yet'; return; }
+        const v = k.replace('vmt-shell-v', ''), ok = v === APP_VERSION || v.startsWith(APP_VERSION + '.');
+        el.textContent = `Offline cache v${v}${ok ? ' (up to date)' : ' (older: close and reopen the app to update)'}`;
+        el.style.color = ok ? '' : '#fbbf24';
+      } catch (e) { el.textContent = ''; }
+    }
+
+    /* ---- macro-only food entry ---- */
+    const macroOnly = () => prefs.macroOnly !== false;
+    function applyMacroOnly() { document.documentElement.classList.toggle('macro-only', macroOnly()); const c = $id('settingMacroOnly'); if (c) c.checked = macroOnly(); }
+    function setMacroOnly(on) { prefs.macroOnly = on; LS.set('vmt_prefs', prefs); applyMacroOnly(); showToast(on ? 'Macro-only entry is on' : 'Saved meals and copy are back'); }
+    // "420 32 14 2", "420, 32, 14, 2", "420/32/14/2" or "420 kcal 32p 14f 2s" fill kcal, protein, fat and added sugar.
+    function parseMacroLine(str) {
+      let t = String(str || '').trim().toLowerCase();
+      if (!t) return null;
+      const commas = (t.match(/,/g) || []).length;
+      if (!/\s/.test(t) && commas >= 1 && commas <= 3) t = t.replace(/,/g, ' '); else t = t.replace(/(\d),(\d)/g, '$1.$2');
+      const N = '(\\d+(?:\\.\\d+)?)';
+      const LAB = { calories: 'kcal|cals?|calories|energy', protein: 'protein|prot|p', fat: 'fat|f', sugar: 'added\\s*sugars?|sugars?|s' };
+      const out = { calories: null, protein: null, fat: null, sugar: null }; let labeled = 0;
+      const labelFirst = /^[a-z]/.test(t); // "kcal 420 protein 32" reads label then number, "420 kcal 32p" number then label
+      for (const k of Object.keys(LAB)) {
+        const after = new RegExp(`${N}\\s*g?\\s*(?:${LAB[k]})(?![a-z])`), before = new RegExp(`(?:^|[^a-z])(?:${LAB[k]})\\s*[:=]?\\s*${N}`);
+        const m = labelFirst ? (t.match(before) || t.match(after)) : (t.match(after) || t.match(before));
+        if (m) { out[k] = parseFloat(m[1]); labeled++; }
+      }
+      if (labeled) return { values: out, mode: 'labels', extra: 0 };
+      const nums = t.match(/\d+(?:\.\d+)?/g) || [];
+      if (!nums.length) return null;
+      ['calories', 'protein', 'fat', 'sugar'].forEach((k, i) => { if (nums[i] !== undefined) out[k] = parseFloat(nums[i]); });
+      return { values: out, mode: 'order', extra: Math.max(0, nums.length - 4) };
+    }
+    function parseQuickPaste() {
+      const inp = $id('foodQuickPaste'), hint = $id('quickPasteHint'); if (!inp || !hint) return;
+      const r = parseMacroLine(inp.value);
+      if (!r) { hint.textContent = 'kcal \u00b7 protein g \u00b7 fat g \u00b7 added sugar g'; hint.style.color = ''; return; }
+      const v = r.values, ids = { calories: 'foodItemCal', protein: 'foodItemProtein', fat: 'foodItemFat', sugar: 'foodItemSugar' };
+      Object.keys(ids).forEach(k => { $id(ids[k]).value = v[k] === null ? '' : String(v[k]); });
+      const w = [], f = x => (x === null ? '\u2013' : x);
+      if (r.extra) w.push(`${r.extra} extra number${r.extra === 1 ? '' : 's'} ignored`);
+      if (v.calories !== null && v.protein !== null && v.fat !== null && v.calories < (4 * v.protein + 9 * v.fat) * 0.8) w.push('kcal looks low for those grams');
+      if (v.calories !== null && v.calories > 3000) w.push('kcal is high for one entry');
+      hint.textContent = `kcal ${f(v.calories)} \u00b7 P ${f(v.protein)} g \u00b7 F ${f(v.fat)} g \u00b7 sugar ${f(v.sugar)} g${w.length ? ' \u00b7 ' + w.join(', ') : ''}`;
+      hint.style.color = w.length ? '#fbbf24' : '#34d399';
+    }
+    function clearQuickPaste() { ['foodQuickPaste', 'foodItemCal', 'foodItemProtein', 'foodItemFat', 'foodItemSugar'].forEach(id => { const e = $id(id); if (e) e.value = ''; }); parseQuickPaste(); }
+    function togglePinMode() { playSfx('click'); prefs.pinMode = prefs.pinMode === 'eaten' ? 'left' : 'eaten'; LS.set('vmt_prefs', prefs); renderFoodDay(); }
+
+    /* ---- one body-composition trend chart with a pill switcher ---- */
+    const VIS_MODES = { fat: ['Fat mass', 'fa-chart-area text-amber-400', 'Body Fat Mass (kg)'], smm: ['Muscle', 'fa-dumbbell text-indigo-400', 'Skeletal Muscle Mass (kg), zoomed'], vfl: ['Visceral', 'fa-heart-pulse text-rose-400', 'Visceral Fat Level'], waist: ['Waist', 'fa-ruler-horizontal text-emerald-400', 'Waist Circumferences (cm)'], water: ['Water', 'fa-droplet text-sky-400', 'ECW/TBW ratio (normal 0.360 to 0.390)'] };
+    function setVisTrend(m) { playSfx('click'); prefs.visTrend = m; LS.set('vmt_prefs', prefs); renderVisTrend(); }
+    function renderVisTrend() {
+      const pills = $id('visTrendPills'); if (!pills) return;
+      const scans = appState.visbodyScans, hasWater = scans.some(s => isNum(s.ecwRatio));
+      let mode = VIS_MODES[prefs.visTrend] ? prefs.visTrend : 'fat'; if (mode === 'water' && !hasWater) mode = 'fat';
+      pills.innerHTML = Object.keys(VIS_MODES).filter(k => k !== 'water' || hasWater).map(k => `<button type="button" onclick="setVisTrend('${k}')" class="flex-1 whitespace-nowrap px-3 py-1.5 rounded-md ${k === mode ? 'bg-slate-800 text-cyan-400' : 'text-slate-400'}">${VIS_MODES[k][0]}</button>`).join('');
+      $id('visTrendTitle').innerHTML = `<i class="fa-solid ${VIS_MODES[mode][1]}"></i> ${VIS_MODES[mode][2]}`;
+      const multiYear = new Set(scans.map(s => s.date.slice(0, 4))).size > 1, labels = scans.map(s => shortDate(s.date, multiYear));
+      let cfg;
+      if (mode === 'fat') cfg = { type: 'line', data: { labels, datasets: [{ label: 'Body Fat Mass (kg)', data: scans.map(s => s.bfm), borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', fill: true }] }, options: chartOpts(NO_LEGEND, scans.length) };
+      else if (mode === 'smm') {
+        const vals = scans.map(s => s.smm).filter(isNum), y = { grid: { color: 'rgba(255,255,255,0.05)' } };
+        if (vals.length) { y.min = Math.floor(Math.min(...vals) - 2); y.max = Math.ceil(Math.max(...vals) + 2); }
+        cfg = { type: 'line', data: { labels, datasets: [{ label: 'Skeletal Muscle Mass (kg)', data: scans.map(s => s.smm), borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.1)', fill: true }] }, options: chartOpts({ ...NO_LEGEND, scales: { y } }, scans.length) };
+      } else if (mode === 'vfl') cfg = { type: 'bar', data: { labels, datasets: [{ label: 'Visceral Fat Level', data: scans.map(s => s.vfl), backgroundColor: '#f43f5e' }] }, options: chartOpts(NO_LEGEND, scans.length) };
+      else if (mode === 'waist') cfg = { type: 'line', data: { labels, datasets: [{ label: 'High Waist', data: scans.map(s => s.highWaist), borderColor: '#10b981', spanGaps: true }, { label: 'Mid Waist', data: scans.map(s => s.midWaist), borderColor: '#06b6d4', spanGaps: true }, { label: 'Low Waist', data: scans.map(s => s.lowWaist), borderColor: '#8b5cf6', spanGaps: true }] }, options: chartOpts({}, scans.length) };
+      else cfg = { type: 'line', data: { labels, datasets: [{ label: 'ECW/TBW ratio', data: scans.map(s => s.ecwRatio), borderColor: '#38bdf8', backgroundColor: 'rgba(56,189,248,0.1)', fill: true, spanGaps: true }] }, options: chartOpts({ ...NO_LEGEND, scales: { y: { min: 0.34, max: 0.42, grid: { color: 'rgba(255,255,255,0.05)' } } } }, scans.length) };
+      CHART_EMPTY.chartVisTrend = { fat: 'Add at least 2 Visbody scans to see fat mass.', smm: 'Add at least 2 Visbody scans to see muscle mass.', vfl: 'Add at least 2 Visbody scans to see visceral fat.', waist: 'Add at least 2 scans with waist measurements.', water: 'Add at least 2 scans with body water readings.' }[mode];
+      createOrUpdateChart('chartVisTrend', cfg);
+    }
+
+    /* ---- daily kettlebell core vs dumbbell day ---- */
+    const CORE_ROUTINE = [
+      { id: 'kbswing', name: 'Kettlebell Swings', target: 'Hips, Glutes & Conditioning' },
+      { id: 'aroundworld', name: 'Around-the-World KB Reps', target: 'Shoulder Mobility & Core' },
+      { id: 'sideswing', name: 'Side Swings', target: 'Obliques & Pelvis Balance' },
+      { id: 'thrust', name: 'Hybrid Hinge Thrusts', target: 'Glute Activation & Alignment' },
+      { id: 'abroll', name: '150 Ab Roller Reps', target: 'Core Stability & Lower Back' },
+      { id: 'march', name: 'March', target: 'Cardio & Steps' }
+    ];
+    // Same safety as "Use as default": days already logged keep the routines they had.
+    async function applyCoreRoutine() {
+      if (!confirm('Use your daily kettlebell core as the default routine list? Days you have already logged keep their own routines. Rename a routine afterwards to add your reps and bells.')) return;
+      const date = $id('dailyLogDateInput').value;
+      try {
+        const old = getDefaultExercises(), all = await dbGetAll('dailyLogs'), tx = db.transaction('dailyLogs', 'readwrite');
+        all.forEach(r => { if (r.date !== date && !Array.isArray(r.circuit)) { r.circuit = old.map(e => ({ ...e })); tx.objectStore('dailyLogs').put(r); } });
+        await txDone(tx);
+        if (date < localDateStr() && !dayCircuit) dayCircuit = old.map(e => ({ ...e })); // keep the day you are viewing as it was if it is in the past
+        setDefaultExercises(CORE_ROUTINE.map(e => ({ ...e })));
+        refreshExercises(); saveDailyLogState(); playSfx('chime');
+        showToast('Core routine set as the default');
+      } catch (err) { showToast("Couldn't update the routines", 'error'); }
+    }
+
+    /* ---- weigh-day check-in card: AM weight, Visbody upload, evening gap ---- */
+    const gapPairs = () => { const am = new Map(appState.amScaleLogs.map(a => [a.date, a.amWeight])); return appState.visbodyScans.filter(s => isNum(s.weight) && am.has(s.date)).map(s => ({ date: s.date, gap: Math.round((s.weight - am.get(s.date)) * 10) / 10, time: s.testTime || null })); };
+    function saveCheckinWeight() {
+      const v = parseFloat($id('ciWeight').value);
+      if (!isFinite(v) || v <= 0) { showToast('Enter your fasted weight.', 'warn'); return; }
+      $id('fastAmScaleDate').value = localDateStr(); $id('fastAmScaleWeight').value = v; saveAmFastedScaleEntry();
+    }
+    function openScanUpload() { playSfx('click'); switchTab('tab-visbody'); const f = $id('pdfFileInput'); if (f) f.click(); }
+    async function renderCheckinCard() {
+      const el = $id('checkinCard'); if (!el) return;
+      const now = new Date(), today = localDateStr();
+      if (now.getDay() !== weighDayIdx()) { el.classList.add('hidden'); return; }
+      const am = appState.amScaleLogs.find(l => l.date === today), scan = appState.visbodyScans.find(s => s.date === today);
+      const prevAm = [...appState.amScaleLogs].filter(l => l.date < today).sort((a, b) => a.date.localeCompare(b.date)).pop();
+      const pairs = gapPairs().filter(p => p.date !== today), avg = pairs.length ? pairs.reduce((a, p) => a + p.gap, 0) / pairs.length : null;
+      let foods = []; try { foods = await dbGetAll('foodLogs'); } catch (e) { /* ignore */ }
+      const fl = foods.find(l => l.date === today) || {}, scanClock = scan && scan.testTime ? clock12(scan.testTime) : '7:00 PM';
+      const done = (!!am) + (!!scan);
+      const step = (ok, n) => `<span class="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold flex-none ${ok ? 'bg-emerald-500 text-white' : 'bg-slate-700 text-slate-300'}">${ok ? '<i class="fa-solid fa-check text-[10px]"></i>' : n}</span>`;
+      let gapHtml = '';
+      if (am && scan && isNum(scan.weight)) {
+        const gap = Math.round((scan.weight - am.amWeight) * 10) / 10, diff = avg === null ? null : gap - avg;
+        gapHtml = `<div class="p-3 rounded-xl bg-slate-950/60 border border-slate-800 flex items-center gap-3"><div class="text-2xl font-extrabold text-cyan-300 tabular-nums">${sgn1(gap)}<span class="text-xs font-semibold text-slate-400"> kg</span></div><div class="text-[11px] text-slate-300 leading-snug">Evening scan weight (${scan.weight} kg) minus your fasted weight (${am.amWeight} kg).${avg !== null ? ` Your usual gap is ${sgn1(avg)} kg over ${pairs.length} week${pairs.length === 1 ? '' : 's'}${Math.abs(diff) >= 0.8 ? `, so today is ${diff > 0 ? 'higher' : 'lower'} than usual, which food and water timing can explain` : ', so today is typical'}.` : ' Check-ins build your usual range over the next weeks.'}${fl.water > 0 || fl.calories != null ? ` Today so far: ${fl.water > 0 ? liters(fl.water) + ' water' : ''}${fl.water > 0 && fl.calories != null ? ', ' : ''}${fl.calories != null ? Math.round(fl.calories).toLocaleString() + ' kcal' : ''}.` : ''}</div></div>`;
+      } else if (pairs.length) gapHtml = `<div class="text-[11px] text-slate-400">Recent evening gaps: ${pairs.slice(-4).map(p => sgn1(p.gap)).join(', ')} kg</div>`;
+      el.innerHTML = `<div class="flex items-center justify-between gap-2"><div class="flex items-center gap-2 min-w-0"><span class="w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-700/40 flex items-center justify-center flex-none"><i class="fa-solid fa-calendar-check text-cyan-300 text-sm"></i></span><div class="min-w-0"><div class="text-sm font-bold text-white leading-tight">${esc(weighDayName())} check-in</div><div class="text-[11px] text-slate-400">Fasted weight in the morning, Visbody scan in the evening</div></div></div><span class="text-[11px] font-semibold text-cyan-300 flex-none">${done}/2</span></div>
+        <div class="space-y-2">
+          <div class="flex items-center gap-3 p-2.5 rounded-xl border ${am ? 'border-emerald-700/50 bg-emerald-950/20' : 'border-slate-700 bg-slate-800/60'}">${step(!!am, 1)}${am ? `<div class="flex-1 text-xs text-slate-200">Fasted weight <b class="text-white">${am.amWeight} kg</b>${prevAm ? ` <span class="text-slate-400">(${sgn1(am.amWeight - prevAm.amWeight)} vs ${shortDate(prevAm.date)})</span>` : ''}</div>` : `<div class="flex-1 flex items-center gap-2"><input type="number" inputmode="decimal" step="0.1" id="ciWeight" placeholder="Fasted kg" aria-label="Fasted weight in kilograms" onkeydown="if(event.key==='Enter'){event.preventDefault();saveCheckinWeight();}" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full"><button type="button" onclick="saveCheckinWeight()" class="flex-none bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold px-3 py-2 rounded-xl">Save</button></div>`}</div>
+          <div class="flex items-center gap-3 p-2.5 rounded-xl border ${scan ? 'border-emerald-700/50 bg-emerald-950/20' : 'border-slate-700 bg-slate-800/60'}">${step(!!scan, 2)}${scan ? `<div class="flex-1 text-xs text-slate-200">Visbody scan at <b class="text-white">${scanClock}</b>${isNum(scan.bfm) ? ` <span class="text-slate-400">\u00b7 fat ${scan.bfm} kg, muscle ${isNum(scan.smm) ? scan.smm : '\u2013'} kg</span>` : ''}</div>` : `<div class="flex-1 flex items-center justify-between gap-2"><div class="text-xs text-slate-300">Scan around 7:00 PM<div class="text-[10px] text-slate-500">Last meal by ${clock12('16:30')}, last big drink by ${clock12('17:30')}</div></div><button type="button" onclick="openScanUpload()" class="flex-none bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold px-3 py-2 rounded-xl"><i class="fa-solid fa-file-arrow-up mr-1"></i>Upload PDF</button></div>`}</div>
+        </div>${gapHtml}`;
+      el.classList.remove('hidden');
+    }
+
+    /* ---- Monday to Sunday budget ---- */
+    async function renderWeekBudget() {
+      const el = $id('weekBudgetCard'); if (!el) return;
+      const logs = await dbGetAll('foodLogs'), by = new Map(logs.map(l => [l.date, l]));
+      const today = localDateStr(), monday = mondayOf(today), days = Array.from({ length: 7 }, (_, i) => addDaysStr(monday, i));
+      const rows = days.map(d => { const rec = dailyRec(d); return { d, L: limitsNow(d), r: by.get(d) || {}, dumbbell: !!(rec && rec.isWorkoutDay), past: d < today, today: d === today }; });
+      const tot = f => rows.reduce((a, x) => a + (Number(f(x)) || 0), 0), eaten = k => rows.filter(x => x.d <= today).reduce((a, x) => a + (isNum(x.r[k]) ? x.r[k] : 0), 0);
+      const tCal = tot(x => x.L.calMax), tPro = tot(x => x.L.protein), tSug = tot(x => x.L.sugar), remain = rows.filter(x => x.d >= today).length;
+      const unlogged = rows.filter(x => x.past && !(isNum(x.r.calories) || isNum(x.r.protein))).length;
+      const meter = (label, unit, target, ate, color, ceiling) => {
+        const left = target - ate, pct = target ? Math.min(100, ate / target * 100) : 0, over = left < 0, per = remain ? Math.round(Math.max(0, left) / remain) : 0;
+        return `<div class="p-3 rounded-xl bg-slate-800/70 border border-slate-700 space-y-1.5"><div class="flex items-baseline justify-between"><span class="text-[11px] font-semibold text-slate-300">${label}</span><span class="text-[10px] text-slate-500">${Math.round(ate).toLocaleString()} of ${Math.round(target).toLocaleString()} ${unit}</span></div><div class="h-2 rounded-full bg-slate-900 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:${over && ceiling ? '#f43f5e' : color}"></div></div><div class="flex justify-between text-[11px]"><span class="font-bold ${over && ceiling ? 'text-rose-400' : over ? 'text-emerald-400' : 'text-white'}">${over ? (ceiling ? `${Math.round(-left).toLocaleString()} ${unit} over` : 'Target met') : `${Math.round(left).toLocaleString()} ${unit} left`}</span><span class="text-slate-400">${!over && remain ? `about ${per.toLocaleString()} ${unit} a day` : ''}</span></div></div>`;
+      };
+      const strip = rows.map(x => `<div class="p-1.5 rounded-lg border text-center ${x.today ? 'border-accent' : 'border-slate-700'} bg-slate-800/60"><div class="text-[10px] text-slate-400">${new Date(x.d + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short' })}</div><div class="my-0.5"><i class="fa-solid ${x.dumbbell ? 'fa-dumbbell text-emerald-400' : 'fa-circle text-slate-600'}" style="font-size:${x.dumbbell ? 11 : 6}px"></i></div><div class="text-[10px] font-semibold text-slate-200 tabular-nums">${x.L.calMax ? (x.L.calMax / 1000).toFixed(1) + 'k' : '\u2013'}</div></div>`).join('');
+      const fl = calorieFloorInfo(), perCal = remain ? (tCal - eaten('calories')) / remain : 0;
+      el.innerHTML = `<h3 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-wallet text-emerald-400"></i> Week budget (Mon to Sun)</h3>
+        <div class="grid grid-cols-7 gap-1">${strip}</div><div class="text-[10px] text-slate-500 flex items-center gap-1.5"><i class="fa-solid fa-dumbbell text-emerald-400" style="font-size:10px"></i> dumbbell day (higher calorie target) \u00b7 dot = core-only \u00b7 numbers are each day's kcal target</div>
+        ${tCal ? meter('Calories', 'kcal', tCal, eaten('calories'), '#06b6d4', true) : ''}${meter('Protein', 'g', tPro, eaten('protein'), '#10b981', false)}${meter('Added sugar', 'g', tSug, eaten('sugar'), '#f59e0b', true)}
+        ${unlogged ? `<p class="text-[10px] text-amber-300">${unlogged} earlier day${unlogged === 1 ? '' : 's'} this week ${unlogged === 1 ? 'has' : 'have'} nothing logged, which counts as zero eaten and makes "left" look bigger.</p>` : ''}
+        ${fl && remain && tCal && perCal < fl.value ? `<p class="text-[10px] text-amber-300">The average left per day is below your BMR floor (${fl.value.toLocaleString()} kcal). The floor still applies every day, so do not save calories by eating below it.</p>` : ''}
+        <p class="text-[10px] text-slate-500">A guide, not a bank. Daily floors and limits still apply, and your doctor's protein target is not changed.</p>`;
+    }
+
+    /* ---- recomposition and water check (rules, not a diagnosis) ---- */
+    async function reconAnalysis() {
+      const sc = appState.visbodyScans.slice(-5);
+      if (sc.length < 2) return null;
+      const logs = await dbGetAll('foodLogs'), am = appState.amScaleLogs;
+      const waterAvg = (from, to) => { const v = logs.filter(l => l.date > from && l.date <= to && isNum(l.water) && l.water > 0).map(l => l.water); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+      const amNear = d => { const c = am.filter(a => isNum(a.amWeight) && Math.abs(parseLocalDate(a.date) - parseLocalDate(d)) <= 2 * 86400000).sort((a, b) => Math.abs(parseLocalDate(a.date) - parseLocalDate(d)) - Math.abs(parseLocalDate(b.date) - parseLocalDate(d)))[0]; return c ? c.amWeight : null; };
+      const gapOf = s => { const a = am.find(x => x.date === s.date); return a && isNum(s.weight) ? s.weight - a.amWeight : null; };
+      const dl = (a, b) => (isNum(a) && isNum(b) ? b - a : null), iv = [];
+      for (let i = 1; i < sc.length; i++) {
+        const p = sc[i - 1], c = sc[i], days = (parseLocalDate(c.date) - parseLocalDate(p.date)) / 86400000;
+        if (days < 4 || days > 12) continue;
+        const g0 = gapOf(p), g1 = gapOf(c);
+        iv.push({ p, c, dW: dl(amNear(p.date), amNear(c.date)), dBfm: dl(p.bfm, c.bfm), dSmm: dl(p.smm, c.smm), dVfl: dl(p.vfl, c.vfl), dWaist: dl(p.midWaist, c.midWaist), dEcw: dl(p.ecwRatio, c.ecwRatio), g1, dGap: dl(g0, g1), water: waterAvg(p.date, c.date) });
+      }
+      if (!iv.length) return null;
+      const L = iv[iv.length - 1], n = iv.length;
+      const flat = x => x.dW !== null && x.dBfm !== null && Math.abs(x.dW) < 0.5 && Math.abs(x.dBfm) < 0.5 && (x.dWaist === null || Math.abs(x.dWaist) < 1);
+      const fatDown = L.dBfm !== null && L.dBfm <= -0.5, fatUp = L.dBfm !== null && L.dBfm >= 0.5, muscleHeld = L.dSmm === null || L.dSmm >= -0.3;
+      const wDown = L.dW !== null && L.dW <= -0.5, wUp = L.dW !== null && L.dW >= 0.5, wFlat = L.dW !== null && Math.abs(L.dW) < 0.8, waistUp = L.dWaist !== null && L.dWaist >= 1;
+      const fluidSign = (L.dEcw !== null && L.dEcw >= 0.004) || (L.dGap !== null && L.dGap >= 0.8);
+      let v;
+      if (wFlat && fatDown && muscleHeld) v = { t: 'Active recomposition', c: '#34d399', s: 'Weight is steady while fat mass fell and muscle held. That is the pattern you want from recomposition.' };
+      else if (wDown && fatDown && muscleHeld) v = { t: 'Fat loss on track', c: '#34d399', s: 'Scale weight and fat mass both fell while muscle held, so the loss looks like fat, not muscle.' };
+      else if ((wUp || L.dW === null || wFlat) && !fatUp && fluidSign && !(wFlat && fatDown)) v = { t: 'More likely fluid than fat', c: '#38bdf8', s: 'Weight rose or stalled while fat mass did not rise, and the water balance or evening gap went up. Check again next week before reading it as a stall.' };
+      else if (n >= 2 && flat(L) && flat(iv[iv.length - 2])) v = { t: 'True plateau so far', c: '#fbbf24', s: 'Weight, fat mass and waist were flat for two weeks. Worth reviewing logged intake, steps and training with your doctor or dietitian.' };
+      else if (wUp && fatUp && waistUp) v = { t: 'Possible fat gain', c: '#fb7185', s: 'Weight, fat mass and waist all rose. Compare with what you logged this week.' };
+      else v = { t: 'Mixed signals', c: '#94a3b8', s: 'Signals disagree this week. One week of scan data is noisy, so wait for the next scan.' };
+      const known = ['dW', 'dBfm', 'dSmm', 'dWaist'].filter(k => L[k] !== null).length;
+      const conf = known < 3 ? 'Low (missing data)' : n >= 4 ? 'Fair' : n >= 2 ? 'Moderate' : 'Low (first comparison)';
+      const facts = [];
+      if (L.dW !== null) facts.push(`AM weight ${sgn1(L.dW)} kg`); if (L.dBfm !== null) facts.push(`fat mass ${sgn1(L.dBfm)} kg`); if (L.dSmm !== null) facts.push(`muscle ${sgn1(L.dSmm)} kg`);
+      if (L.dWaist !== null) facts.push(`mid waist ${sgn1(L.dWaist)} cm`); if (L.dVfl !== null && L.dVfl !== 0) facts.push(`visceral ${sgn1(L.dVfl)}`); if (L.dEcw !== null) facts.push(`water balance ${L.dEcw > 0 ? '+' : ''}${(Math.round(L.dEcw * 1000) / 1000).toFixed(3)}`);
+      const gaps = gapPairs(), gAvg = gaps.length ? gaps.reduce((a, p) => a + p.gap, 0) / gaps.length : null;
+      const notes = [];
+      if (L.g1 !== null && gAvg !== null) notes.push(`Evening gap ${sgn1(L.g1)} kg (usual ${sgn1(gAvg)} kg over ${gaps.length} weeks).`);
+      if (L.water !== null) notes.push(`Water averaged ${liters(L.water)} a day between the scans${L.water < WATER_LO ? `, below your ${liters(WATER_LO)} to ${liters(WATER_HI)} range, which can shift scale and scan numbers` : L.water > WATER_HI ? `, above your ${liters(WATER_LO)} to ${liters(WATER_HI)} range, which can shift scale and scan numbers` : ', inside your usual range'}.`);
+      return { span: `${shortDate(L.p.date)} to ${shortDate(L.c.date)}`, v, conf, facts, notes };
+    }
+    async function renderReconCard() {
+      const host = $id('advisorReconContainer'); if (!host) return;
+      let r = null; try { r = await reconAnalysis(); } catch (e) { r = null; }
+      if (!r) { host.innerHTML = ''; return; }
+      host.innerHTML = `<div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-2.5"><div class="flex items-center justify-between gap-2"><h3 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-droplet text-sky-400"></i> Recomposition &amp; water check</h3><span class="text-[10px] font-semibold px-2 py-0.5 rounded-full" style="color:${r.v.c};background:${r.v.c}22">${esc(r.v.t)}</span></div>
+        <p class="text-[11px] text-slate-400">${esc(r.span)} \u00b7 ${r.facts.map(esc).join(' \u00b7 ')}</p><p class="text-xs text-slate-200 leading-relaxed">${esc(r.v.s)}</p>${r.notes.map(t => `<p class="text-[11px] text-slate-300">${esc(t)}</p>`).join('')}
+        <p class="text-[10px] text-slate-500">Confidence: ${esc(r.conf)}. Rule-based and informational. Scan readings move with hydration, meals and time of day, so this is not a diagnosis.</p></div>`;
+    }
+
+    /* ---- context-aware coaching ---- */
+    async function coachItems() {
+      const now = new Date(), hr = now.getHours(), today = localDateStr();
+      let foods = []; try { foods = await dbGetAll('foodLogs'); } catch (e) { /* ignore */ }
+      const f = foods.find(l => l.date === today) || {}, rec = dailyRec(today), meds = (rec && rec.meds) || {}, L = limitsNow(today);
+      const isWeigh = now.getDay() === weighDayIdx(), hasAm = appState.amScaleLogs.some(l => l.date === today), scan = appState.visbodyScans.find(s => s.date === today);
+      const items = [], add = (p, i, c, t, go) => items.push({ p, i, c, t, go });
+      if (isWeigh && !hasAm && hr < 14) add(1, 'fa-weight-scale', '#22d3ee', `${weighDayName()} check-in: log your fasted weight before breakfast.`, 'tab-dashboard');
+      if (isWeigh && !scan && hr >= 12 && hr < 20) add(1, 'fa-clipboard-check', '#22d3ee', `Scan around 7:00 PM: last meal by ${clock12('16:30')}, last big drink by ${clock12('17:30')}.`, 'tab-visbody');
+      if (isWeigh && scan && hasAm) { const g = Math.round((scan.weight - appState.amScaleLogs.find(l => l.date === today).amWeight) * 10) / 10; add(2, 'fa-scale-balanced', '#34d399', `Scan done. Evening weight is ${sgn1(g)} kg from your fasted weight.`, 'tab-dashboard'); }
+      const inj = injectionStatus(); if (inj && inj.hot) add(1, 'fa-syringe', inj.c, `${inj.text}. Log it on the Mounjaro tab once done.`, 'tab-mounjaro');
+      if (rec && rec.isWorkoutDay && !meds.creatine && hr < 21) add(2, 'fa-bolt', '#34d399', 'Dumbbell day: take your 250 ml Heal Apple Creatine before training.', 'tab-dailylog');
+      if (hr >= 17) {
+        const pl = Math.max(0, Math.round((L.protein - (f.protein || 0)) * 10) / 10), sl = Math.round((L.sugar - (f.sugar || 0)) * 10) / 10, parts = [];
+        if (pl > 0) parts.push(`${pl} g protein to go`); if (sl >= 0) parts.push(`${sl} g added sugar left`); else parts.push(`${-sl} g over your sugar limit`);
+        add(3, 'fa-utensils', sl < 0 ? '#fb7185' : '#fbbf24', `Evening check: ${parts.join(', ')}.`, 'tab-food');
+      }
+      if (hr >= 19 && !meds.omega) add(2, 'fa-capsules', '#a78bfa', 'After dinner: Infinity Supa-EFA Omega-3.', 'tab-dailylog');
+      if (hr >= 14 && waterTarget() > 0 && (f.water || 0) < waterTarget() * 0.4) add(4, 'fa-droplet', '#38bdf8', `Water is at ${liters(f.water || 0)} of ${liters(waterTarget())}.`, 'tab-food');
+      const apptD = profile.nextAppt ? daysUntil(profile.nextAppt) : null;
+      if (apptD !== null && apptD >= 0 && apptD <= 7) add(apptD <= 1 ? 2 : 5, 'fa-file-lines', '#22d3ee', `Appointment ${apptD === 0 ? 'today' : apptD === 1 ? 'tomorrow' : `in ${apptD} days`}: tap for a plain-English summary.`, 'summary');
+      return items.sort((a, b) => a.p - b.p).slice(0, 3);
+    }
+    async function renderCoach() {
+      let items = []; try { items = await coachItems(); } catch (e) { items = []; }
+      const html = items.length ? items.map(it => `<button type="button" onclick="coachGo('${it.go}')" class="w-full flex items-start gap-3 text-left p-2.5 rounded-xl border border-slate-700 bg-slate-800/60"><span class="w-8 h-8 rounded-xl flex items-center justify-center flex-none" style="background:${it.c}22"><i class="fa-solid ${it.i}" style="color:${it.c}"></i></span><span class="text-xs text-slate-200 leading-snug pt-1.5">${esc(it.t)}</span></button>`).join('') : '<p class="text-[11px] text-slate-400">Nothing needs your attention right now.</p>';
+      ['coachList', 'advisorCoachList'].forEach(id => { const e = $id(id); if (e) e.innerHTML = html; });
+    }
+    function coachGo(tab) { playSfx('click'); if (tab === 'summary') openPlainSummary(); else switchTab(tab); }
+
+    /* ---- plain-English summary for an appointment ---- */
+    let summaryText = '';
+    async function buildPlainSummary() {
+      const today = localDateStr(), from = addDaysStr(today, -28), name = (profile.name || '').trim();
+      const [foods, dailies] = await Promise.all([dbGetAll('foodLogs'), dbGetAll('dailyLogs')]);
+      const L = limitsNow(today), out = [];
+      const r1 = v => Math.round(v * 10) / 10, move = (d, unit) => (Math.abs(d) < 0.05 ? 'unchanged' : `${d < 0 ? 'down' : 'up'} ${r1(Math.abs(d))}${unit}`);
+      out.push(`Summary for my appointment${profile.nextAppt ? ` on ${shortDate(profile.nextAppt, true)}` : ''}${name ? ` (${name})` : ''}`);
+      out.push(`Covers the last 4 weeks, up to ${shortDate(today, true)}. Written from my own logs.`, '');
+      const am = appState.amScaleLogs.filter(l => l.date >= from && isNum(l.amWeight)).sort((a, b) => a.date.localeCompare(b.date));
+      out.push('Weight');
+      if (am.length >= 2) { const a = am[0], b = am[am.length - 1], wk = Math.max(1, (parseLocalDate(b.date) - parseLocalDate(a.date)) / 604800000); out.push(`- Fasted morning weight went from ${a.amWeight} kg (${shortDate(a.date)}) to ${b.amWeight} kg (${shortDate(b.date)}): ${move(b.amWeight - a.amWeight, ' kg')}, about ${r1(Math.abs(b.amWeight - a.amWeight) / wk)} kg a week.`); }
+      else out.push(am.length ? `- Latest fasted weight ${am[0].amWeight} kg (${shortDate(am[0].date)}). Only one weigh-in in this period.` : '- No fasted weights logged in this period.');
+      const sc = appState.visbodyScans, cur = sc[sc.length - 1];
+      if (cur) {
+        const base = [...sc].reverse().find(s => s.date <= addDaysStr(cur.date, -21)) || (sc.length > 1 ? sc[0] : null);
+        out.push('', `Body composition (scan on ${shortDate(cur.date, true)}${base ? ` compared with ${shortDate(base.date, true)}` : ''})`);
+        const line = (lab, k, u) => { if (!isNum(cur[k])) return; out.push(`- ${lab}: ${cur[k]}${u}${base && isNum(base[k]) ? `, ${move(cur[k] - base[k], u)}` : ''}.`); };
+        line('Body fat mass', 'bfm', ' kg'); line('Body fat', 'pbf', '%'); line('Skeletal muscle', 'smm', ' kg'); line('Visceral fat level', 'vfl', ''); line('Waist (mid)', 'midWaist', ' cm');
+        const g = smmGuardrail(); if (g) out.push(`- Muscle note: ${g.text}`);
+      }
+      const days = Array.from({ length: 28 }, (_, i) => addDaysStr(today, -i)), fr = foods.filter(x => days.includes(x.date));
+      const avg = k => { const v = fr.map(x => x[k]).filter(x => isNum(x) && (k !== 'water' || x > 0)); return v.length ? { a: v.reduce((x, y) => x + y, 0) / v.length, n: v.length } : null; };
+      const ac = avg('calories'), ap = avg('protein'), as = avg('sugar'), aw = avg('water');
+      out.push('', 'Food and water');
+      out.push(`- Logged food on ${fr.filter(x => isNum(x.calories) || isNum(x.protein)).length} of 28 days.`);
+      if (ac) out.push(`- Average ${Math.round(ac.a).toLocaleString()} kcal a day${L.calMax ? ` (target about ${L.calMax.toLocaleString()})` : ''}.`);
+      if (ap) out.push(`- Average ${Math.round(ap.a)} g protein a day (target ${fmtFood(L.protein)} g).`);
+      if (as) out.push(`- Average ${r1(as.a)} g added sugar a day (limit ${fmtFood(L.sugar)} g).`);
+      if (aw) out.push(`- Average ${liters(aw.a)} of water a day.`);
+      const dr = dailies.filter(x => days.includes(x.date)), st = dr.filter(x => isNum(x.steps) && x.steps > 0), dumb = dr.filter(x => x.isWorkoutDay).length;
+      out.push('', 'Activity');
+      if (st.length) out.push(`- Average ${Math.round(st.reduce((a, x) => a + x.steps, 0) / st.length).toLocaleString()} steps a day (${st.length} days logged).`);
+      out.push(`- Extra dumbbell sessions on ${dumb} day${dumb === 1 ? '' : 's'} (about ${r1(dumb / 4)} a week), on top of the daily kettlebell core.`);
+      const sh = appState.mjShots.filter(x => String(x.dateTime).slice(0, 10) >= from);
+      out.push('', 'Mounjaro');
+      if (sh.length) { out.push(`- ${sh.length} injection${sh.length === 1 ? '' : 's'} logged: ${sh.map(x => `${shortDate(String(x.dateTime).slice(0, 10))} ${x.dose} mg`).join(', ')}.`); const all = appState.mjShots, i = all.findIndex(x => x.id === sh[0].id); if (i > 0 && Number(all[i - 1].dose) !== Number(sh[0].dose)) out.push(`- The dose changed from ${all[i - 1].dose} mg to ${sh[0].dose} mg in this period.`); else if (sh.some((x, j) => j && Number(x.dose) !== Number(sh[j - 1].dose))) out.push('- The dose changed during this period.'); }
+      else out.push('- No injections logged in this period.');
+      const tick = id => dr.filter(x => x.meds && x.meds[id]).length;
+      out.push('', 'Medication and supplement check-ins', `- Rosuvastatin ticked on ${tick('rosuva')} of ${dr.length} logged days, omega-3 on ${tick('omega')}, creatine on ${tick('creatine')} (of ${dumb} dumbbell days).`);
+      const so = dr.filter(x => isNum(x.sore) && x.sore > 0);
+      if (dailies.some(x => isNum(x.sore))) out.push(`- Muscle soreness logged on ${so.length} day${so.length === 1 ? '' : 's'}${so.length ? `, strongest ${Math.max(...so.map(x => x.sore))} of 3` : ''}.`);
+      if (profile.doctorNotes) out.push('', 'Things I want to ask', profile.doctorNotes);
+      out.push('', 'This is a summary of my own tracking, not medical advice.');
+      return out.join('\n');
+    }
+    async function openPlainSummary() {
+      playSfx('click'); const modal = $id('summaryModal');
+      $id('summaryBody').textContent = 'Building your summary...'; modal.classList.remove('hidden');
+      try { summaryText = await buildPlainSummary(); $id('summaryBody').textContent = summaryText; } catch (e) { $id('summaryBody').textContent = "Couldn't build the summary."; }
+    }
+    function copySummary() { try { navigator.clipboard.writeText(summaryText).then(() => showToast('Copied')); } catch (e) { showToast('Select the text and copy it', 'warn'); } }
+    async function shareSummary() {
+      if (navigator.share) { try { await navigator.share({ title: 'Appointment summary', text: summaryText }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+      copySummary();
+    }
+
+    /* ---- calendar reminders (.ics): works offline and iOS Calendar does the alerting ---- */
+    function calItems() {
+      const wd = weighDayIdx(), last = appState.mjShots[appState.mjShots.length - 1];
+      const items = [
+        { id: 'weigh', title: 'Fasted weigh-in', day: wd, time: '07:00', mins: 15, on: true },
+        { id: 'meal', title: 'Last meal before Visbody scan', day: wd, time: '16:30', mins: 5, on: true },
+        { id: 'drink', title: 'Last big drink before Visbody scan', day: wd, time: '17:30', mins: 5, on: true },
+        { id: 'scan', title: 'Visbody scan', day: wd, time: '19:00', mins: 60, on: true },
+        { id: 'omega', title: 'Omega-3 after dinner', day: null, time: '20:30', mins: 5, on: true }
+      ];
+      if (last) items.push({ id: 'shot', title: 'Mounjaro injection', day: new Date(last.dateTime).getDay(), time: String(last.dateTime).slice(11, 16) || '08:00', mins: 15, on: true });
+      return items;
+    }
+    const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], DAY_CODES = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
+    function openCalendarModal() {
+      $id('calList').innerHTML = calItems().map(it => `<div class="flex items-center gap-3 p-2.5 rounded-xl bg-slate-800/70 border border-slate-700"><input type="checkbox" id="cal_on_${it.id}" ${it.on ? 'checked' : ''} class="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700"><label for="cal_on_${it.id}" class="flex-1 min-w-0"><div class="text-xs font-semibold text-white truncate">${esc(it.title)}</div><div class="text-[10px] text-slate-400">${it.day === null ? 'Every day' : `Every ${DAY_NAMES[it.day]}`}</div></label><input type="time" id="cal_t_${it.id}" value="${it.time}" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white"></div>`).join('');
+      $id('calModal').classList.remove('hidden');
+    }
+    async function createCalendarFile() {
+      const pad = n => String(n).padStart(2, '0'), ymd = d => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`, now = new Date();
+      const stamp = `${now.getUTCFullYear()}${pad(now.getUTCMonth() + 1)}${pad(now.getUTCDate())}T${pad(now.getUTCHours())}${pad(now.getUTCMinutes())}${pad(now.getUTCSeconds())}Z`;
+      const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//VMT//Tracker//EN', 'CALSCALE:GREGORIAN']; let n = 0;
+      calItems().forEach(it => {
+        if (!$id(`cal_on_${it.id}`).checked) return;
+        const time = $id(`cal_t_${it.id}`).value || it.time, [h, m] = time.split(':').map(Number), start = new Date(); start.setHours(h, m, 0, 0);
+        if (it.day !== null) { let add = (it.day - start.getDay() + 7) % 7; if (add === 0 && start < now) add = 7; start.setDate(start.getDate() + add); } else if (start < now) start.setDate(start.getDate() + 1);
+        const end = new Date(start.getTime() + it.mins * 60000), f = d => `${ymd(d)}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+        lines.push('BEGIN:VEVENT', `UID:vmt-${it.id}-${Date.now()}@tracker.local`, `DTSTAMP:${stamp}`, `DTSTART:${f(start)}`, `DTEND:${f(end)}`, `RRULE:FREQ=${it.day === null ? 'DAILY' : `WEEKLY;BYDAY=${DAY_CODES[it.day]}`}`, `SUMMARY:${it.title}`, 'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${it.title}`, 'TRIGGER:PT0S', 'END:VALARM', 'END:VEVENT'); n++;
+      });
+      if (!n) { showToast('Pick at least one reminder.', 'warn'); return; }
+      lines.push('END:VCALENDAR');
+      const body = lines.join('\r\n') + '\r\n', name = 'VMT-reminders.ics';
+      try { const file = new File([body], name, { type: 'text/calendar' }); if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: name }); $id('calModal').classList.add('hidden'); showToast(`${n} reminder${n === 1 ? '' : 's'} ready to add to Calendar`); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+      const url = URL.createObjectURL(new Blob([body], { type: 'text/calendar' })), a = document.createElement('a');
+      a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000);
+      $id('calModal').classList.add('hidden'); showToast(`${n} reminder${n === 1 ? '' : 's'} file saved`);
+    }
+
     window.onload = async function() {
       loadProfileAndPrefs();
       applyProfileAndPrefs();
-      renderVersionLabels();
       initLock();
+      applyMacroOnly(); renderVersionLabels();
       try {
         await initDB();
         await loadAllData();
@@ -2988,7 +3319,6 @@ without prior written permission from the copyright owner.</pre>
        6. DASHBOARD TAB & CHART.JS ENGINE
        ========================================================================== */
     function renderDashboard() {
-      try { renderTuesdayCard(); setTrendSeg(prefs.trendSeg || 'fat', true); } catch (e) { console.warn('v9 dashboard extras', e); }
       const scans = appState.visbodyScans;
       const amLogs = appState.amScaleLogs;
       const latestScan = scans.length ? scans[scans.length - 1] : null;
@@ -3011,6 +3341,7 @@ without prior written permission from the copyright owner.</pre>
       renderBodyAnalytics();
       renderGoalProjection();
       renderApptChip();
+      renderCheckinCard(); renderCoach();
       const vt = getVisTarget('vfl'), st = getVisTarget('smm');
       document.getElementById('kpiVflTarget').innerText = isNum(vt.target) ? `Target: Level ${vt.target}${vt.note ? ` (${vt.note})` : ''}` : (vt.note || 'Set a target on the Visbody tab');
       document.getElementById('kpiSmmGoal').innerText = isNum(st.target) ? `Target: at least ${st.target} kg${st.note ? ` (${st.note})` : ''}` : (st.note ? `Goal: ${st.note}` : 'Set a target on the Visbody tab');
@@ -3079,59 +3410,7 @@ without prior written permission from the copyright owner.</pre>
         options: chartOpts({}, allDates.length)
       });
 
-      // Chart 2: Fat Mass
-      createOrUpdateChart('chartFatTrend', {
-        type: 'line',
-        data: {
-          labels: scanLabels,
-          datasets: [
-            { label: 'Body Fat Mass (kg)', data: scans.map(s => s.bfm), borderColor: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.1)', fill: true }
-          ]
-        },
-        options: chartOpts(NO_LEGEND, scans.length)
-      });
-
-      // Chart 3: SMM, zoomed to your own range
-      const smmVals = scans.map(s => s.smm).filter(isNum);
-      const smmY = { grid: { color: 'rgba(255,255,255,0.05)' } };
-      if (smmVals.length) {
-        smmY.min = Math.floor(Math.min(...smmVals) - 2);
-        smmY.max = Math.ceil(Math.max(...smmVals) + 2);
-      }
-      createOrUpdateChart('chartSmmTrend', {
-        type: 'line',
-        data: {
-          labels: scanLabels,
-          datasets: [
-            { label: 'Skeletal Muscle Mass (kg)', data: scans.map(s => s.smm), borderColor: '#6366f1', backgroundColor: 'rgba(99, 102, 241, 0.1)', fill: true }
-          ]
-        },
-        options: chartOpts({ ...NO_LEGEND, scales: { y: smmY } }, scans.length)
-      });
-
-      // Chart 4: Visceral Fat
-      createOrUpdateChart('chartVisceralTrend', {
-        type: 'bar',
-        data: {
-          labels: scanLabels,
-          datasets: [{ label: 'Visceral Fat Level', data: scans.map(s => s.vfl), backgroundColor: '#f43f5e' }]
-        },
-        options: chartOpts(NO_LEGEND, scans.length)
-      });
-
-      // Chart 5: Waist Trend
-      createOrUpdateChart('chartWaistTrend', {
-        type: 'line',
-        data: {
-          labels: scanLabels,
-          datasets: [
-            { label: 'High Waist', data: scans.map(s => s.highWaist), borderColor: '#10b981', spanGaps: true },
-            { label: 'Mid Waist', data: scans.map(s => s.midWaist), borderColor: '#06b6d4', spanGaps: true },
-            { label: 'Low Waist', data: scans.map(s => s.lowWaist), borderColor: '#8b5cf6', spanGaps: true }
-          ]
-        },
-        options: chartOpts({}, scans.length)
-      });
+      renderVisTrend();
     }
 
     const CHART_EMPTY = {
@@ -3210,7 +3489,11 @@ without prior written permission from the copyright owner.</pre>
       { id: 'pelvicTilt', label: 'Anterior Pelvic Shift (cm)' }, { id: 'headTilt', label: 'Forward Head Posture (cm)' },
       { id: 'roundedShoulderLeft', label: 'L Rounded Shoulder (cm)' }, { id: 'roundedShoulderRight', label: 'R Rounded Shoulder (cm)' },
       { id: 'spinePainRisk', label: 'Spine Pain Risk (0–100)' },
-      ...SEG_FIELDS
+      ...SEG_FIELDS,
+      { id: 'tbw', label: 'Body Water (kg)' },
+      { id: 'icw', label: 'ICW (kg)' },
+      { id: 'ecw', label: 'ECW (kg)' },
+      { id: 'ecwRatio', label: 'ECW/TBW Ratio' }
     ];
 
     function initScanForm() {
@@ -3325,7 +3608,7 @@ without prior written permission from the copyright owner.</pre>
         tile('PBF', fv(scan.pbf, '%'), 'text-cyan-400 text-sm', 'p-3', 'pbf', scan.pbf),
         tile('BMR', fv(scan.bmr, ' kcal'), 'text-emerald-400 text-sm', 'p-3', 'bmr', scan.bmr),
         tile('Visceral Fat', isNum(scan.vfl) ? `Level ${esc(scan.vfl)}` : '—', 'text-rose-400 text-sm', 'p-3', 'vfl', scan.vfl)
-      ].join('') + '<p class="col-span-full text-[10px] text-slate-500">Clinic weight is an afternoon reading, so pace and projections use your AM fasted weights.</p>' + segmentalCard(scan);
+      ].join('') + '<p class="col-span-full text-[10px] text-slate-500">Clinic weight is an afternoon reading, so pace and projections use your AM fasted weights.</p>' + (isNum(scan.ecwRatio) ? `<div class="col-span-full p-3 rounded-xl bg-slate-800/60 border border-slate-700 flex items-center justify-between gap-3"><div class="text-[11px] text-slate-300"><i class="fa-solid fa-droplet text-sky-400 mr-1.5"></i>Water balance (ECW/TBW)<div class="text-[10px] text-slate-500">${isNum(scan.tbw) ? `Body water ${scan.tbw} kg` : ''}${isNum(scan.icw) && isNum(scan.ecw) ? ` \u00b7 inside ${scan.icw} kg, outside ${scan.ecw} kg` : ''}${scan.testTime ? ` \u00b7 scanned ${esc(scan.testTime)}` : ''}</div></div><div class="text-right"><div class="text-base font-bold ${scan.ecwRatio > 0.39 ? 'text-amber-400' : 'text-sky-300'}">${scan.ecwRatio.toFixed(3)}</div><div class="text-[10px] text-slate-500">normal 0.360 to 0.390</div></div></div>` : '') + segmentalCard(scan);
 
       document.getElementById('visPage2Details').innerHTML = hint + [
         tile('Anterior Pelvic Shift', fv(scan.pelvicTilt, ' cm'), T, 'p-3', 'pelvicTilt', scan.pelvicTilt),
@@ -3693,19 +3976,20 @@ without prior written permission from the copyright owner.</pre>
       scan.bmr = grab(comp, /^Basal Metabolism (?:Rate kcal\/d )?([\d.]+)/) ?? grab(comp, /^Rate kcal\/d ([\d.]+)/);
       scan.vfl = grab(comp, /^Visceral Fat Level (?:[A-Za-z]+ )*([\d.]+)/);
 
-      // v9.0: scan time and body water. Every field is optional: a layout that omits one just leaves it empty.
-      try {
-        const tm = allText.match(/Test Date\s*\/?\s*Time\s*:?\s*\d{4}[-\/.]\d{2}[-\/.]\d{2}[ T]+(\d{1,2}):(\d{2})/);
-        scan.scanTime = tm ? `${pad2(+tm[1])}:${tm[2]}` : null;
-        const water = re => grab(allLines, re);
-        scan.tbw = water(/^(?:TBW|Total Body Water)\b[^\d\n]{0,24}([\d.]+)/i);
-        scan.icw = water(/^(?:ICW|Intracellular Water)\b[^\d\n]{0,24}([\d.]+)/i);
-        scan.ecw = water(/^(?:ECW|Extracellular Water)\b(?!\s*\/)[^\d\n]{0,24}([\d.]+)/i);
-        scan.ecwTbw = water(/^ECW\s*\/\s*TBW\b[^\d\n]{0,16}([\d.]+)/i);
-        if (!isFinite(scan.tbw) && isFinite(scan.icw) && isFinite(scan.ecw)) scan.tbw = Math.round((scan.icw + scan.ecw) * 10) / 10;
-        if (!isFinite(scan.ecwTbw) && isFinite(scan.ecw) && isFinite(scan.tbw) && scan.tbw > 0) scan.ecwTbw = Math.round(scan.ecw / scan.tbw * 1000) / 1000;
-        if (scan.ecwTbw > 1) scan.ecwTbw = null; // a percentage or a mis-read: leave it empty rather than store a wrong ratio
-      } catch (e) { /* water metrics are optional */ }
+      // v9.0: scan time and body water. The water numbers sit in a graphic, so find the number on the same row as each label.
+      const tm = allText.match(/Test Date\s*\/?\s*Time\s*:?\s*\d{4}[-\/.]\d{2}[-\/.]\d{2}\s+(\d{1,2}):(\d{2})/);
+      scan.testTime = tm ? `${tm[1].padStart(2, '0')}:${tm[2]}` : null;
+      const bw = allText.match(/Body Water\s*kg\s*([\d.]+)\s*\[/i);
+      scan.tbw = bw ? parseFloat(bw[1]) : null;
+      const allItems = pages.flat();
+      const rowValue = labelRe => {
+        const label = allItems.find(it => labelRe.test(it.s.trim())); if (!label) return null;
+        const row = allItems.filter(it => it !== label && it.x > label.x && Math.abs(it.y - label.y) <= 4);
+        const range = row.find(it => /~/.test(it.s));
+        const cand = row.filter(it => /^\d+(?:\.\d+)?$/.test(it.s.trim()) && (!range || it.x < range.x)).sort((a, b) => a.x - b.x)[0];
+        return cand ? parseFloat(cand.s) : null;
+      };
+      scan.icw = rowValue(/^ICW(?:\s|$)/); scan.ecw = rowValue(/^ECW(?:\s|$)/); scan.ecwRatio = rowValue(/^ECW\s*\/\s*TBW/);
 
       // Page 2: posture (the report gives distances in cm). Each value sits a few points off its label's
       // baseline and beside a wrapped risk-warning column, so look for the nearest "x.x cm" to the right.
@@ -3866,6 +4150,7 @@ without prior written permission from the copyright owner.</pre>
       const scan = { ...(existing || {}), date: parsed.date };
       for (const f of fields) if (isNum(parsed[f.id])) scan[f.id] = parsed[f.id];
       if (parsed.gluteType) scan.gluteType = parsed.gluteType;
+      if (parsed.testTime) scan.testTime = parsed.testTime;
       for (const f of fields) if (scan[f.id] === undefined) scan[f.id] = null;
       if (scan.gluteType === undefined) scan.gluteType = null;
       if (scan.webUrl === undefined) scan.webUrl = null;
@@ -4123,38 +4408,11 @@ without prior written permission from the copyright owner.</pre>
     /* ==========================================================================
        9. DAILY LOG & MEDICATIONS TAB
        ========================================================================== */
-    // v9.0: every item is editable. Built-ins keep their ids (so old ticks still match); edits to a built-in are stored as
-    // overrides in `vmt_med_overrides`, custom items stay in `vmt_custom_meds` (so v8.x backups still import).
-    // rule: 'daily' | 'dumbbell' (Dumbbell Days only) | 'days' (specific weekdays, 0 = Sunday).
     const DEFAULT_MEDS = [
-      { id: "rosuva", name: "Rosuvastatin", dose: "20 mg", time: "Evening", rule: "daily", days: [], note: "Monitor muscle soreness/myalgia" },
-      { id: "omega", name: "Infinity Supa-EFA Omega 3 EPA & DHA Plus E", dose: "1 softgel", time: "Post-dinner", rule: "daily", days: [], note: "Take after dinner with fats" },
-      { id: "creatine", name: "Heal Apple Creatine", dose: "5.0 g (250 ml)", time: "Pre-workout", rule: "dumbbell", days: [], note: "Take 30 min pre-lifting with 250 ml water" },
-      { id: "mounjaro", name: "Mounjaro", dose: "", time: "Injection day", rule: "days", days: [], note: "Log the dose in the Mounjaro tab. Edit to set your injection weekday." }
+      { id: "rosuva", name: "Rosuvastatin 20 mg", schedule: "Daily Evening", note: "Monitor muscle soreness/myalgia" },
+      { id: "omega", name: "Infinity Supa-EFA Omega 3 EPA & DHA Plus E", schedule: "Post-Dinner", note: "1 Softgel daily" },
+      { id: "creatine", name: "Heal Apple Creatine (250 ml)", schedule: "Dumbbell Days Only", note: "Pre-workout, dumbbell sessions" }
     ];
-    const WEEKDAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const getMedOverrides = () => { const o = LS.get('vmt_med_overrides', {}); return o && typeof o === 'object' && !Array.isArray(o) ? o : {}; };
-    function allMeds() {
-      const ov = getMedOverrides();
-      const fill = m => ({ dose: '', time: m.schedule || '', rule: 'daily', days: [], note: '', ...m });
-      const defs = DEFAULT_MEDS.map(d => ({ ...fill(d), ...(ov[d.id] || {}), id: d.id, builtin: true }));
-      const cust = getCustomMeds().map(c => ({ ...fill(c), rule: c.rule || (/only/i.test(c.schedule || '') ? 'dumbbell' : 'daily'), id: c.id, custom: true }));
-      return [...defs, ...cust];
-    }
-    const medRuleText = m => m.rule === 'dumbbell' ? 'Dumbbell days only' : m.rule === 'days' ? (m.days && m.days.length ? m.days.slice().sort().map(d => WEEKDAY_SHORT[d]).join(', ') : 'Pick a day (Edit)') : 'Daily';
-    // is this item shown / due on `date`? archived items stay visible on days before they were archived
-    function medActiveOn(m, date) { return !m.archived || (m.archivedAt && date < m.archivedAt); }
-    function medShownOn(m, date) {
-      if (!medActiveOn(m, date)) return false;
-      if (m.rule === 'days' && m.days && m.days.length) return m.days.includes(parseLocalDate(date).getDay());
-      return true;
-    }
-    function medDueOnDate(m, date, lifting) {
-      if (!medShownOn(m, date)) return false;
-      if (m.rule === 'dumbbell') return !!lifting;
-      if (m.rule === 'days' && !(m.days && m.days.length)) return false;
-      return true;
-    }
 
     const DEFAULT_EXERCISES = [
       { id: "abroll", name: "150 Ab Roller Reps", target: "Core Stability & Lower Back" },
@@ -4163,42 +4421,9 @@ without prior written permission from the copyright owner.</pre>
       { id: "thrust", name: "40 Hybrid Hinge Thrusts (8 kg)", target: "Glute Activation & Alignment" }
     ];
 
-    // v9.0 daily circuit (my reading of the spec: 5 kg, 6 kg and 8 kg bells, 40/50 reps, 150 ab rollers, march). Editable with "Edit".
-    const CORE_V9 = [
-      { id: "abroll", name: "150 Ab Roller Reps", target: "Core Stability & Lower Back" },
-      { id: "aroundworld", name: "50 Around-the-World KB Reps (5 kg)", target: "Shoulder Mobility & Core" },
-      { id: "sideswing", name: "40 Side Swings (6 kg)", target: "Obliques & Pelvis Balance" },
-      { id: "thrust", name: "40 Hybrid Hinge Thrusts (8 kg)", target: "Glute Activation & Alignment" },
-      { id: "march", name: "March (steady pace)", target: "Hip Flexors & Conditioning" }
-    ];
-    function updateCoreResetBtn() {
-      const b = document.getElementById('coreResetBtn'); if (!b) return;
-      const done = LS.get('vmt_core_v9', null);
-      b.disabled = !!done; b.classList.toggle('opacity-50', !!done);
-      b.textContent = done ? `Applied on ${done}` : 'Apply updated daily circuit (one time)';
-    }
-    async function applyCoreRoutineV9() {
-      if (LS.get('vmt_core_v9', null)) return;
-      if (!confirm('Replace the default daily circuit with the v9.0 circuit?\n\nDays you already logged keep the circuit they were logged with. A recovery snapshot is saved first.')) return;
-      try {
-        try { await takeSnapshot('Before v9.0 circuit reset'); } catch (e) { /* snapshots are best effort */ }
-        const old = getDefaultExercises().map(e => ({ ...e })), today = localDateStr();
-        // Freeze the circuit that older days were judged against, so changing the default can't rewrite their history.
-        for (const r of (appState.dailyLogs || []).slice()) {
-          if (r.date < today && !Array.isArray(r.circuit) && r.exercises && Object.keys(r.exercises).length) {
-            const rec = { ...r, circuit: old.map(e => ({ ...e })) }; await dbPut('dailyLogs', rec); upsertDailyCache(rec);
-          }
-        }
-        setDefaultExercises(CORE_V9.map(e => ({ ...e })));
-        LS.set('vmt_core_v9', today);
-        updateCoreResetBtn(); playSfx('chime'); showToast('Daily circuit updated. Past days are unchanged.');
-        loadDailyLogForSelectedDate();
-      } catch (err) { showToast("Couldn't update the circuit. Nothing was changed.", 'error'); }
-    }
-
     let dailyLoadSeq = 0;
 
-    function getCustomMeds() { const v = LS.get('vmt_custom_meds', []); return Array.isArray(v) ? v : []; }
+    function getCustomMeds() { return LS.get('vmt_custom_meds', []) || []; }
 
     function updateDailyLogDayLabel() {
       const v = document.getElementById('dailyLogDateInput').value;
@@ -4244,23 +4469,22 @@ without prior written permission from the copyright owner.</pre>
     function renderMedsChecklist(state = {}, lifting) {
       const container = document.getElementById('medsChecklist');
       container.innerHTML = '';
+      const custom = getCustomMeds();
       if (lifting === undefined) lifting = !!document.getElementById('dailyIsWorkoutDay').checked;
-      const date = document.getElementById('dailyLogDateInput').value || localDateStr();
-      allMeds().filter(m => medShownOn(m, date)).forEach(med => {
+
+      [...DEFAULT_MEDS, ...custom].forEach(med => {
+        const isCustom = custom.some(c => c.id === med.id);
         const item = document.createElement('label');
         item.id = `medrow_${med.id}`;
-        item.dataset.rule = med.rule;
         item.className = "p-3 bg-slate-800/80 rounded-xl border border-slate-700 flex justify-between items-center gap-3 text-xs cursor-pointer transition-colors";
-        const sub = [med.dose, med.time, med.rule === 'daily' ? '' : medRuleText(med)].filter(Boolean).join(' \u2022 ');
         item.innerHTML = `
           <div class="min-w-0">
-            <div class="font-bold text-white">${esc(med.name)}${med.archived ? ' <span class="text-[10px] font-normal text-slate-500">(hidden now)</span>' : ''}</div>
-            <div class="text-[11px] text-slate-400">${esc(sub)}</div>
-            ${med.note ? `<div class="text-[11px] text-slate-500">${esc(med.note)}</div>` : ''}
-            ${med.rule === 'dumbbell' ? '<div class="medBadge mt-1"></div>' : ''}
+            <div class="font-bold text-white">${esc(med.name)}</div>
+            <div class="text-[11px] text-slate-400">${esc([med.schedule, med.note].filter(Boolean).join(' • '))}</div>
+            ${med.id === 'creatine' ? '<div id="creatineBadge" class="mt-1"></div>' : ''}
           </div>
-          <div class="flex items-center gap-1.5 flex-none">
-            <button type="button" onclick="event.preventDefault();event.stopPropagation();openAddMedModal('${med.id}')" aria-label="Edit ${esc(med.name)}" class="p-1.5 text-slate-400 hover:text-cyan-300"><i class="fa-solid fa-pencil"></i></button>
+          <div class="flex items-center gap-2 flex-none">
+            ${isCustom ? `<button type="button" onclick="removeCustomMed('${med.id}')" aria-label="Remove ${esc(med.name)}" class="p-1.5 text-slate-500 hover:text-rose-400"><i class="fa-solid fa-xmark"></i></button>` : ''}
             <input type="checkbox" data-med="${med.id}" ${state[med.id] ? 'checked' : ''} onchange="toggleMedState('${med.id}')" class="w-5 h-5 rounded text-indigo-600 bg-slate-900 border-slate-700">
           </div>
         `;
@@ -4272,21 +4496,19 @@ without prior written permission from the copyright owner.</pre>
           container.appendChild(sore);
         }
       });
-      if (!container.children.length) container.innerHTML = '<p class="text-[11px] text-slate-500">Nothing scheduled for this day. Tap "+ Custom Med" to add one.</p>';
-      applyDumbbellMedHighlight(lifting);
+      applyCreatineHighlight(lifting);
       updateSoreUI();
     }
-    // Items on the "Dumbbell Days only" rule light up when Dumbbell Day is ticked and dim otherwise.
-    function applyDumbbellMedHighlight(lifting) {
-      document.querySelectorAll('#medsChecklist label[data-rule="dumbbell"]').forEach(row => {
-        row.className = `p-3 rounded-xl border flex justify-between items-center gap-3 text-xs cursor-pointer transition-colors ${lifting ? 'bg-emerald-950/40 border-emerald-600/60 ring-1 ring-emerald-500/30' : 'bg-slate-800/80 border-slate-700 opacity-60'}`;
-        const badge = row.querySelector('.medBadge');
-        if (badge) badge.innerHTML = lifting ? '<span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-600/40 rounded-full px-2 py-0.5"><i class="fa-solid fa-bolt"></i> Dumbbell Day: take today</span>' : '<span class="text-[10px] text-slate-500">Not a Dumbbell Day</span>';
-      });
+    // Creatine is a lifting-day supplement: it lights up on a lifting day and dims on a rest day.
+    function applyCreatineHighlight(lifting) {
+      const row = document.getElementById('medrow_creatine'), badge = document.getElementById('creatineBadge');
+      if (!row) return;
+      row.className = `p-3 rounded-xl border flex justify-between items-center gap-3 text-xs cursor-pointer transition-colors ${lifting ? 'bg-emerald-950/40 border-emerald-600/60 ring-1 ring-emerald-500/30' : 'bg-slate-800/80 border-slate-700 opacity-70'}`;
+      if (badge) badge.innerHTML = lifting ? '<span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-600/40 rounded-full px-2 py-0.5"><i class="fa-solid fa-bolt"></i> Dumbbell day: take before training</span>' : '<span class="text-[10px] text-slate-500">Core-only day</span>';
     }
     function onLiftToggle() {
       const on = document.getElementById('dailyIsWorkoutDay').checked;
-      applyDumbbellMedHighlight(on);
+      applyCreatineHighlight(on);
       if (on) playSfx('add');
       saveDailyLogState();
     }
@@ -4315,68 +4537,34 @@ without prior written permission from the copyright owner.</pre>
     }
 
     /* ---- Custom medication (the "+ Custom Med" button previously did nothing) ---- */
-    let medDaysSel = [];
-    function openAddMedModal(id) {
+    function openAddMedModal() {
       playSfx('click');
-      const f = document.getElementById('addMedForm'); f.reset();
-      const m = id ? allMeds().find(x => x.id === id) : null;
-      document.getElementById('medEditId').value = m ? m.id : '';
-      document.getElementById('medModalTitle').textContent = m ? 'Edit ' + (m.name.length > 28 ? 'item' : m.name) : 'Add a medication or supplement';
-      document.getElementById('medArchiveBtn').classList.toggle('hidden', !m || !!m.archived);
-      if (m) {
-        document.getElementById('customMedName').value = m.name;
-        document.getElementById('customMedDose').value = m.dose || '';
-        document.getElementById('customMedSchedule').value = m.time || '';
-        document.getElementById('customMedRule').value = m.rule || 'daily';
-        document.getElementById('customMedNote').value = m.note || '';
-        medDaysSel = (m.days || []).slice();
-      } else medDaysSel = [];
-      syncMedRuleUi();
+      document.getElementById('addMedForm').reset();
       document.getElementById('addMedModal').classList.remove('hidden');
       setTimeout(() => document.getElementById('customMedName').focus(), 50);
     }
-    function syncMedRuleUi() {
-      const rule = document.getElementById('customMedRule').value;
-      document.getElementById('medDaysRow').classList.toggle('hidden', rule !== 'days');
-      document.getElementById('medDayChips').innerHTML = WEEKDAY_SHORT.map((d, i) => `<button type="button" onclick="toggleMedDay(${i})" class="py-2 rounded-lg border text-[11px] font-semibold ${medDaysSel.includes(i) ? 'bg-cyan-600 border-cyan-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300'}">${d}</button>`).join('');
-    }
-    function toggleMedDay(i) { medDaysSel = medDaysSel.includes(i) ? medDaysSel.filter(x => x !== i) : [...medDaysSel, i]; syncMedRuleUi(); }
     function closeAddMedModal() { document.getElementById('addMedModal').classList.add('hidden'); }
-    function saveMed(e) {
+    function saveCustomMed(e) {
       e.preventDefault();
       const name = document.getElementById('customMedName').value.trim();
       if (!name) return;
-      const id = document.getElementById('medEditId').value;
-      const rule = document.getElementById('customMedRule').value;
-      const f = { name, dose: document.getElementById('customMedDose').value.trim(), time: document.getElementById('customMedSchedule').value.trim(), rule, days: rule === 'days' ? medDaysSel.slice().sort() : [], note: document.getElementById('customMedNote').value.trim() };
-      if (rule === 'days' && !f.days.length) { showToast('Pick at least one day, or choose Daily.', 'warn'); return; }
-      if (id && DEFAULT_MEDS.some(d => d.id === id)) {
-        const ov = getMedOverrides(); ov[id] = { ...(ov[id] || {}), ...f }; LS.set('vmt_med_overrides', ov);
-      } else if (id) {
-        LS.set('vmt_custom_meds', getCustomMeds().map(c => c.id === id ? { ...c, ...f, schedule: f.time } : c));
-      } else {
-        LS.set('vmt_custom_meds', [...getCustomMeds(), { id: `custom_${Date.now()}`, ...f, schedule: f.time }]);
-      }
-      closeAddMedModal(); playSfx('chime');
-      showToast(id ? 'Saved. Past check-offs are unchanged.' : 'Added to the checklist');
-      loadDailyLogForSelectedDate(); renderSettingsMeds();
+      const meds = getCustomMeds();
+      meds.push({
+        id: `custom_${Date.now()}`,
+        name,
+        schedule: document.getElementById('customMedSchedule').value.trim(),
+        note: document.getElementById('customMedNote').value.trim()
+      });
+      LS.set('vmt_custom_meds', meds);
+      closeAddMedModal();
+      playSfx('chime');
+      showToast('Medication added to the checklist');
+      loadDailyLogForSelectedDate();
     }
-    // "Delete" hides the item from today onwards. Its past ticks stay in the daily logs and it can be restored from Settings.
-    function archiveMedFromModal() {
-      const id = document.getElementById('medEditId').value; if (!id) return;
-      const m = allMeds().find(x => x.id === id);
-      if (!confirm(`Delete "${m ? m.name : 'this item'}" from the checklist?\n\nIt disappears from today onwards. Past check-offs are kept, and you can restore it in Settings.`)) return;
-      setMedArchived(id, true); closeAddMedModal(); loadDailyLogForSelectedDate(); renderSettingsMeds(); showToast('Hidden. Restore it from Settings if needed.');
-    }
-    function setMedArchived(id, on) {
-      const patch = on ? { archived: true, archivedAt: localDateStr() } : { archived: false, archivedAt: null };
-      if (DEFAULT_MEDS.some(d => d.id === id)) { const ov = getMedOverrides(); ov[id] = { ...(ov[id] || {}), ...patch }; LS.set('vmt_med_overrides', ov); }
-      else LS.set('vmt_custom_meds', getCustomMeds().map(c => c.id === id ? { ...c, ...patch } : c));
-    }
-    function restoreMed(id) { setMedArchived(id, false); renderSettingsMeds(); loadDailyLogForSelectedDate(); showToast('Restored'); }
-    function renderSettingsMeds() {
-      const el = document.getElementById('settingsMedList'); if (!el) return;
-      el.innerHTML = allMeds().map(m => `<div class="flex items-center justify-between gap-2 p-2.5 rounded-xl border border-slate-800 bg-slate-900/70 ${m.archived ? 'opacity-60' : ''}"><div class="min-w-0"><div class="text-xs font-semibold text-white truncate">${esc(m.name)}</div><div class="text-[10px] text-slate-400">${esc([m.dose, m.time, medRuleText(m)].filter(Boolean).join(' \u2022 '))}${m.archived ? ' \u2022 hidden' : ''}</div></div>${m.archived ? `<button type="button" onclick="restoreMed('${m.id}')" class="text-[11px] text-cyan-400 underline flex-none">Restore</button>` : `<button type="button" onclick="toggleSettingsDrawer(false);openAddMedModal('${m.id}')" aria-label="Edit ${esc(m.name)}" class="p-1.5 text-slate-400 hover:text-cyan-300 flex-none"><i class="fa-solid fa-pencil"></i></button>`}</div>`).join('');
+    function removeCustomMed(id) {
+      if (!confirm('Remove this medication from the checklist?')) return;
+      LS.set('vmt_custom_meds', getCustomMeds().filter(m => m.id !== id));
+      loadDailyLogForSelectedDate();
     }
 
     /* ---- Editable core & posture circuit (v8.1: every day keeps its own list) ----
@@ -4656,26 +4844,15 @@ without prior written permission from the copyright owner.</pre>
       const v = (appState.dailyLogs || []).filter(r => r.date < before && r.date >= from && isNum(r.steps) && r.steps > 0).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 7).map(r => r.steps);
       return v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : null;
     }
-    // v9.0 dynamic multiplier for the selected date, driven by the Daily tab:
-    //   1.20 base, 1.275 when the daily core circuit is fully ticked, plus a Dumbbell Day bonus
-    //   (+0.125 on top of core = 1.40, +0.10 without core), plus a step bonus from that day's logged steps
-    //   (+0.04 at 5,000, +0.08 at 8,000, +0.12 at 10,000).
-    const fmtMult = m => { let t = Number(m).toFixed(3); if (t.endsWith('0')) t = t.slice(0, -1); return t; };
-    const AM_BASE = 1.20, AM_CORE = 1.275, AM_DB_CORE = 0.125, AM_DB_ONLY = 0.10;
-    const AM_STEP_TIERS = [[10000, 0.12], [8000, 0.08], [5000, 0.04]];
-    function coreDone(date) {
-      const r = dailyRec(date); if (!r) return false;
-      const list = (Array.isArray(r.circuit) ? r.circuit : getDefaultExercises());
-      return list.length > 0 && list.every(e => r.exercises && r.exercises[e.id]);
-    }
-    function stepBonus(steps) { const t = AM_STEP_TIERS.find(([n]) => isNum(steps) && steps >= n); return t ? t[1] : 0; }
+    // Rest day 1.25 up to 1.45 on a high-step day, plus 0.10 on a lifting day (so 1.55 at most). Today never drops below your usual steps.
     function activityMultiplier(date) {
-      const r = dailyRec(date), lifting = !!(r && r.isWorkoutDay), core = coreDone(date);
-      if (prefs.activityMode === 'fixed') return { mult: fixedActivity(), fixed: true, lifting, core, steps: null };
-      const own = r && isNum(r.steps) && r.steps > 0 ? r.steps : null;
-      const base = core ? AM_CORE : AM_BASE, db = lifting ? (core ? AM_DB_CORE : AM_DB_ONLY) : 0, sb = stepBonus(own);
-      const label = core && lifting ? 'Core + Dumbbell Day' : core ? 'Core Day' : lifting ? 'Dumbbell Day' : 'Base day';
-      return { mult: Math.round((base + db + sb) * 1000) / 1000, fixed: false, lifting, core, steps: own, ownSteps: own !== null, stepBonus: sb, label };
+      const r = dailyRec(date), lifting = !!(r && r.isWorkoutDay);
+      if (prefs.activityMode === 'fixed') return { mult: fixedActivity(), fixed: true, lifting, steps: null };
+      const own = r && isNum(r.steps) && r.steps > 0 ? r.steps : null, typ = typicalSteps(date);
+      let steps = date >= localDateStr() ? (Math.max(own || 0, typ || 0) || null) : (own !== null ? own : typ);
+      const hi = stepGoal(), mid = Math.round(hi * 0.625);
+      const tier = steps === null ? 1 : steps >= hi ? 2 : steps >= mid ? 1 : 0;
+      return { mult: Math.round(([1.25, 1.35, 1.45][tier] + (lifting ? 0.10 : 0)) * 100) / 100, fixed: false, lifting, steps, tier, ownSteps: own !== null };
     }
     function activityFactor() {
       if (prefs.activityMode === 'fixed') return fixedActivity();
@@ -4687,7 +4864,7 @@ without prior written permission from the copyright owner.</pre>
       const b = getEffectiveBMR(); if (!b) return null;
       const am = activityMultiplier(date), mode = goalMode(), fl = calorieFloorInfo();
       const def = mode === 'cut' ? deficitKcal() : mode === 'recomp' ? 250 : 0;
-      const maint = Math.round(b.value * am.mult);
+      const maint = Math.round(b.value * am.mult / 10) * 10;
       const target = Math.max((fl ? fl.value : b.value) + 100, Math.round((b.value * am.mult - def) / 10) * 10);
       return { bmr: b, am, mode, def, maint, target, floor: fl ? fl.value : b.value };
     }
@@ -4729,12 +4906,11 @@ without prior written permission from the copyright owner.</pre>
     function checkLimitCrossing(b, a) {
       const L = limitsNow(), msgs = [];
       const chk = (k, max, label, unit) => { if (max && isNum(a[k]) && a[k] > max && !(isNum(b[k]) && b[k] > max)) msgs.push(`${label} is over your limit by ${fmtFood(a[k] - max)} ${unit}`); };
-      chk('sugar', L.sugar, 'Added sugar', 'g'); chk('fat', L.fat, 'Fat', 'g'); chk('calories', L.calMax ? L.calMax + CAL_TOL : L.calMax, 'Calories', 'kcal');
+      chk('sugar', L.sugar, 'Added sugar', 'g'); chk('fat', L.fat, 'Fat', 'g'); chk('calories', L.calMax, 'Calories', 'kcal');
       const reached = isNum(a.protein) && a.protein >= L.protein && !(isNum(b.protein) && b.protein >= L.protein);
       if (msgs.length) { playSfx('over'); showToast(msgs.join('. ') + '.', 'warn'); }
       else if (reached) { playSfx('goal'); showToast('Protein target reached \u2713'); setTimeout(() => pulseEl('foodTotalProtein'), 50); }
     }
-    const CAL_TOL = 25; // kcal of rounding tolerance at the top of the target zone
     const reduceMotion = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
     function countUp(id, to) {
       const el = document.getElementById(id); if (!el || !isNum(to)) return;
@@ -4783,15 +4959,15 @@ without prior written permission from the copyright owner.</pre>
       const floorV = L.calMin || 0, tgtV = L.calMax || 0, maintV = TD ? Math.max(TD.maint, tgtV) : tgtV;
       const scale = Math.max(maintV * 1.12, (cal || 0) * 1.05, floorV * 1.3) || 1;
       let zone = null;
-      if (cal !== null && (floorV || tgtV)) zone = floorV && cal < floorV ? 0 : (!tgtV || cal <= tgtV + TOL) ? 1 : cal <= Math.max(maintV, tgtV + TOL) ? 2 : 3;
+      if (cal !== null && (floorV || tgtV)) zone = floorV && cal < floorV ? 0 : (!tgtV || cal <= tgtV) ? 1 : cal <= maintV ? 2 : 3;
       // amber = under your BMR floor, green = target zone, yellow = above target but under maintenance, red = over maintenance
-      const TOL = CAL_TOL; const ZC = ['#f59e0b', '#10b981', '#fde047', '#f43f5e'], MC = ['text-amber-400', 'text-emerald-400', 'text-yellow-300', 'text-rose-400'];
+      const ZC = ['#f59e0b', '#10b981', '#fde047', '#f43f5e'], MC = ['text-amber-400', 'text-emerald-400', 'text-yellow-300', 'text-rose-400'];
       set('foodTotalCal', fmtFood(t.calories), V + (zone === 3 ? 'text-rose-400' : zone === 2 ? 'text-yellow-300' : 'text-white'));
       set('calRangeLabel', L.calMin || L.calMax ? `/ ${L.calMin ? L.calMin.toLocaleString() : '\u2013'} to ${L.calMax ? L.calMax.toLocaleString() : '\u2013'} kcal` : 'kcal');
       const pc = v => Math.max(0, Math.min(100, (v / scale) * 100));
       const zEl = document.getElementById('calZones');
       if (zEl) {
-        const e0 = pc(floorV), e1 = pc((tgtV || floorV) + (tgtV ? TOL : 0)), e2 = pc(Math.max(maintV, tgtV + TOL));
+        const e0 = pc(floorV), e1 = pc(tgtV || floorV), e2 = pc(maintV);
         zEl.innerHTML = (floorV || tgtV) ? [[0, e0, 0], [e0, e1, 1], [e1, e2, 2], [e2, 100, 3]].map(([a, b, i]) => (b > a ? `<div style="width:${b - a}%;background:${ZC[i]};opacity:.22"></div>` : '')).join('') : '';
       }
       const cb = document.getElementById('calBar');
@@ -4801,14 +4977,14 @@ without prior written permission from the copyright owner.</pre>
       const calMsg = !(floorV || tgtV) ? 'Add a Visbody scan, or your sex and birth year in Profile, to see your calorie zones'
         : cal === null ? `Floor ${floorV.toLocaleString()} \u00b7 target ${tgtV.toLocaleString()}${maintV > tgtV ? ` \u00b7 maintenance ${maintV.toLocaleString()}` : ''} kcal`
         : zone === 0 ? (finished ? `Under your BMR floor by ${dist(floorV - cal)} kcal. Risk of under-fuelling and muscle loss` : `${dist(floorV - cal)} kcal to reach your BMR floor`)
-        : zone === 1 ? (tgtV ? (cal > tgtV ? `On target \u00b7 ${dist(cal - tgtV)} kcal over, inside the \u00b1${TOL} kcal band` : `On target \u00b7 ${dist(tgtV - cal)} kcal left`) : 'Above your BMR floor')
+        : zone === 1 ? (tgtV ? `In the target zone \u00b7 ${dist(tgtV - cal)} kcal left` : 'Above your BMR floor')
         : zone === 2 ? `Above target by ${dist(cal - tgtV)} kcal \u00b7 still under maintenance`
         : `Over maintenance by ${dist(cal - maintV)} kcal`;
       set('foodCalSub', calMsg, 'text-[11px] font-medium ' + (zone === null ? 'text-slate-400' : MC[zone]));
       const lg = document.getElementById('calLegend');
       if (lg) lg.innerHTML = (floorV || tgtV) ? [['Under BMR', 0], ['Target zone', 1], ['Above target', 2], ['Over maintenance', 3]].map(([l, i]) => `<span class="inline-flex items-center gap-1 ${zone === i ? 'text-white font-semibold' : 'text-slate-500'}"><span class="w-2 h-2 rounded-full" style="background:${ZC[i]}"></span>${l}</span>`).join('') : '';
       const ti = document.getElementById('foodTdeeInfo');
-      if (ti) ti.textContent = TD ? `Maintenance ${TD.maint.toLocaleString()} kcal = BMR ${TD.bmr.value.toLocaleString()}${TD.bmr.source === 'scan' ? '' : ' (est.)'} \u00d7 ${fmtMult(TD.am.mult)} ${TD.am.fixed ? '(fixed level)' : `(${TD.am.label}${TD.am.steps ? ` \u00b7 ${TD.am.steps.toLocaleString()} steps` : ''})`} \u00b7 ${GOAL_MODE_LABEL[TD.mode]}${TD.def ? `, minus ${TD.def}` : ''}` : '';
+      if (ti) ti.textContent = TD ? `Maintenance ${TD.maint.toLocaleString()} kcal = BMR ${TD.bmr.value.toLocaleString()} (${TD.bmr.source === 'scan' ? 'scan' : 'estimated'}) \u00d7 ${TD.am.mult}${TD.am.fixed ? '' : ` for a ${TD.am.lifting ? 'dumbbell' : 'core-only'} day with ${TD.am.steps ? `${TD.am.steps.toLocaleString()} ${TD.am.ownSteps ? '' : 'usual '}steps` : 'usual steps'}`} \u00b7 ${GOAL_MODE_LABEL[TD.mode]}${TD.def ? `, minus ${TD.def}` : ''}` : '';
       const lim = (vId, bId, sId, lId, v, max, color) => {
         const has = isNum(v), o = has && !!max && v > max;
         set(vId, fmtFood(v), V + (o ? 'text-rose-400' : 'text-white'));
@@ -4821,65 +4997,20 @@ without prior written permission from the copyright owner.</pre>
       renderTargetsSummary();
       ['foodTotalCal', 'foodTotalFat', 'foodTotalSugar'].forEach((id, i) => countUp(id, [t.calories, t.fat, t.sugar][i]));
       countUp('foodTotalProtein', t.protein);
-      renderPinned(t, L);
-      applyMacroOnlyUi();
+      const pin = document.getElementById('foodPinned');
+      if (pin) {
+        const chip = (v, label, cls) => `<span><b class="${cls}">${fmtFood(v)}</b> <span class="text-slate-500">${label}</span></span>`;
+        const eatenView = prefs.pinMode === 'eaten' || !L.calMax;
+        const left = (target, ate) => Math.round((target - (isNum(ate) ? ate : 0)) * 10) / 10;
+        const leftChip = (val, label, ceiling) => `<span><b class="${val < 0 ? 'text-rose-400' : (!ceiling && val === 0) ? 'text-emerald-400' : 'text-white'}">${val < 0 ? fmtFood(-val) + ' over' : (!ceiling && val === 0) ? '\u2713' : fmtFood(val)}</b> <span class="text-slate-500">${label}</span></span>`;
+        if (!eatenView) pin.innerHTML = leftChip(left(L.calMax, t.calories), 'kcal left', true) + leftChip(Math.max(0, left(L.protein, t.protein)), 'P left', false) + leftChip(left(L.sugar, t.sugar), 'sugar left', true);
+        else pin.innerHTML = chip(t.calories, 'kcal', L.calMax && isNum(t.calories) && t.calories > L.calMax ? 'text-rose-400' : 'text-white')
+          + chip(t.protein, 'P', isNum(t.protein) && t.protein >= L.protein ? 'text-emerald-400' : 'text-white')
+          + chip(t.fat, 'F', L.fat && isNum(t.fat) && t.fat > L.fat ? 'text-rose-400' : 'text-white')
+          + chip(t.sugar, 'S', isNum(t.sugar) && t.sugar > L.sugar ? 'text-rose-400' : 'text-white');
+      }
       renderProteinSuggest();
       renderMealSplit();
-    }
-
-    /* ---- v9.0: sticky "Left" budget bar ---- */
-    function renderPinned(t, L) {
-      const pin = document.getElementById('foodPinned'); if (!pin) return;
-      const consumed = !!prefs.pinConsumed;
-      const chip = (v, label, cls) => `<span><b class="${cls}">${v}</b> <span class="text-slate-500">${label}</span></span>`;
-      let html;
-      if (consumed) {
-        html = '<span class="text-[10px] uppercase tracking-wide text-slate-500">Eaten</span>'
-          + chip(fmtFood(t.calories), 'kcal', L.calMax && isNum(t.calories) && t.calories > L.calMax + CAL_TOL ? 'text-rose-400' : 'text-white')
-          + chip(fmtFood(t.protein), 'P', isNum(t.protein) && t.protein >= L.protein ? 'text-emerald-400' : 'text-white')
-          + chip(fmtFood(t.fat), 'F', L.fat && isNum(t.fat) && t.fat > L.fat ? 'text-rose-400' : 'text-white')
-          + chip(fmtFood(t.sugar), 'S', isNum(t.sugar) && t.sugar > L.sugar ? 'text-rose-400' : 'text-white');
-      } else {
-        const cal = t.calories || 0, pr = t.protein || 0, su = t.sugar || 0;
-        const kc = L.calMax ? (cal > L.calMax + CAL_TOL ? chip(`+${fmtFood(cal - L.calMax)}`, 'kcal over', 'text-rose-400') : cal > L.calMax ? chip('on target', 'kcal', 'text-emerald-400') : chip(fmtFood(L.calMax - cal), 'kcal left', 'text-white')) : chip('\u2013', 'kcal left', 'text-slate-400');
-        const pc = pr >= L.protein ? chip('\u2713', 'protein done', 'text-emerald-400') : chip(fmtFood(L.protein - pr), 'g protein left', 'text-white');
-        const sg = L.sugar ? (su > L.sugar ? chip(`+${fmtFood(su - L.sugar)}`, `g sugar over ${fmtFood(L.sugar)}`, 'text-rose-400') : chip(fmtFood(L.sugar - su), `of ${fmtFood(L.sugar)} g sugar left`, 'text-white')) : '';
-        html = '<span class="text-[10px] uppercase tracking-wide text-cyan-400">Left</span>' + kc + pc + sg;
-      }
-      pin.innerHTML = html;
-    }
-    function togglePinnedMode() { prefs.pinConsumed = !prefs.pinConsumed; LS.set('vmt_prefs', prefs); playSfx('click'); renderFoodDay(); }
-
-    /* ---- v9.0: macro-only mode and 1-line quick paste ---- */
-    function applyMacroOnlyUi() {
-      const on = !!prefs.macroOnly;
-      document.body.classList.toggle('macro-only', on);
-      const t = document.getElementById('macroOnlyToggle'); if (t) t.checked = on;
-    }
-    function setMacroOnly(on) { prefs.macroOnly = !!on; LS.set('vmt_prefs', prefs); playSfx('click'); applyMacroOnlyUi(); }
-    function parseQuickPaste(txt) {
-      const parts = String(txt || '').trim().split(/[\s,;]+/).filter(Boolean);
-      if (!parts.length || parts.length > 4) return null;
-      const nums = parts.map(x => (/^\d+(\.\d+)?$/.test(x) ? Number(x) : NaN));
-      if (nums.some(Number.isNaN)) return null;
-      const [calories = null, protein = null, fat = null, sugar = null] = nums;
-      if ((calories !== null && calories > 5000) || [protein, fat, sugar].some(v => v !== null && v > 500)) return null;
-      return { calories, protein, fat, sugar };
-    }
-    function renderQuickPaste() {
-      const raw = document.getElementById('quickPaste').value, box = document.getElementById('quickPastePreview'), out = document.getElementById('quickPasteText');
-      if (!raw.trim()) { box.classList.add('hidden'); return; }
-      const q = parseQuickPaste(raw); box.classList.remove('hidden');
-      out.innerHTML = q ? [[q.calories, 'kcal'], [q.protein, 'g protein'], [q.fat, 'g fat'], [q.sugar, 'g sugar']].map(([v, l]) => `<b class="${v === null ? 'text-slate-500' : 'text-white'}">${v === null ? '\u2013' : v}</b> ${l}`).join(' \u00b7 ') : '<span class="text-amber-400">Type up to 4 numbers: kcal, protein, fat, sugar</span>';
-    }
-    function quickPasteApply(add) {
-      const q = parseQuickPaste(document.getElementById('quickPaste').value);
-      if (!q) { showToast('Type up to 4 numbers: kcal, protein, fat, sugar (e.g. 420 32 14 2).', 'warn'); return; }
-      [['foodItemCal', q.calories], ['foodItemProtein', q.protein], ['foodItemFat', q.fat], ['foodItemSugar', q.sugar]].forEach(([id, v]) => { document.getElementById(id).value = v === null ? '' : v; });
-      if (add) {
-        if (!(document.getElementById('foodItemLabel').value || '').trim()) { showToast('Fields filled. Pick Breakfast, Lunch, Dinner or Snack, then tap Add.', 'warn'); return; }
-        addFoodEntry(); document.getElementById('quickPaste').value = ''; renderQuickPaste();
-      }
     }
 
     const tgt = id => document.getElementById(id);
@@ -4888,7 +5019,7 @@ without prior written permission from the copyright owner.</pre>
       if (!b) { el.innerText = 'Add a Visbody scan with a BMR, or your sex and birth year in Profile, to get a suggested calorie maximum. Blank fields follow the suggestion.'; return; }
       if (auto) {
         const TD = tdeeFor();
-        el.innerText = `Auto: your calorie maximum follows each day's Daily tab (core circuit, Dumbbell Day and steps). Today: BMR ${b.value.toLocaleString()} (${b.source === 'scan' ? 'scan' : 'estimated'}) \u00d7 ${fmtMult(TD.am.mult)} = ${TD.maint.toLocaleString()} kcal to maintain, ${TD.def ? `minus ${TD.def} ` : ''}= ${TD.target.toLocaleString()} kcal for ${GOAL_MODE_LABEL[TD.mode]}, with about ${Math.round(TD.target * 0.3 / 9)} g fat (30% of calories). Blank fields follow this. Your doctor's advice comes first.`;
+        el.innerText = `Auto: your calorie maximum follows each day's steps and dumbbell-day flag. Today: BMR ${b.value.toLocaleString()} (${b.source === 'scan' ? 'scan' : 'estimated'}) \u00d7 ${TD.am.mult} = ${TD.maint.toLocaleString()} kcal to maintain, ${TD.def ? `minus ${TD.def} ` : ''}= ${TD.target.toLocaleString()} kcal for ${GOAL_MODE_LABEL[TD.mode]}, with about ${Math.round(TD.target * 0.3 / 9)} g fat (30% of calories). Blank fields follow this. Your doctor's advice comes first.`;
         return;
       }
       const act = parseFloat(sel) || 1.55, def = Math.max(0, parseFloat(tgt('targetDeficit').value) || 0), s = suggestedCalMax(act, def);
@@ -5009,7 +5140,7 @@ without prior written permission from the copyright owner.</pre>
         if (!g) return;
         const t = e.changedTouches[0], dx = t.clientX - g.x, dy = t.clientY - g.y, s = g; g = null;
         if (Math.abs(dy) > 45 || Date.now() - s.t > 700) return;
-        if (s.row) { const id = s.row.dataset.eid; if (id) { if (dx < -70) removeFoodEntry(id); else if (dx > 70) saveMealFromEntry(id); } return; }
+        if (s.row) { const id = s.row.dataset.eid; if (id) { if (dx < -70) removeFoodEntry(id); else if (dx > 70 && !macroOnly()) saveMealFromEntry(id); } return; }
         if (s.skip || Math.abs(dx) < 90) return;
         const step = dx < 0 ? 1 : -1;
         if (appState.activeTab === 'tab-food' && !document.getElementById('foodView-intake').classList.contains('hidden')) {
@@ -5139,7 +5270,7 @@ without prior written permission from the copyright owner.</pre>
         return `<div data-eid="${p.base ? '' : p.id}" class="flex items-center gap-2 p-2 bg-slate-800/60 rounded-lg border border-slate-800 text-[11px]">
           <div class="min-w-0 flex-1"><div class="text-slate-200 truncate">${esc(p.label)}${p.note ? ` <span class="text-cyan-400">\u00b7 ${esc(p.note)}</span>` : ''}${p.time ? ` <span class="text-slate-500">${esc(p.time)}</span>` : ''}</div>
           <div class="text-slate-400">${bits.join(' \u00b7 ') || '&ndash;'}</div></div>
-          ${p.base ? '' : `<button type="button" aria-label="Save as a meal" onclick="saveMealFromEntry('${p.id}')" class="flex-none p-1.5 text-slate-500 hover:text-amber-400"><i class="fa-solid fa-star text-[11px]"></i></button>`}
+          ${p.base ? '' : `<button type="button" aria-label="Save as a meal" onclick="saveMealFromEntry('${p.id}')" class="preset-ui flex-none p-1.5 text-slate-500 hover:text-amber-400"><i class="fa-solid fa-star text-[11px]"></i></button>`}
           <button type="button" aria-label="Edit this entry" onclick="${p.base ? "switchFoodMode('total')" : `openFoodEdit('${p.id}')`}" class="flex-none p-1.5 text-slate-500 hover:text-cyan-400"><i class="fa-solid fa-pen text-[11px]"></i></button>
           <button type="button" aria-label="Remove this entry" onclick="${p.base ? 'removeFoodBase()' : `removeFoodEntry('${p.id}')`}" class="flex-none p-1.5 text-slate-500 hover:text-rose-400"><i class="fa-solid fa-trash text-[11px]"></i></button>
         </div>`;
@@ -5181,7 +5312,7 @@ without prior written permission from the copyright owner.</pre>
       playSfx('add');
       const before = foodTotals();
       foodEntries.push({ id: `f_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`, t: Date.now(), label, ...(note ? { note } : {}), calories: cal, protein, fat, sugar });
-      if (!prefill) ['foodItemCal', 'foodItemProtein', 'foodItemFat', 'foodItemSugar'].forEach(id => { document.getElementById(id).value = ''; });
+      if (!prefill) { ['foodItemCal', 'foodItemProtein', 'foodItemFat', 'foodItemSugar', 'foodQuickPaste'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; }); parseQuickPaste(); }
       renderFoodDay();
       saveFoodLogForDate(true);
       checkLimitCrossing(before, foodTotals());
@@ -5417,7 +5548,7 @@ without prior written permission from the copyright owner.</pre>
       const byDate = new Map(logs.map(l => [l.date, l]));
       const today = localDateStr();
       const monday = mondayOf(today);
-      const labels = ["Mon", "Tue ★", "Wed", "Thu", "Fri", "Sat", "Sun"];
+      const labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((l, i) => (i === (weighDayIdx() + 6) % 7 ? l + " ★" : l));
 
       container.innerHTML = '';
       labels.forEach((label, i) => {
@@ -5437,6 +5568,7 @@ without prior written permission from the copyright owner.</pre>
         container.appendChild(btn);
       });
       renderWeeklyVsTargets(byDate, today);
+      renderWeekBudget();
     }
 
     // One metric at a time over 7 or 30 days, with the four averages doubling as the metric picker.
@@ -5580,8 +5712,9 @@ without prior written permission from the copyright owner.</pre>
     }
 
     function renderAdvisorTab() {
-      renderV9Advisor().catch(e => console.warn('v9 advisor', e));
       renderAdvisorBriefings();
+      renderCoach();
+      renderReconCard();
       renderAdvisorScorecard();
     }
 
@@ -5748,8 +5881,8 @@ without prior written permission from the copyright owner.</pre>
 
     // Medications marked "... only" in their schedule (e.g. weight days only) are not due on other days.
     function medsDueOn(day, daily, meds) {
-      const rec = daily.get(day), lifting = !!(rec && rec.isWorkoutDay);
-      return meds.filter(m => medDueOnDate(m, day, lifting));
+      const rec = daily.get(day);
+      return meds.filter(m => !(/only/i.test(m.schedule || '') && !(rec && rec.isWorkoutDay)));
     }
 
     function scoreWeek(monday, ctx) {
@@ -5917,7 +6050,7 @@ without prior written permission from the copyright owner.</pre>
         food: new Map(foods.map(f => [f.date, f])),
         daily: new Map(dailies.map(d => [d.date, d])),
         ams: appState.amScaleLogs, shots: appState.mjShots,
-        exercises: getDefaultExercises(), meds: allMeds()
+        exercises: getDefaultExercises(), meds: [...DEFAULT_MEDS, ...getCustomMeds()]
       };
       const monday = addDaysStr(mondayOf(localDateStr()), scoreWeekOffset * 7);
       const cur = scoreWeek(monday, ctx);
@@ -6251,22 +6384,10 @@ const RISE_NAME = { navel: 'navel waist', below: 'low waist', hip: 'upper hip' }
       renderSizePredictor();
     }
 
-    function renderVersionLabels() { document.querySelectorAll('.appVerLabel').forEach(e => { e.textContent = 'v' + APP_VERSION; }); }
-    async function refreshSwInfo(force) {
-      const el = document.getElementById('swVerLabel'), hint = document.getElementById('swVerHint'); if (!el) return;
-      const read = async () => { try { const k = (await caches.keys()).filter(x => x.startsWith('vmt-shell-')).sort(); return k.length ? k[k.length - 1].replace('vmt-shell-', '') : null; } catch (e) { return null; } };
-      if (force && 'serviceWorker' in navigator) { try { const reg = await navigator.serviceWorker.getRegistration(); if (reg) { await reg.update(); await new Promise(r => setTimeout(r, 1500)); } } catch (e) { /* offline */ } }
-      const ver = await read();
-      if (!('serviceWorker' in navigator) || location.protocol === 'file:') { el.textContent = 'n/a'; if (hint) hint.textContent = 'The offline cache needs the app to be served over https.'; return; }
-      el.textContent = ver || 'none yet';
-      const ok = ver === 'v' + APP_VERSION;
-      el.className = `text-sm font-bold ${ok ? 'text-emerald-400' : 'text-amber-400'}`;
-      if (hint) hint.textContent = ok ? 'The app and its offline cache match.' : (ver ? 'The cache is on a different version. Close the app fully and reopen it while online; if it still differs, tap Check for an update.' : 'No cache yet. Open the app once while online so it can install for offline use.');
-    }
     function toggleSettingsDrawer(show) {
       playSfx('click');
       const drawer = document.getElementById('settingsDrawer');
-      if (show) { drawer.classList.remove('hidden'); renderProfileSummary(); renderDataSafety(); renderLockStatus(); renderVersionLabels(); refreshSwInfo(); renderSettingsMeds(); updateCoreResetBtn(); }
+      if (show) { drawer.classList.remove('hidden'); renderProfileSummary(); renderDataSafety(); renderLockStatus(); }
       else drawer.classList.add('hidden');
     }
 
@@ -6599,7 +6720,7 @@ const RISE_NAME = { navel: 'navel waist', below: 'low waist', hip: 'upper hip' }
       const sc = [...appState.visbodyScans].sort((a, b) => a.date.localeCompare(b.date)), last = sc[sc.length - 1];
       if (!last) { el.textContent = 'No scans yet.'; return; }
       const d = daysSince(`${last.date}T00:00:00`);
-      el.textContent = `Last scan: ${shortDate(last.date, true)}${last.scanTime ? ' at ' + fmtClock(last.scanTime) : ''} \u00b7 ${d === 0 ? 'today' : d === 1 ? '1 day ago' : `${d} days ago`}${isNum(last.ecwTbw) ? ` \u00b7 ECW/TBW ${last.ecwTbw.toFixed(3)}` : ''}${isNum(last.icw) && isNum(last.ecw) ? ` (ICW ${last.icw} kg, ECW ${last.ecw} kg)` : ''}`;
+      el.textContent = `Last scan: ${shortDate(last.date, true)} \u00b7 ${d === 0 ? 'today' : d === 1 ? '1 day ago' : `${d} days ago`}`;
     }
     function renderBodyAnalytics() {
       const q = id => document.getElementById(id); if (!q('rePace')) return;
@@ -6678,7 +6799,6 @@ const RISE_NAME = { navel: 'navel waist', below: 'low waist', hip: 'upper hip' }
         exportedAt: new Date().toISOString(),
         visbodyScans, amScaleLogs, mjShots, dailyLogs, foodLogs,
         customMeds: getCustomMeds(),
-        medConfig: { overrides: getMedOverrides() },
         customExercises: LS.get('vmt_exercises', null),
         visTargets: getVisTargetMap(),
         sizeSettings: { fit: prefs.fit, sizeCal: prefs.sizeCal },
@@ -6782,230 +6902,5 @@ const RISE_NAME = { navel: 'navel waist', below: 'low waist', hip: 'upper hip' }
       renderDashboard();
     }
   </script>
-
-<script id="v90-additions">
-/* =========================================================================
-   v9.0 additions: weigh-in check-in, trend switcher, rules-based advisor, reminders, pre-appointment summary
-   (Everything here is deterministic rules. Nothing is sent anywhere.)
-   ========================================================================= */
-const byDateAsc = (a, b) => String(a.date).localeCompare(String(b.date));
-const wdIdx = () => (isFinite(Number(profile.weighDay)) ? Number(profile.weighDay) : 2);
-const r1v = v => Math.round(v * 10) / 10;
-const sgn = (v, d = 1) => (v > 0 ? '+' : v < 0 ? '\u2212' : '') + Math.abs(v).toFixed(d);
-const fmtClock = t => { const m = String(t || '').match(/^(\d{1,2}):(\d{2})/); if (!m) return ''; let h = +m[1]; const ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12; return `${h}:${m[2]} ${ap}`; };
-
-/* ---- segmented trend chart ---- */
-function setTrendSeg(k, quiet) {
-  const ids = { fat: 'chartFatTrend', smm: 'chartSmmTrend', vfl: 'chartVisceralTrend', waist: 'chartWaistTrend' };
-  if (!ids[k]) k = 'fat';
-  if (prefs.trendSeg !== k) { prefs.trendSeg = k; LS.set('vmt_prefs', prefs); }
-  if (!quiet) playSfx('click');
-  document.querySelectorAll('[data-seg-pane]').forEach(p => p.classList.toggle('hidden', p.dataset.segPane !== k));
-  document.querySelectorAll('#trendSeg [data-seg]').forEach(b => { b.className = `flex-1 py-1.5 rounded-md ${b.dataset.seg === k ? 'bg-slate-800 text-cyan-400' : 'text-slate-400'}`; });
-  setTimeout(() => { try { if (charts[ids[k]]) charts[ids[k]].resize(); } catch (e) { /* ignore */ } }, 30);
-}
-
-/* ---- Tuesday (weigh-in day) check-in card ---- */
-async function renderTuesdayCard() {
-  const el = document.getElementById('tuesdayCard'); if (!el) return;
-  const now = new Date(), today = localDateStr(now);
-  if (now.getDay() !== wdIdx()) { el.classList.add('hidden'); return; }
-  el.classList.remove('hidden');
-  const am = appState.amScaleLogs.find(l => l.date === today), scan = appState.visbodyScans.find(s => s.date === today);
-  const off = am && scan && isNum(scan.weight) && isNum(am.amWeight) ? r1v(scan.weight - am.amWeight) : null;
-  let food = null; try { food = await dbGet('foodLogs', today); } catch (e) { /* none */ }
-  const clock = scan && scan.scanTime ? fmtClock(scan.scanTime) : '7:00 PM';
-  const L = limitsNow(today);
-  const row = (icon, label, body) => `<div class="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-900/70 border border-slate-800"><i class="fa-solid ${icon} text-cyan-400 mt-0.5 w-4 text-center"></i><div class="min-w-0 flex-1"><div class="text-[10px] uppercase tracking-wide text-slate-500">${label}</div><div class="text-xs text-slate-200">${body}</div></div></div>`;
-  el.innerHTML = `
-    <div class="flex items-center justify-between"><h2 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-clipboard-check text-cyan-400"></i> ${esc(weighDayName())} check-in</h2><span class="text-[10px] text-slate-400">${am && scan ? 'Done' : am || scan ? '1 of 2 done' : 'Weigh-in day'}</span></div>
-    ${row('fa-weight-scale', 'Morning fasted weight', am ? `<b class="text-white">${am.amWeight.toFixed(1)} kg</b> logged` : `<div class="flex gap-2 mt-1"><input type="number" inputmode="decimal" step="0.1" id="tueAmWeight" placeholder="kg, before eating or drinking" aria-label="Fasted morning weight in kilograms" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white flex-1 min-w-0"><button type="button" onclick="saveTuesdayAm()" class="px-4 bg-cyan-600 text-white font-semibold text-xs rounded-xl">Save</button></div>`)}
-    ${row('fa-file-pdf', 'Visbody 3D scan', scan ? `<b class="text-white">${isNum(scan.weight) ? scan.weight.toFixed(1) + ' kg' : 'Scan saved'}</b>${scan.scanTime ? ` at ${esc(fmtClock(scan.scanTime))}` : ''}` : `<button type="button" onclick="document.getElementById('pdfFileInput').click()" class="mt-1 w-full py-2 rounded-xl border border-cyan-800/60 bg-slate-800 text-cyan-400 font-semibold text-xs"><i class="fa-solid fa-upload mr-1.5"></i> Upload Visbody PDF</button>`)}
-    ${row('fa-arrows-up-down', 'Diurnal offset', off !== null ? `${esc(clock)} Visbody weight \u2212 AM fasted weight = <b class="text-white">${sgn(off)} kg</b>` : `Shows once both weights are in (${esc(clock)} Visbody weight \u2212 AM fasted weight).`)}
-    ${row('fa-droplet', 'Water and macros today', food ? `${Math.round(food.water || 0).toLocaleString()} ml of ${waterTarget().toLocaleString()} \u00b7 ${fmtFood(food.calories)} kcal \u00b7 P ${fmtFood(food.protein)} g \u00b7 F ${fmtFood(food.fat)} g \u00b7 sugar ${fmtFood(food.sugar)} g${L.protein ? ` <span class="text-slate-500">(protein target ${L.protein} g)</span>` : ''}` : 'Nothing logged yet today.')}`;
-}
-async function saveTuesdayAm() {
-  const v = parseFloat(document.getElementById('tueAmWeight').value);
-  if (!isFinite(v) || v <= 0) { showToast('Enter your fasted weight in kg.', 'warn'); return; }
-  document.getElementById('fastAmScaleDate').value = localDateStr();
-  document.getElementById('fastAmScaleWeight').value = v;
-  await saveAmFastedScaleEntry();
-}
-
-/* ---- Daily micro-coaching (top briefing) ---- */
-function microCoach(fr) {
-  const now = new Date(), h = now.getHours() + now.getMinutes() / 60, today = localDateStr(now), rec = dailyRec(today) || {}, tips = [];
-  const meds = allMeds().filter(m => !m.archived), ticked = id => !!(rec.meds && rec.meds[id]);
-  if (now.getDay() === wdIdx()) {
-    const am = appState.amScaleLogs.some(l => l.date === today), scan = appState.visbodyScans.some(s => s.date === today);
-    if (!am && h < 14) tips.push(`It is ${weighDayName()}: log your fasted weight before you eat or drink.`);
-    if (!scan && h >= 15) tips.push('Scan day: after your 7:00 PM Visbody scan, upload the PDF here so the diurnal offset is worked out.');
-  }
-  if (rec.isWorkoutDay && h < 20) meds.filter(m => m.rule === 'dumbbell' && !ticked(m.id)).forEach(m => tips.push(`Dumbbell Day: take ${m.name}${m.dose ? ` (${m.dose})` : ''} about 30 minutes before you lift.`));
-  if (h >= 17) {
-    const t = fr || null, L = limitsNow(today);
-    if (L.protein) { const left = Math.max(0, Math.round(L.protein - ((t && t.protein) || 0))); tips.push(left ? `Evening check: about ${left} g protein left today, and ${Math.max(0, r1v(L.sugar - ((t && t.sugar) || 0)))} g of added sugar headroom.` : `Protein target met. Added sugar headroom: ${Math.max(0, r1v(L.sugar - ((t && t.sugar) || 0)))} g.`); }
-  }
-  if (h >= 19.5) meds.filter(m => /post-?dinner/i.test(m.time || '') && !ticked(m.id) && medDueOnDate(m, today, rec.isWorkoutDay)).forEach(m => tips.push(`After dinner: ${m.name}${m.dose ? ` (${m.dose})` : ''}.`));
-  return tips.slice(0, 2);
-}
-
-/* ---- rolling Monday-Sunday headroom ---- */
-async function weeklyHeadroom() {
-  const today = localDateStr(), dow = parseLocalDate(today).getDay(), monday = addDaysStr(today, -((dow + 6) % 7));
-  const week = Array.from({ length: 7 }, (_, i) => addDaysStr(monday, i));
-  const logs = new Map((await dbGetAll('foodLogs')).map(r => [r.date, r]));
-  let capK = 0, eatK = 0, capP = 0, eatP = 0, capS = 0, eatS = 0, loggedDays = 0;
-  const ceil = [], floor = [];
-  week.forEach(d => {
-    const r = logs.get(d), L = d <= today && r && r.limits ? r.limits : limitsNow(d);
-    // Past days with nothing logged are unknown, not "unspent": only logged days and days still to come count toward the budget.
-    if (r || d >= today) { capK += (L.calMax || 0); capP += (L.protein || 0); capS += (L.sugar || 0); }
-    if (r) { eatK += r.calories || 0; eatP += r.protein || 0; eatS += r.sugar || 0; loggedDays++; }
-    if (d >= today) { ceil.push((L.calMax || 0) + CAL_TOL); floor.push(L.calMin || 0); }
-  });
-  const left = week.filter(d => d >= today).length;
-  return { monday, capK, eatK, capP, eatP, capS, eatS, left, loggedDays, ceilToday: ceil[0] || 0, floorToday: floor[0] || 0, floorAvg: floor.length ? Math.max(...floor) : 0, ceilAvg: ceil.length ? Math.min(...ceil) : 0 };
-}
-
-/* ---- deterministic recomposition / diurnal analyzer ---- */
-function analyzeRecomp() {
-  const sc = appState.visbodyScans.filter(s => isNum(s.bfm) && isNum(s.smm)).sort(byDateAsc);
-  if (sc.length < 2) return { label: 'Not enough data yet', tone: 'slate', conf: 'Low', reasons: ['Needs at least 2 Visbody scans that include fat mass and muscle.'] };
-  const cur = sc[sc.length - 1], prev = sc[sc.length - 2];
-  const days = Math.max(1, Math.round((parseLocalDate(cur.date) - parseLocalDate(prev.date)) / 86400000));
-  const amAvg = scan => { const v = appState.amScaleLogs.filter(l => isNum(l.amWeight) && Math.abs(parseLocalDate(l.date) - parseLocalDate(scan.date)) <= 3 * 86400000); return v.length ? v.reduce((a, l) => a + l.amWeight, 0) / v.length : null; };
-  const w0 = amAvg(prev), w1 = amAvg(cur), dW = isNum(w0) && isNum(w1) ? r1v(w1 - w0) : null;
-  const dF = r1v(cur.bfm - prev.bfm), dM = r1v(cur.smm - prev.smm);
-  const wa = s => (isNum(s.midWaist) ? s.midWaist : isNum(s.highWaist) ? s.highWaist : null), dWaist = isNum(wa(cur)) && isNum(wa(prev)) ? r1v(wa(cur) - wa(prev)) : null;
-  const ratio = s => (isNum(s.ecwTbw) ? s.ecwTbw : isNum(s.ecw) && isNum(s.tbw) && s.tbw > 0 ? s.ecw / s.tbw : null), dR = isNum(ratio(cur)) && isNum(ratio(prev)) ? Math.round((ratio(cur) - ratio(prev)) * 1000) / 1000 : null;
-  const dEcw = isNum(cur.ecw) && isNum(prev.ecw) ? r1v(cur.ecw - prev.ecw) : null;
-  const facts = [`Fat mass ${sgn(dF)} kg`, `Muscle ${sgn(dM)} kg`, dW !== null ? `AM weight ${sgn(dW)} kg` : 'AM weight: not enough fasted weights near both scans', dWaist !== null ? `Waist ${sgn(dWaist)} cm` : null, dR !== null ? `ECW/TBW ${sgn(dR, 3)}` : null].filter(Boolean);
-  let label = 'No clear pattern', tone = 'slate', why = ['The changes between your last two scans do not match one of the three patterns yet.'];
-  const waterUp = (dR !== null && dR >= 0.004) || (dEcw !== null && dEcw >= 0.4 && (dW === null || dW >= -0.3));
-  if (dW !== null && dW >= -0.3 && waterUp && dF <= 0.3) { label = 'Transient Water Retention'; tone = 'cyan'; why = ['AM weight is flat or up while extracellular water share rose.', 'Fat mass did not rise by more than 0.3 kg.'] }
-  else if (dF <= -0.5 && dM >= -0.3 && (dW === null || dW > -2)) { label = 'Active Recomposition'; tone = 'emerald'; why = ['Fat mass fell by 0.5 kg or more.', 'Muscle held within 0.3 kg or rose.'] }
-  else if (dW !== null && Math.abs(dW) <= 0.3 && days >= 10 && dF > -0.3 && (dR === null || Math.abs(dR) < 0.004) && (dWaist === null || dWaist > -0.5)) { label = 'True Fat Stall'; tone = 'amber'; why = [`AM weight within 0.3 kg over ${days} days.`, 'Fat mass and waist are not falling and water share is steady.'] }
-  const amInWin = appState.amScaleLogs.filter(l => l.date >= prev.date && l.date <= cur.date).length, hasWater = dR !== null || dEcw !== null;
-  const pts = (sc.length >= 3 ? 1 : 0) + (amInWin >= 3 ? 1 : 0) + (hasWater ? 1 : 0), conf = dW === null ? 'Low' : pts >= 3 ? 'High' : pts === 2 ? 'Moderate' : 'Low';
-  return { label, tone, conf, reasons: why, facts, span: `${shortDate(prev.date)} to ${shortDate(cur.date)}`, scans: sc.length, amInWin };
-}
-
-/* ---- calendar reminders (.ics) ---- */
-const icsEsc = t => String(t).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
-const icsFold = line => { const out = []; while (line.length > 74) { out.push(line.slice(0, 74)); line = ' ' + line.slice(74); } out.push(line); return out.join('\r\n'); };
-const icsStamp = d => `${d.getFullYear()}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}T${pad2(d.getHours())}${pad2(d.getMinutes())}00`;
-function nextOnOrAfter(dow) { const d = new Date(); d.setHours(0, 0, 0, 0); while (d.getDay() !== dow) d.setDate(d.getDate() + 1); return d; }
-function buildIcs(events) {
-  const L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Visbody Mounjaro Tracker//v9.0//EN', 'CALSCALE:GREGORIAN'];
-  events.forEach((e, i) => {
-    const s = new Date(e.start), en = new Date(s.getTime() + (e.mins || 15) * 60000);
-    L.push('BEGIN:VEVENT', `UID:vmt-${Date.now()}-${i}@tracker.local`, `DTSTAMP:${icsStamp(new Date())}`, `DTSTART:${icsStamp(s)}`, `DTEND:${icsStamp(en)}`, `RRULE:${e.rrule}`, `SUMMARY:${icsEsc(e.title)}`, `DESCRIPTION:${icsEsc(e.desc || '')}`, 'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${icsEsc(e.title)}`, 'TRIGGER:PT0M', 'END:VALARM', 'END:VEVENT');
-  });
-  L.push('END:VCALENDAR');
-  return L.map(icsFold).join('\r\n') + '\r\n';
-}
-const DAY_CODES = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
-const at = (dow, h, m) => { const d = nextOnOrAfter(dow); d.setHours(h, m, 0, 0); return d; };
-function icsEventsFor(kind) {
-  const wd = wdIdx(), ev = [], lastShot = (appState.mjShots || []).slice().sort((a, b) => String(a.dateTime).localeCompare(String(b.dateTime))).pop();
-  const injDow = Number(document.getElementById('icsInjDay') ? document.getElementById('icsInjDay').value : NaN);
-  const inj = isFinite(injDow) ? injDow : lastShot ? parseLocalDate(String(lastShot.dateTime).slice(0, 10)).getDay() : wd;
-  if (kind === 'weigh' || kind === 'all') { ev.push({ title: 'Fasted weigh-in', desc: 'Weigh before eating or drinking, then log it in the tracker.', start: at(wd, 7, 0), mins: 10, rrule: `FREQ=WEEKLY;BYDAY=${DAY_CODES[wd]}` }); ev.push({ title: 'Visbody scan', desc: 'Scan around 7:00 PM, then upload the PDF in the tracker.', start: at(wd, 18, 30), mins: 45, rrule: `FREQ=WEEKLY;BYDAY=${DAY_CODES[wd]}` }); }
-  if (kind === 'inject' || kind === 'all') ev.push({ title: 'Mounjaro injection day', desc: 'Take your weekly dose and log it (dose and site) in the tracker.', start: at(inj, 9, 0), mins: 15, rrule: `FREQ=WEEKLY;BYDAY=${DAY_CODES[inj]}` });
-  if (kind === 'evening' || kind === 'all') { const names = allMeds().filter(m => !m.archived && m.rule === 'daily').map(m => `${m.name}${m.dose ? ' ' + m.dose : ''}`); ev.push({ title: 'Evening supplements', desc: names.length ? `Due: ${names.join(', ')}.` : 'Evening supplements.', start: at(new Date().getDay(), 20, 30), mins: 10, rrule: 'FREQ=DAILY' }); }
-  return ev;
-}
-async function exportIcs(kind) {
-  const text = buildIcs(icsEventsFor(kind)), name = `VMT-reminders-${kind}.ics`;
-  try {
-    const f = new File([text], name, { type: 'text/calendar' });
-    if (navigator.canShare && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f], title: name }); return; }
-  } catch (e) { if (e && e.name === 'AbortError') return; }
-  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: 'text/calendar' })); a.download = name; document.body.appendChild(a); a.click();
-  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
-  showToast('Calendar file ready. Open it to add the reminders.');
-}
-
-/* ---- pre-appointment plain-English summary ---- */
-async function buildPreApptSummary() {
-  const today = localDateStr(), sc = [...appState.visbodyScans].sort(byDateAsc), cur = sc[sc.length - 1], prev = sc[sc.length - 2];
-  const since = prev ? prev.date : addDaysStr(today, -28), span = Math.max(1, Math.round((parseLocalDate(today) - parseLocalDate(since)) / 86400000));
-  const out = [`Summary for my appointment (${shortDate(since, true)} to ${shortDate(today, true)}, ${span} days)`, ''];
-  const am = appState.amScaleLogs.filter(l => isNum(l.amWeight) && l.date >= since).sort(byDateAsc);
-  if (am.length >= 2) { const a = am[0], b = am[am.length - 1], d = r1v(b.amWeight - a.amWeight); out.push(`Weight: my morning fasted weight went from ${a.amWeight.toFixed(1)} kg to ${b.amWeight.toFixed(1)} kg (${sgn(d)} kg, ${sgn(d / a.amWeight * 100)}%).`); }
-  else if (am.length === 1) out.push(`Weight: my latest morning fasted weight is ${am[0].amWeight.toFixed(1)} kg (only one reading since ${shortDate(since)}).`);
-  else out.push('Weight: no morning fasted weights logged in this period.');
-  if (cur && prev) {
-    const bits = [[ 'fat mass', 'bfm', 'kg', 1], ['skeletal muscle', 'smm', 'kg', 1], ['visceral fat level', 'vfl', '', 1], ['mid waist', 'midWaist', 'cm', 1]].filter(([, k]) => isNum(cur[k]) && isNum(prev[k])).map(([n, k, u]) => `${n} ${prev[k]} to ${cur[k]}${u ? ' ' + u : ''} (${sgn(r1v(cur[k] - prev[k]))})`);
-    out.push(`Body scan (${shortDate(prev.date)} vs ${shortDate(cur.date)}): ${bits.length ? bits.join('; ') : 'no matching measurements'}.`);
-    const rt = s => (isNum(s.ecwTbw) ? s.ecwTbw : null); if (rt(cur) !== null && rt(prev) !== null) out.push(`Body water: the extracellular share of total body water went from ${rt(prev).toFixed(3)} to ${rt(cur).toFixed(3)}.`);
-  } else out.push('Body scan: I need two scans to compare.');
-  const logs = (await dbGetAll('foodLogs')).filter(r => r.date >= since && r.date <= today && isNum(r.calories));
-  if (logs.length) {
-    const avg = k => logs.reduce((a, r) => a + (r[k] || 0), 0) / logs.length, cap = r => (r.limits && r.limits.calMax ? r.limits.calMax : limitsNow(r.date).calMax) || 0;
-    const okCal = logs.filter(r => !cap(r) || r.calories <= cap(r) + CAL_TOL).length, okP = logs.filter(r => r.proteinTarget ? (r.protein || 0) >= r.proteinTarget : (r.protein || 0) >= proteinTarget()).length, okS = logs.filter(r => (r.sugar || 0) <= ((r.limits && r.limits.sugar) || sugarMax())).length, okW = logs.filter(r => (r.water || 0) >= waterTarget()).length;
-    out.push(`Food (${logs.length} day${logs.length === 1 ? '' : 's'} logged): average ${Math.round(avg('calories')).toLocaleString()} kcal and ${Math.round(avg('protein'))} g protein a day. I stayed within my calorie target on ${okCal} of ${logs.length}, reached my protein target on ${okP}, and kept added sugar under the limit on ${okS}.`);
-    out.push(`Hydration: average ${Math.round(avg('water')).toLocaleString()} ml a day; reached my ${waterTarget().toLocaleString()} ml goal on ${okW} of ${logs.length}.`);
-  } else out.push('Food and water: nothing logged in this period.');
-  const dl = (appState.dailyLogs || []).filter(r => r.date >= since && r.date <= today), db = dl.filter(r => r.isWorkoutDay).length, circ = dl.filter(r => coreDone(r.date)).length, st = dl.filter(r => isNum(r.steps) && r.steps > 0);
-  out.push(`Training: ${db} Dumbbell Day${db === 1 ? '' : 's'}, ${circ} full core circuit day${circ === 1 ? '' : 's'}${st.length ? `, average ${Math.round(st.reduce((a, r) => a + r.steps, 0) / st.length).toLocaleString()} steps on ${st.length} logged days` : ''}.`);
-  const shots = (appState.mjShots || []).filter(s => String(s.dateTime).slice(0, 10) >= since).sort((a, b) => String(a.dateTime).localeCompare(String(b.dateTime)));
-  out.push(shots.length ? `Injections: ${shots.map(s => `${s.dose} mg on ${shortDate(String(s.dateTime).slice(0, 10))}`).join(', ')}.` : 'Injections: none logged in this period.');
-  out.push('', 'Generated by my tracker from my own logs. Estimates, not a medical assessment.');
-  return out.join('\n');
-}
-let preApptText = '';
-async function openPreAppt() { playSfx('click'); preApptText = await buildPreApptSummary(); document.getElementById('preApptBody').textContent = preApptText; document.getElementById('preApptModal').classList.remove('hidden'); }
-function closePreAppt() { document.getElementById('preApptModal').classList.add('hidden'); }
-async function sharePreAppt() {
-  try { if (navigator.share) { await navigator.share({ title: 'Pre-appointment summary', text: preApptText }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
-  try { await navigator.clipboard.writeText(preApptText); showToast('Summary copied'); } catch (e) { showToast("Couldn't copy. Select the text and copy it.", 'warn'); }
-}
-
-/* ---- advisor tab host ---- */
-async function renderV9Advisor() {
-  const host = document.getElementById('v9AdvisorHost'); if (!host) return;
-  const fr = await dbGet('foodLogs', localDateStr()).catch(() => null), tips = microCoach(fr), wk = await weeklyHeadroom(), rc = analyzeRecomp();
-  const tone = { emerald: 'border-emerald-800/60 text-emerald-300', cyan: 'border-cyan-800/60 text-cyan-300', amber: 'border-amber-800/60 text-amber-300', slate: 'border-slate-700 text-slate-300' }[rc.tone];
-  const perDay = wk.left ? Math.round((wk.capK - wk.eatK) / wk.left) : 0, perDayClamped = wk.left ? Math.max(wk.floorAvg || 0, Math.min(perDay, wk.ceilAvg || perDay)) : 0;
-  const pLeft = Math.max(0, Math.round(wk.capP - wk.eatP)), sLeft = Math.max(0, r1v(wk.capS - wk.eatS));
-  host.innerHTML = `
-    <div class="glass-card p-4 rounded-2xl border border-cyan-800/60 space-y-2">
-      <h3 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-bell text-cyan-400"></i> Right now</h3>
-      ${tips.length ? tips.map(t => `<p class="text-xs text-slate-200">${esc(t)}</p>`).join('') : '<p class="text-xs text-slate-400">Nothing time-sensitive. You are on track for this part of the day.</p>'}
-    </div>
-    <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-2">
-      <h3 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-calendar-week text-emerald-400"></i> This week (Mon to Sun)</h3>
-      <div class="grid grid-cols-3 gap-2 text-center">
-        <div class="rounded-xl bg-slate-900/80 border border-slate-800 p-2"><div class="text-base font-bold text-white">${Math.max(0, wk.capK - wk.eatK).toLocaleString()}</div><div class="text-[10px] text-slate-500">kcal left</div></div>
-        <div class="rounded-xl bg-slate-900/80 border border-slate-800 p-2"><div class="text-base font-bold text-white">${pLeft} g</div><div class="text-[10px] text-slate-500">protein to go</div></div>
-        <div class="rounded-xl bg-slate-900/80 border border-slate-800 p-2"><div class="text-base font-bold ${wk.eatS > wk.capS ? 'text-rose-400' : 'text-white'}">${sLeft} g</div><div class="text-[10px] text-slate-500">sugar headroom</div></div>
-      </div>
-      <p class="text-[11px] text-slate-400">${wk.left ? `Across the ${wk.left} day${wk.left === 1 ? '' : 's'} still to go that is about ${perDayClamped.toLocaleString()} kcal a day${perDayClamped !== perDay ? ` (kept between your floor ${wk.floorAvg.toLocaleString()} and the daily ceiling ${wk.ceilAvg.toLocaleString()})` : ''}. Days you have not logged are left out, so a missed day is not counted as saved calories. Weekly room never lifts a day above its own ceiling, and never goes under your BMR floor. A protein pace of about ${Math.ceil(pLeft / wk.left)} g a day is a coaching suggestion, your doctor's target comes first.` : 'The week is finished.'}</p>
-    </div>
-    <div class="glass-card p-4 rounded-2xl border ${tone.split(' ')[0]} space-y-2">
-      <div class="flex items-center justify-between gap-2"><h3 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-microscope text-violet-400"></i> Recomposition and water check</h3><span class="text-[10px] px-2 py-0.5 rounded-full border border-slate-700 text-slate-300">Confidence: ${rc.conf}</span></div>
-      <div class="text-sm font-bold ${tone.split(' ')[1]}">${esc(rc.label)}</div>
-      ${rc.span ? `<div class="text-[11px] text-slate-400">${esc(rc.span)}: ${rc.facts.map(esc).join(' \u00b7 ')}</div>` : ''}
-      <ul class="text-[11px] text-slate-300 list-disc pl-4 space-y-0.5">${rc.reasons.map(r => `<li>${esc(r)}</li>`).join('')}</ul>
-      <p class="text-[10px] text-slate-500">Rules, not a diagnosis. Confidence reflects how many scans, fasted weights and water readings sit behind it${rc.scans ? ` (${rc.scans} scans, ${rc.amInWin} fasted weights between the last two)` : ''}.</p>
-    </div>
-    <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
-      <h3 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-calendar-plus text-amber-400"></i> Reminders and visit summary</h3>
-      <p class="text-[11px] text-slate-400">Calendar reminders work offline and do not need push notifications, which iPhone web apps cannot send reliably.</p>
-      <div class="grid grid-cols-2 gap-2">
-        <button type="button" onclick="exportIcs('weigh')" class="py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-cyan-400 font-semibold">Weigh-in and scan</button>
-        <button type="button" onclick="exportIcs('evening')" class="py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-cyan-400 font-semibold">Evening supplements</button>
-        <div class="flex gap-1.5 col-span-2"><select id="icsInjDay" class="bg-slate-800 border border-slate-700 rounded-xl px-2 text-xs text-white">${WEEKDAY_SHORT.map((d, i) => `<option value="${i}">${d}</option>`).join('')}</select><button type="button" onclick="exportIcs('inject')" class="flex-1 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-cyan-400 font-semibold">Weekly injection reminder</button></div>
-        <button type="button" onclick="exportIcs('all')" class="col-span-2 py-2 rounded-xl bg-cyan-600 text-white text-xs font-semibold">All reminders in one file</button>
-      </div>
-      <button type="button" onclick="openPreAppt()" class="w-full py-2.5 rounded-xl border border-emerald-700 bg-emerald-950/40 text-emerald-300 text-xs font-semibold"><i class="fa-solid fa-file-medical mr-1.5"></i> Pre-appointment summary</button>
-    </div>`;
-  const sel = document.getElementById('icsInjDay'); if (sel) { const ls = (appState.mjShots || []).slice().sort((a, b) => String(a.dateTime).localeCompare(String(b.dateTime))).pop(); sel.value = String(ls ? parseLocalDate(String(ls.dateTime).slice(0, 10)).getDay() : wdIdx()); }
-}
-</script>
-
-
 </body>
 </html>

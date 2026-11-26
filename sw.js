@@ -6,9 +6,9 @@
  * - CDN libraries (Tailwind, Chart.js, Font Awesome): pre-cached on first install and then served from cache.
  *
  * User data lives in IndexedDB / localStorage, never in these caches, so updating the app can't touch it.
- * Bump VERSION when you change this file or the pre-cache lists. It must match APP_VERSION in index.html (shown in Settings next to the cached copy).
+ * Bump VERSION when you change this file or the pre-cache lists.
  */
-const VERSION = 'v9.0';
+const VERSION = 'v9.0.0';
 const SHELL_CACHE = `vmt-shell-${VERSION}`;
 const RUNTIME_CACHE = 'vmt-runtime';
 
