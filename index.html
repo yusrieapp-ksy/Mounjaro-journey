@@ -463,6 +463,14 @@ without prior written permission from the copyright owner.
           </div>
 
           <div class="glass-card p-3.5 rounded-2xl border border-slate-800/80 flex flex-col justify-between">
+            <div class="flex justify-between items-start text-xs text-slate-400"><span>Lean Mass</span><i class="fa-solid fa-person text-teal-400"></i></div>
+            <div class="my-2"><div class="text-2xl font-black text-white" id="kpiLbm">— <span class="text-xs font-semibold text-slate-400">kg</span></div><div class="text-[11px] font-medium text-slate-400" id="kpiLbmDelta">No data yet</div></div>
+            <div class="text-[10px] text-slate-400" id="kpiLbmSub"></div>
+          </div>
+
+          <div id="kpiRefStrip" class="col-span-2 sm:col-span-4 glass-card p-3 rounded-2xl border border-slate-800/80 grid grid-cols-4 gap-2 text-center"></div>
+
+          <div class="glass-card p-3.5 rounded-2xl border border-slate-800/80 flex flex-col justify-between">
             <div class="flex justify-between items-start text-xs text-slate-400">
               <span>Visceral Fat Level</span>
               <i class="fa-solid fa-heart-pulse text-rose-400"></i>
@@ -2296,7 +2304,7 @@ without prior written permission from the copyright owner.</pre>
        Safety copies (snapshots, recently deleted) live in a separate small database, so the main
        data schema is untouched.
        ========================================================================== */
-    const APP_VERSION = '9.1';
+    const APP_VERSION = '9.2';
     const $id = id => document.getElementById(id);
     const fmtWhen = iso => { try { return new Date(iso).toLocaleString([], { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' }); } catch (e) { return ''; } };
     const fmtBytes = n => (n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(n < 10240 ? 1 : 0)} KB` : `${(n / 1048576).toFixed(1)} MB`);
@@ -2943,7 +2951,7 @@ without prior written permission from the copyright owner.</pre>
     function togglePinMode() { playSfx('click'); prefs.pinMode = prefs.pinMode === 'eaten' ? 'left' : 'eaten'; LS.set('vmt_prefs', prefs); renderFoodDay(); }
 
     /* ---- one body-composition trend chart with a pill switcher ---- */
-    const VIS_MODES = { fat: ['Fat mass', 'fa-chart-area text-amber-400', 'Body Fat Mass (kg)'], smm: ['Muscle', 'fa-dumbbell text-indigo-400', 'Skeletal Muscle Mass (kg), zoomed'], vfl: ['Visceral', 'fa-heart-pulse text-rose-400', 'Visceral Fat Level'], waist: ['Waist', 'fa-ruler-horizontal text-emerald-400', 'Waist Circumferences (cm)'], water: ['Water', 'fa-droplet text-sky-400', 'ECW/TBW ratio (normal 0.360 to 0.390)'] };
+    const VIS_MODES = { fat: ['Fat mass', 'fa-chart-area text-amber-400', 'Body Fat Mass (kg)'], smm: ['Muscle', 'fa-dumbbell text-indigo-400', 'Skeletal Muscle Mass (kg), zoomed'], lbm: ['Lean mass', 'fa-person text-teal-400', 'Lean Mass and Muscle (kg)'], vfl: ['Visceral', 'fa-heart-pulse text-rose-400', 'Visceral Fat Level'], waist: ['Waist', 'fa-ruler-horizontal text-emerald-400', 'Waist Circumferences (cm)'], water: ['Water', 'fa-droplet text-sky-400', 'ECW/TBW ratio (normal 0.360 to 0.390)'] };
     function setVisTrend(m) { playSfx('click'); prefs.visTrend = m; LS.set('vmt_prefs', prefs); renderVisTrend(); }
     function renderVisTrend() {
       const pills = $id('visTrendPills'); if (!pills) return;
@@ -2958,10 +2966,11 @@ without prior written permission from the copyright owner.</pre>
         const vals = scans.map(s => s.smm).filter(isNum), y = { grid: { color: 'rgba(255,255,255,0.05)' } };
         if (vals.length) { y.min = Math.floor(Math.min(...vals) - 2); y.max = Math.ceil(Math.max(...vals) + 2); }
         cfg = { type: 'line', data: { labels, datasets: [{ label: 'Skeletal Muscle Mass (kg)', data: scans.map(s => s.smm), borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.1)', fill: true }] }, options: chartOpts({ ...NO_LEGEND, scales: { y } }, scans.length) };
-      } else if (mode === 'vfl') cfg = { type: 'bar', data: { labels, datasets: [{ label: 'Visceral Fat Level', data: scans.map(s => s.vfl), backgroundColor: '#f43f5e' }] }, options: chartOpts(NO_LEGEND, scans.length) };
+      } else if (mode === 'lbm') cfg = { type: 'line', data: { labels, datasets: [{ label: 'Lean mass (kg)', data: scans.map(s => (isNum(s.lbm) ? s.lbm : null)), borderColor: '#2dd4bf', backgroundColor: 'rgba(45,212,191,0.1)', fill: true, spanGaps: true }, { label: 'Skeletal muscle (kg)', data: scans.map(s => s.smm), borderColor: '#6366f1', spanGaps: true }] }, options: chartOpts({}, scans.length) };
+      else if (mode === 'vfl') cfg = { type: 'bar', data: { labels, datasets: [{ label: 'Visceral Fat Level', data: scans.map(s => s.vfl), backgroundColor: '#f43f5e' }] }, options: chartOpts(NO_LEGEND, scans.length) };
       else if (mode === 'waist') cfg = { type: 'line', data: { labels, datasets: [{ label: 'High Waist', data: scans.map(s => s.highWaist), borderColor: '#10b981', spanGaps: true }, { label: 'Mid Waist', data: scans.map(s => s.midWaist), borderColor: '#06b6d4', spanGaps: true }, { label: 'Low Waist', data: scans.map(s => s.lowWaist), borderColor: '#8b5cf6', spanGaps: true }] }, options: chartOpts({}, scans.length) };
       else cfg = { type: 'line', data: { labels, datasets: [{ label: 'ECW/TBW ratio', data: scans.map(s => s.ecwRatio), borderColor: '#38bdf8', backgroundColor: 'rgba(56,189,248,0.1)', fill: true, spanGaps: true }] }, options: chartOpts({ ...NO_LEGEND, scales: { y: { min: 0.34, max: 0.42, grid: { color: 'rgba(255,255,255,0.05)' } } } }, scans.length) };
-      CHART_EMPTY.chartVisTrend = { fat: 'Add at least 2 Visbody scans to see fat mass.', smm: 'Add at least 2 Visbody scans to see muscle mass.', vfl: 'Add at least 2 Visbody scans to see visceral fat.', waist: 'Add at least 2 scans with waist measurements.', water: 'Add at least 2 scans with body water readings.' }[mode];
+      CHART_EMPTY.chartVisTrend = { fat: 'Add at least 2 Visbody scans to see fat mass.', lbm: 'Add at least 2 scans with lean mass (import the PDFs).', smm: 'Add at least 2 Visbody scans to see muscle mass.', vfl: 'Add at least 2 Visbody scans to see visceral fat.', waist: 'Add at least 2 scans with waist measurements.', water: 'Add at least 2 scans with body water readings.' }[mode];
       createOrUpdateChart('chartVisTrend', cfg);
     }
 
@@ -3336,6 +3345,7 @@ without prior written permission from the copyright owner.</pre>
       document.getElementById('kpiSmm').innerHTML = `${latestScan ? f1(latestScan.smm) : '—'} ${unit('kg')}`;
       document.getElementById('kpiVisceral').innerHTML = `${latestScan ? f1(latestScan.vfl) : '—'} ${unit('lvl')}`;
 
+      renderLeanKpi92(scans);
       renderAmScaleTable();
       renderKpiDeltas(scans, amLogs);
       renderGoalProgress(latestAm);
@@ -3485,6 +3495,9 @@ without prior written permission from the copyright owner.</pre>
     const SEG_FIELDS = [...SEG_PARTS.map(([k, l]) => ({ id: 'ln' + k, label: `Lean ${l} (kg)` })), ...SEG_PARTS.map(([k, l]) => ({ id: 'ft' + k, label: `Fat ${l} (kg)` }))];
     const SCAN_OPTIONAL_FIELDS = [
       { id: 'bmi', label: 'BMI' }, { id: 'bmr', label: 'BMR (kcal)' },
+      { id: 'lbm', label: 'Lean Mass (kg)' }, { id: 'ffm', label: 'Fat-Free Mass (kg)' }, { id: 'protein', label: 'Protein Mass (kg)' }, { id: 'mineral', label: 'Mineral Mass (kg)' },
+      { id: 'whr', label: 'WHR' }, { id: 'metAge', label: 'Metabolic Age' }, { id: 'score', label: 'Visbody Score' },
+      { id: 'minLeftThigh', label: 'Min Left Thigh (cm)' }, { id: 'minRightThigh', label: 'Min Right Thigh (cm)' },
       { id: 'neck', label: 'Neck (cm)' }, { id: 'shoulder', label: 'Shoulder (cm)' }, { id: 'chest', label: 'Chest (cm)' },
       { id: 'highWaist', label: 'High Waist (cm)' }, { id: 'midWaist', label: 'Mid Waist (cm)' }, { id: 'lowWaist', label: 'Low Waist (cm)' },
       { id: 'hip', label: 'Hip (cm)' }, { id: 'leftArm', label: 'Left Arm (cm)' }, { id: 'rightArm', label: 'Right Arm (cm)' },
@@ -3493,6 +3506,10 @@ without prior written permission from the copyright owner.</pre>
       { id: 'pelvicTilt', label: 'Anterior Pelvic Shift (cm)' }, { id: 'headTilt', label: 'Forward Head Posture (cm)' },
       { id: 'roundedShoulderLeft', label: 'L Rounded Shoulder (cm)' }, { id: 'roundedShoulderRight', label: 'R Rounded Shoulder (cm)' },
       { id: 'spinePainRisk', label: 'Spine Pain Risk (0–100)' },
+      { id: 'postureScore', label: 'Posture Score' }, { id: 'headLateral', label: 'Head Tilt (°)' }, { id: 'shoulderUneven', label: 'Uneven Shoulders (°)' },
+      { id: 'kneeLeft', label: 'Left Knee (°)' }, { id: 'kneeRight', label: 'Right Knee (°)' }, { id: 'legAngleLeft', label: 'Left Leg Angle (°)' }, { id: 'legAngleRight', label: 'Right Leg Angle (°)' },
+      { id: 'spineCervical', label: 'Cervical Spine Score' }, { id: 'spineThoracic', label: 'Thoracic Spine Score' }, { id: 'spineLumbar', label: 'Lumbar Spine Score' },
+      { id: 'neckPainRisk', label: 'Neck Pain Risk' }, { id: 'backPainRisk', label: 'Back Pain Risk' }, { id: 'lumbarPainRisk', label: 'Lumbar Pain Risk' },
       ...SEG_FIELDS,
       { id: 'tbw', label: 'Body Water (kg)' },
       { id: 'icw', label: 'ICW (kg)' },
@@ -3533,6 +3550,7 @@ without prior written permission from the copyright owner.</pre>
       const existing = appState.visbodyScans.find(s => s.date === date);
       scan.gluteType = document.getElementById('scan_gluteType').value.trim() || null;
       scan.webUrl = cleanUrl(document.getElementById('scan_webUrl').value) || (existing && existing.webUrl) || null;
+      if (existing) ['ref', 'gold', 'segStat', 'testTime', 'shoulderHigher'].forEach(k => { if (existing[k] != null) scan[k] = existing[k]; });
 
       try { await dbPut('visbodyScans', scan); }
       catch (err) { showToast("Couldn't save the scan", 'error'); return; }
@@ -3586,6 +3604,7 @@ without prior written permission from the copyright owner.</pre>
       const scans = appState.visbodyScans;
       const scan = scans.find(s => s.date === date) || scans[scans.length - 1];
       renderVisbodyLinkStatus(scan);
+      renderVisCompV92(scan);
 
       if (!scan) {
         const msg = `<p class="col-span-full text-xs text-slate-500">No scan saved yet. Add one with the “Add a Visbody Scan” form above.</p>`;
@@ -3618,7 +3637,12 @@ without prior written permission from the copyright owner.</pre>
         tile('Anterior Pelvic Shift', fv(scan.pelvicTilt, ' cm'), T, 'p-3', 'pelvicTilt', scan.pelvicTilt),
         tile('Forward Head Posture', fv(scan.headTilt, ' cm'), T, 'p-3', 'headTilt', scan.headTilt),
         tile('Left Rounded Shoulder', fv(scan.roundedShoulderLeft, ' cm'), T, 'p-3', 'roundedShoulderLeft', scan.roundedShoulderLeft),
-        tile('Right Rounded Shoulder', fv(scan.roundedShoulderRight, ' cm'), T, 'p-3', 'roundedShoulderRight', scan.roundedShoulderRight)
+        tile('Right Rounded Shoulder', fv(scan.roundedShoulderRight, ' cm'), T, 'p-3', 'roundedShoulderRight', scan.roundedShoulderRight),
+        tile('Posture score', fv(scan.postureScore, ' / 100'), 'text-amber-400 text-sm'),
+        tile('Head tilt', fv(scan.headLateral, '\u00b0'), T),
+        tile('Uneven shoulders', isNum(scan.shoulderUneven) ? `${esc(scan.shoulderUneven)}\u00b0${scan.shoulderHigher ? ' (' + esc(scan.shoulderHigher) + ' higher)' : ''}` : '\u2014', T),
+        tile('Left knee', fv(scan.kneeLeft, '\u00b0'), T), tile('Right knee', fv(scan.kneeRight, '\u00b0'), T),
+        tile('Left leg angle', fv(scan.legAngleLeft, '\u00b0'), T), tile('Right leg angle', fv(scan.legAngleRight, '\u00b0'), T)
       ].join('');
 
       const c = (label, v, key) => tile(label, fv(v, ' cm'), 'text-white', 'p-2.5', key, v);
@@ -3640,7 +3664,9 @@ without prior written permission from the copyright owner.</pre>
       }
       document.getElementById('visPage4Details').innerHTML = hint + [
         tile('Spine Health & Pain Risk Score', isNum(scan.spinePainRisk) ? `${esc(scan.spinePainRisk)} / 100` : '—', 'text-amber-400 text-sm', 'p-3', 'spinePainRisk', scan.spinePainRisk),
-        tile('Change vs Previous Scan', trend, trendCls)
+        tile('Change vs Previous Scan', trend, trendCls),
+        tile('Cervical spine', fv(scan.spineCervical), T), tile('Thoracic spine', fv(scan.spineThoracic), T), tile('Lumbar spine', fv(scan.spineLumbar), T),
+        tile('Neck pain risk', fv(scan.neckPainRisk), T), tile('Back pain risk', fv(scan.backPainRisk), T), tile('Lumbar pain risk', fv(scan.lumbarPainRisk), T)
       ].join('');
 
       document.getElementById('visPage5Details').innerHTML = hint + tile('Glute Alignment Type', fv(scan.gluteType), 'text-cyan-400 text-sm', 'p-3', 'gluteType', null);
@@ -3942,6 +3968,8 @@ without prior written permission from the copyright owner.</pre>
           const arms = nums.slice(0, 2).sort((a, b) => a.x - b.x), trunk = nums[2], legs = nums.slice(3, 5).sort((a, b) => a.x - b.x);
           const vals = [arms[0], arms[1], trunk, legs[0], legs[1]].map(v);
           if (vals.some(x => !(x > 0 && x < 100))) return;
+          const stat = it => { const c = items.filter(t => /^(Under|Normal|Over)$/.test(t.s.trim()) && Math.abs(t.x - it.x) <= 14 && it.y - t.y > 2 && it.y - t.y <= 18).sort((a, b) => (it.y - a.y) - (it.y - b.y))[0]; return c ? c.s.trim() : null; };
+          out.segStat = out.segStat || {}; [['LeftArm', arms[0]], ['RightArm', arms[1]], ['Trunk', trunk], ['LeftLeg', legs[0]], ['RightLeg', legs[1]]].forEach(([k, it]) => { const sv = stat(it); if (sv) out.segStat[kind + k] = sv; });
           out[kind + 'LeftArm'] = vals[0]; out[kind + 'RightArm'] = vals[1]; out[kind + 'Trunk'] = vals[2];
           out[kind + 'LeftLeg'] = vals[3]; out[kind + 'RightLeg'] = vals[4];
         });
@@ -3980,11 +4008,32 @@ without prior written permission from the copyright owner.</pre>
       scan.bmr = grab(comp, /^Basal Metabolism (?:Rate kcal\/d )?([\d.]+)/) ?? grab(comp, /^Rate kcal\/d ([\d.]+)/);
       scan.vfl = grab(comp, /^Visceral Fat Level (?:[A-Za-z]+ )*([\d.]+)/);
 
+      // v9.2: the report has two different rows. "fat free mass" (weight minus fat) and "lean mass" are separate numbers,
+      // and the same rows carry minerals (Inorganic Salts) and protein in the next column. Each goes to its own field.
+      const rngOf = (a, b) => (isFinite(parseFloat(a)) && isFinite(parseFloat(b)) ? [parseFloat(a), parseFloat(b)] : null);
+      const compRow = re => { for (const l of allLines) { const mm = l.match(re); if (mm) return mm; } return null; };
+      const RR = '\\s*\\[([\\d.]+)~([\\d.]+)\\]';
+      const ffmM = compRow(new RegExp('^fat[- ]?free mass\\s*kg\\s+([\\d.]+)' + RR + '(?:\\s+([\\d.]+)' + RR + ')?', 'i'));
+      const lbmM = compRow(new RegExp('^lean (?:body )?mass\\s*kg\\s+([\\d.]+)' + RR + '(?:\\s+([\\d.]+)' + RR + ')?', 'i'));
+      scan.ref = {};
+      if (ffmM) { scan.ffm = num(ffmM[1]); scan.ref.ffm = rngOf(ffmM[2], ffmM[3]); if (ffmM[4]) { scan.mineral = num(ffmM[4]); scan.ref.mineral = rngOf(ffmM[5], ffmM[6]); } }
+      if (lbmM) { scan.lbm = num(lbmM[1]); scan.ref.lbm = rngOf(lbmM[2], lbmM[3]); if (lbmM[4]) { scan.protein = num(lbmM[4]); scan.ref.protein = rngOf(lbmM[5], lbmM[6]); } }
+      const wRef = compRow(new RegExp('^Weight kg [\\d.]+' + RR + '\\s+[\\d.]+' + RR));
+      if (wRef) { scan.ref.weight = rngOf(wRef[1], wRef[2]); scan.ref.bfm = rngOf(wRef[3], wRef[4]); }
+      scan.whr = grab(comp, /^WHR ([\d.]+)\s*\[/);
+      scan.metAge = grab(comp, /^Metabolic Age ([\d.]+)/);
+      const sc0 = comp.join('\n').match(/(?:^|\s)Score (\d{1,3})(?:\s|$)/); scan.score = sc0 ? parseInt(sc0[1], 10) : null;
+      // "Obesity Assessment / Gold Standard" rows: the report's own target for weight, fat mass and lean mass
+      const gold = {}, gRow = (k, re) => { const mm = compRow(re); if (mm) gold[k] = num(mm[1]); };
+      gRow('weight', /^Weight kg [\d.]+ (?:Over|Under|Normal) ([\d.]+)/); gRow('bfm', /^Body Fat Mass kg [\d.]+ (?:Over|Under|Normal) ([\d.]+)/i); gRow('lbm', /^lean mass kg [\d.]+ (?:Over|Under|Normal) ([\d.]+)/i);
+      scan.gold = Object.keys(gold).length ? gold : null;
+
       // v9.0: scan time and body water. The water numbers sit in a graphic, so find the number on the same row as each label.
       const tm = allText.match(/Test Date\s*\/?\s*Time\s*:?\s*\d{4}[-\/.]\d{2}[-\/.]\d{2}\s+(\d{1,2}):(\d{2})/);
       scan.testTime = tm ? `${tm[1].padStart(2, '0')}:${tm[2]}` : null;
       const bw = allText.match(/Body Water\s*kg\s*([\d.]+)\s*\[/i);
       scan.tbw = bw ? parseFloat(bw[1]) : null;
+      const bwR = allText.match(/Body Water\s*kg\s*[\d.]+\s*\[([\d.]+)~([\d.]+)\]/i); if (bwR) scan.ref.tbw = rngOf(bwR[1], bwR[2]);
       const allItems = pages.flat();
       const rowValue = labelRe => {
         const label = allItems.find(it => labelRe.test(it.s.trim())); if (!label) return null;
@@ -4010,6 +4059,17 @@ without prior written permission from the copyright owner.</pre>
       scan.roundedShoulderLeft = near(/^Rounded Shoulders Posture\s*\(left side\)$|^Posture\s*\(left side\)$/, cm);
       scan.roundedShoulderRight = near(/^Rounded Shoulders Posture\s*\(right side\)$|^Posture\s*\(right side\)$/, cm);
       scan.pelvicTilt = near(/^Anterior Pelvic Shift$/, cm);
+      // v9.2: the rest of the posture page (angles in degrees)
+      const deg = /^-?[\d.]+\s*\u00b0$/;
+      const pst = section('Posture Analysis Report').join('\n'), pScore = pst.match(/(?:^|\s)Score (\d{1,3})(?:\s|$)/);
+      scan.postureScore = pScore && postItems.length ? parseInt(pScore[1], 10) : null;
+      scan.headLateral = near(/^Head tilt$/i, deg);
+      scan.shoulderUneven = near(/^Uneven Shoulders$/i, deg);
+      scan.kneeLeft = near(/^Left Knee Evaluation$/i, deg);
+      scan.kneeRight = near(/^Right Knee Evaluation$/i, deg);
+      const legVal = side => { const it = postItems.find(t => new RegExp('^' + side + ' leg', 'i').test(t.s.trim())); if (!it) return null; const own = it.s.match(/(-?\d+(?:\.\d+)?)\s*\u00b0/); if (own) return parseFloat(own[1]); const c = postItems.filter(t => t.x > it.x && Math.abs(t.y - it.y) <= 6 && deg.test(t.s.trim())).sort((a, b) => a.x - b.x)[0]; return c ? num(c.s) : null; };
+      scan.legAngleLeft = legVal('Left'); scan.legAngleRight = legVal('Right');
+      const sh = pst.match(/Asymmetry\s*\((Right|Left) Higher\)/i); scan.shoulderHigher = sh ? sh[1][0].toUpperCase() + sh[1].slice(1).toLowerCase() : null;
 
       // Page 3: circumferences (first number after the label is the "Present" column)
       const circ = section('Body Circumference Report');
@@ -4026,6 +4086,14 @@ without prior written permission from the copyright owner.</pre>
       scan.leftCalf = grab(circ, /Left calf circumference ([\d.]+)/);
       scan.rightCalf = grab(circ, /Right calf circumference ([\d.]+)/);
 
+      const minThigh = () => {
+        const cp = pages.filter((p, i) => pageLines[i].some(l => l.includes('Body Circumference Report'))).flat(), src = cp.length ? cp : allItems;
+        const labels = src.filter(it => /^Minimum circumference$/i.test(it.s.trim())).sort((a, b) => b.y - a.y), res = [];
+        labels.forEach(l => { const c = src.filter(it => it.x > l.x + 60 && Math.abs(it.y - l.y) <= 8 && /^\d+(?:\.\d+)?$/.test(it.s.trim())).sort((a, b) => a.x - b.x)[0]; res.push(c ? parseFloat(c.s) : null); });
+        return res;
+      };
+      const mt = minThigh(); scan.minLeftThigh = mt[0] ?? null; scan.minRightThigh = mt[1] ?? null;
+
       // Page 4: spine. The overall score is drawn as a graphic, so when it isn't in the text it is
       // estimated as the average of the cervical, thoracic and lumbar scores (matches the report).
       const spine = section('Spinal Health Assessment Report');
@@ -4038,6 +4106,9 @@ without prior written permission from the copyright owner.</pre>
           scan.spineEstimated = true;
         }
       }
+
+      scan.spineCervical = grab(spine, /Cervical Spine (\d+)/); scan.spineThoracic = grab(spine, /Thoracic Spine (\d+)/); scan.spineLumbar = grab(spine, /Lumbar Spine (\d+)/);
+      scan.neckPainRisk = grab(spine, /Neck Pain Risk (\d+)/); scan.backPainRisk = grab(spine, /Back Pain Risk (\d+)/); scan.lumbarPainRisk = grab(spine, /Lumbar Pain Risk (\d+)/);
 
       // Page 5: glute shape
       const glute = section('Glute Shape Assessment Report');
@@ -4155,6 +4226,10 @@ without prior written permission from the copyright owner.</pre>
       for (const f of fields) if (isNum(parsed[f.id])) scan[f.id] = parsed[f.id];
       if (parsed.gluteType) scan.gluteType = parsed.gluteType;
       if (parsed.testTime) scan.testTime = parsed.testTime;
+      if (parsed.shoulderHigher) scan.shoulderHigher = parsed.shoulderHigher;
+      if (parsed.ref && Object.keys(parsed.ref).length) scan.ref = { ...((existing && existing.ref) || {}), ...parsed.ref };
+      if (parsed.gold) scan.gold = { ...((existing && existing.gold) || {}), ...parsed.gold };
+      if (parsed.segStat) scan.segStat = { ...((existing && existing.segStat) || {}), ...parsed.segStat };
       for (const f of fields) if (scan[f.id] === undefined) scan[f.id] = null;
       if (scan.gluteType === undefined) scan.gluteType = null;
       if (scan.webUrl === undefined) scan.webUrl = null;
@@ -4172,6 +4247,7 @@ without prior written permission from the copyright owner.</pre>
       renderVisbodyReport();
 
       const notes = [];
+      if (!isNum(parsed.lbm)) notes.push('Lean mass was not found in this report, so it was left empty. Nothing was guessed.');
       if (parsed.spineEstimated) notes.push('Spine score is the average of the three spine segments, because the overall score is a graphic in the PDF.');
       const blanks = fields.filter(f => !isNum(scan[f.id])).map(f => f.label.replace(/ \(.*\)/, ''));
       if (blanks.length) notes.push(`Not in this report: ${blanks.join(', ')}.`);
@@ -5866,8 +5942,74 @@ without prior written permission from the copyright owner.</pre>
       el.innerHTML = card91('fa-fire-flame-curved', 'text-orange-400', 'Adaptive calorie burn', body, badge)
         + card91('fa-sliders', 'text-cyan-400', 'What-if scenario simulator', sim)
         + card91('fa-magnifying-glass-chart', 'text-violet-400', 'Pattern observations', patterns91(foods, dailies))
-        + card91('fa-drumstick-bite', 'text-indigo-400', 'Day-type protein coaching', protein91());
+        + card91('fa-drumstick-bite', 'text-indigo-400', 'Day-type protein coaching', protein91())
+        + card91('fa-scale-unbalanced', 'text-teal-400', 'Lean vs fat loss, intake vs BMR', leanFat92(foods));
       simUpdate91();
+    }
+
+
+    /* ==========================================================================
+       v9.2 LEAN MASS, REFERENCE STRIP AND FULL BREAKDOWN
+       ========================================================================== */
+    const sgn92 = (d, dp = 1) => (d > 0 ? '+' : d < 0 ? '\u2212' : '') + Math.abs(d).toFixed(dp);
+    const f92 = (v, dp = 1) => (isNum(v) ? v.toFixed(dp) : '\u2014');
+    function renderLeanKpi92(scans) {
+      const el = document.getElementById('kpiLbm'); if (!el) return;
+      const withL = scans.filter(x => isNum(x.lbm)), cur = scans.length ? scans[scans.length - 1] : null;
+      const unit = '<span class="text-xs font-semibold text-slate-400">kg</span>';
+      const dEl = document.getElementById('kpiLbmDelta'), sub = document.getElementById('kpiLbmSub');
+      if (!cur) { el.innerHTML = '\u2014 ' + unit; dEl.textContent = 'Add a scan'; sub.textContent = ''; }
+      else if (!isNum(cur.lbm)) {
+        el.innerHTML = '\u2014 ' + unit; dEl.textContent = 'Not on this scan';
+        const calc = isNum(cur.weight) && isNum(cur.bfm) ? cur.weight - cur.bfm : null;
+        sub.textContent = isNum(calc) ? `Fat-free (weight minus fat): ${calc.toFixed(1)} kg. Re-import the PDF for lean mass.` : 'Re-import the PDF or type it into the scan form.';
+      } else {
+        el.innerHTML = `${cur.lbm.toFixed(1)} ${unit}`;
+        const prev = withL.length > 1 ? withL[withL.length - 2] : null, first = withL[0];
+        const parts = []; if (prev) parts.push(`${sgn92(cur.lbm - prev.lbm)} vs last`); if (first && first !== cur) parts.push(`${sgn92(cur.lbm - first.lbm)} since ${shortDate(first.date)}`);
+        dEl.textContent = parts.length ? parts.join(' \u00b7 ') : 'First scan with lean mass';
+        const d = prev ? cur.lbm - prev.lbm : 0; dEl.className = `text-[11px] font-medium ${!prev || Math.abs(d) <= 0.3 ? 'text-slate-400' : d > 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+        const g = cur.gold && cur.gold.lbm; sub.textContent = g ? `Visbody target ${g.toFixed(1)} kg` : 'Excludes body fat; includes water';
+      }
+      const r = document.getElementById('kpiRefStrip');
+      if (r) {
+        const c = cur || {}, w = isNum(c.whr) ? c.whr : (isNum(c.midWaist) && isNum(c.hip) && c.hip > 0 ? c.midWaist / c.hip : null);
+        const cell = (l, v, u) => `<div><div class="text-[10px] text-slate-500">${l}</div><div class="text-sm font-bold text-white">${v}<span class="text-[9px] text-slate-500 font-semibold"> ${u}</span></div></div>`;
+        r.innerHTML = cell('BMI', f92(c.bmi), '') + cell('BMR', isNum(c.bmr) ? Math.round(c.bmr).toLocaleString() : '\u2014', 'kcal') + cell('WHR', f92(w, 2), '') + cell('Waist', f92(c.midWaist), 'cm');
+      }
+    }
+    function statusOf92(v, r) { return !isNum(v) || !r ? '' : v < r[0] ? 'Under' : v > r[1] ? 'Over' : 'In range'; }
+    function renderVisCompV92(scan) {
+      const anchor = document.getElementById('visPage1Details'); if (!anchor) return;
+      let host = document.getElementById('visCompV92');
+      if (!host) { host = document.createElement('div'); host.id = 'visCompV92'; host.className = 'space-y-3 mb-3'; const p = anchor.closest('details') || anchor.parentElement; p.parentElement.insertBefore(host, p); }
+      if (!scan) { host.innerHTML = ''; return; }
+      const all = appState.visbodyScans, i = all.findIndex(x => x.date === scan.date), prev = i > 0 ? all[i - 1] : null;
+      const dl = (k, dp = 1, goodDown) => { if (!prev || !isNum(scan[k]) || !isNum(prev[k])) return '<span class="text-slate-600">\u2014</span>'; const d = scan[k] - prev[k]; if (Math.abs(d) < Math.pow(10, -dp) / 2) return '<span class="text-slate-500">0</span>'; const good = goodDown === undefined ? null : (goodDown ? d < 0 : d > 0); return `<span class="${good === null ? 'text-slate-300' : good ? 'text-emerald-400' : 'text-rose-400'}">${sgn92(d, dp)}</span>`; };
+      const stCls = { 'In range': 'text-emerald-400', Over: 'text-amber-400', Under: 'text-amber-400' };
+      const row = (l, k, u, dp, goodDown, refKey) => { const rg = scan.ref && scan.ref[refKey || k], st = statusOf92(scan[k], rg); return `<tr class="border-t border-slate-800"><td class="py-1.5 text-slate-300">${l}</td><td class="py-1.5 text-white font-semibold text-right">${f92(scan[k], dp)} <span class="text-[9px] text-slate-500">${u}</span></td><td class="py-1.5 text-right text-[10px] text-slate-500">${rg ? rg[0] + '\u2013' + rg[1] : ''}${st ? ` <span class="${stCls[st]}">${st}</span>` : ''}</td><td class="py-1.5 text-right text-[11px]">${dl(k, dp, goodDown)}</td></tr>`; };
+      const comp = row('Weight', 'weight', 'kg', 1, true) + row('Body fat mass', 'bfm', 'kg', 1, true) + row('Fat-free mass', 'ffm', 'kg', 1) + row('Lean mass', 'lbm', 'kg', 1, false) + row('Skeletal muscle', 'smm', 'kg', 1, false) + row('Body water', 'tbw', 'kg', 1) + row('Protein mass', 'protein', 'kg', 1) + row('Mineral mass', 'mineral', 'kg', 1) + row('Body fat %', 'pbf', '%', 1, true) + row('Visceral fat level', 'vfl', '', 1, true) + row('BMR', 'bmr', 'kcal', 0) + row('WHR', 'whr', '', 2, true) + row('Metabolic age', 'metAge', 'yr', 0, true);
+      const gold = scan.gold ? `<div class="text-[10px] text-slate-400 mt-2">Visbody's own targets: ${['weight', 'bfm', 'lbm'].filter(k => isNum(scan.gold[k])).map(k => ({ weight: 'weight', bfm: 'fat mass', lbm: 'lean mass' })[k] + ' ' + scan.gold[k] + ' kg').join(', ')}.</div>` : '';
+      const cm = [['Neck', 'neck'], ['Chest', 'chest'], ['L arm', 'leftArm'], ['R arm', 'rightArm'], ['High waist', 'highWaist'], ['Mid waist', 'midWaist'], ['Low waist', 'lowWaist'], ['Hips', 'hip'], ['L thigh', 'leftThigh'], ['R thigh', 'rightThigh'], ['L thigh min', 'minLeftThigh'], ['R thigh min', 'minRightThigh'], ['L calf', 'leftCalf'], ['R calf', 'rightCalf']].map(([l, k]) => `<tr class="border-t border-slate-800"><td class="py-1.5 text-slate-300">${l}</td><td class="py-1.5 text-white font-semibold text-right">${f92(scan[k])} <span class="text-[9px] text-slate-500">cm</span></td><td class="py-1.5 text-right text-[11px]">${dl(k, 1, true)}</td></tr>`).join('');
+      const seg = [['LeftArm', 'L arm'], ['RightArm', 'R arm'], ['Trunk', 'Trunk'], ['LeftLeg', 'L leg'], ['RightLeg', 'R leg']].filter(([k]) => isNum(scan['ln' + k])).map(([k, l]) => { const a = scan.segStat && scan.segStat['ln' + k], b = scan.segStat && scan.segStat['ft' + k]; return `<tr class="border-t border-slate-800"><td class="py-1.5 text-slate-300">${l}</td><td class="py-1.5 text-right text-white">${f92(scan['ln' + k], 2)} <span class="text-[10px] ${a === 'Normal' ? 'text-emerald-400' : 'text-amber-400'}">${a || ''}</span></td><td class="py-1.5 text-right text-white">${f92(scan['ft' + k], 2)} <span class="text-[10px] ${b === 'Normal' ? 'text-emerald-400' : 'text-amber-400'}">${b || ''}</span></td><td class="py-1.5 text-right text-[11px]">${dl('ln' + k, 2, false)} / ${dl('ft' + k, 2, true)}</td></tr>`; }).join('');
+      const th = 'text-[10px] text-slate-500 font-medium text-right';
+      host.innerHTML = `<div class="glass-card p-4 rounded-2xl border border-slate-800"><h3 class="text-sm font-bold text-white mb-2"><i class="fa-solid fa-table-list text-teal-400"></i> Composition breakdown <span class="text-[10px] font-normal text-slate-500">${prev ? 'change vs ' + shortDate(prev.date) : 'first scan'}</span></h3><table class="w-full text-xs"><thead><tr><th></th><th class="${th}">Value</th><th class="${th}">Standard range</th><th class="${th}">Change</th></tr></thead><tbody>${comp}</tbody></table>${gold}<div class="text-[10px] text-slate-500 mt-1">\u2014 means not on this scan. Older scans fill in when you re-import their PDF.</div></div>`
+        + (seg ? `<div class="glass-card p-4 rounded-2xl border border-slate-800"><h3 class="text-sm font-bold text-white mb-2"><i class="fa-solid fa-person text-indigo-400"></i> Segmental lean and fat</h3><table class="w-full text-xs"><thead><tr><th></th><th class="${th}">Lean kg</th><th class="${th}">Fat kg</th><th class="${th}">Change</th></tr></thead><tbody>${seg}</tbody></table></div>` : '')
+        + `<div class="glass-card p-4 rounded-2xl border border-slate-800"><h3 class="text-sm font-bold text-white mb-2"><i class="fa-solid fa-ruler text-emerald-400"></i> Circumferences</h3><table class="w-full text-xs"><thead><tr><th></th><th class="${th}">Now</th><th class="${th}">Change</th></tr></thead><tbody>${cm}</tbody></table></div>`;
+    }
+    // Lean vs fat loss between the last two scans, and intake against measured BMR
+    function leanFat92(foods) {
+      const sc = (appState.visbodyScans || []).filter(x => isNum(x.lbm) && isNum(x.bfm) && isNum(x.weight)), out = [];
+      if (sc.length >= 2) {
+        const a = sc[sc.length - 2], b = sc[sc.length - 1], dW = b.weight - a.weight, dL = b.lbm - a.lbm, dF = b.bfm - a.bfm;
+        let t;
+        if (dW <= -1) { const share = Math.max(0, dL) === 0 && dL > 0 ? 0 : (-dL / -dW) * 100; t = dL >= -0.3 ? `You lost ${(-dW).toFixed(1)} kg and lean mass held (${sgn92(dL)} kg) while fat fell ${(-dF).toFixed(1)} kg. That is fat-dominant loss.` : share > 25 ? `You lost ${(-dW).toFixed(1)} kg and about ${Math.round(share)}% of it was lean mass (${sgn92(dL)} kg). Lean mass includes water, so check the next scan, and look at protein and resistance training.` : `You lost ${(-dW).toFixed(1)} kg: fat ${sgn92(dF)} kg and lean ${sgn92(dL)} kg. Mostly fat, with a small lean dip that may be water.`; }
+        else t = `Weight changed ${sgn92(dW)} kg between scans: lean ${sgn92(dL)} kg, fat ${sgn92(dF)} kg.`;
+        out.push(`<div class="text-[11px] text-slate-300">${t}</div><div class="text-[10px] text-slate-500">${shortDate(a.date)} to ${shortDate(b.date)}, n = 2 scans. Scan-to-scan lean mass moves with hydration and time of day.</div>`);
+      } else out.push('<div class="text-[11px] text-slate-400">Needs two scans with lean mass. Import a PDF for each.</div>');
+      const cur = (appState.visbodyScans || []).filter(x => isNum(x.bmr)).slice(-1)[0], from = addDaysStr(localDateStr(), -6), l7 = foods.filter(f => f.date >= from && isNum(f.calories) && f.calories > 300);
+      if (cur && l7.length >= 3) { const ai = l7.reduce((x, f) => x + f.calories, 0) / l7.length; out.push(`<div class="text-[11px] text-slate-300">Logged intake averaged ${Math.round(ai).toLocaleString()} kcal (n = ${l7.length} days) against a measured BMR of ${Math.round(cur.bmr).toLocaleString()} kcal. ${ai < cur.bmr ? 'That is below your BMR, so keep protein high and watch lean mass.' : `That is ${Math.round(ai - cur.bmr)} kcal above BMR, before activity.`}</div>`); }
+      return out.join('');
     }
 
     function renderAdvisorTab() {

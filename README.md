@@ -3,6 +3,16 @@
 A single-page tracker that installs on an iPhone home screen, runs full-screen, and works offline.
 Everything you enter stays on your device (IndexedDB and localStorage). Nothing is sent to a server.
 
+## What's new in v9.2
+
+- **Lean mass is read from the Visbody PDF.** The report lists *lean mass* and *fat free mass* as two different numbers, so they are saved separately (`lbm` and `ffm`). Skeletal muscle (`smm`) is untouched. The same rows also give protein mass and mineral mass, and the app now saves their standard ranges. Also new: WHR, metabolic age, the Visbody score, Visbody's own target weight, fat mass and lean mass, the minimum thigh circumferences, and the Under / Normal / Over status under each segmental number.
+- **Dashboard:** a Lean Mass card (change vs last scan and since your first scan with lean mass), a BMI / BMR / WHR / Waist strip, and a Lean mass chart option next to Fat mass and Muscle.
+- **Visbody tab:** a Composition breakdown table with ranges and changes since the previous scan, a Segmental lean and fat table with statuses, and a full Circumferences table with changes.
+- **Manual scan form:** an input for every new field. A manual save keeps the PDF-only extras on an existing scan.
+- **Advisor:** lean vs fat loss between your last two scans, and logged intake against your measured BMR.
+- **Posture and spine pages are read in full** (checked on a real 5-page report): posture score, head tilt, uneven shoulders and which side is higher, both knee angles, both leg angles, the cervical, thoracic and lumbar spine scores, and the neck, back and lumbar pain-risk scores. They show on the Visbody tab and have inputs in the manual scan form. A 3-page report (no posture or spine pages) leaves them empty and never clears values already saved for that date.
+- Older scans show a dash for the new fields until you re-import their PDF. Nothing is guessed. Backups and snapshots carry the new fields automatically.
+
 ## What's new in v9.1
 
 - **Every medication and supplement is editable.** A pencil icon sits on each item in the Daily tab, and Settings has a new Medications & supplements card. Edit name, dosage, scheduled time, schedule rule (Daily, Dumbbell Days only, or specific days of the week) and notes. Built-in items (Rosuvastatin, Omega-3, Creatine) can be edited too. Delete removes a custom item or hides a built-in one (restore from the hidden list). Past ticks are stored by item id, so history is never changed. The settings are in JSON export, import (merge and replace) and snapshots as `medConfig`.
@@ -132,7 +142,7 @@ Everything you enter stays on your device (IndexedDB and localStorage). Nothing 
 | --- | --- |
 | `index.html` | The whole app |
 | `manifest.webmanifest` | Name, colours and icons for installing |
-| `sw.js` | Offline support (service worker). Version `v9.1.0` |
+| `sw.js` | Offline support (service worker). Version `v9.2.0` |
 | `apple-touch-icon-v2.png`, `apple-touch-icon-167-v2.png`, `apple-touch-icon-152-v2.png` | The icon iOS uses for Add to Home Screen |
 | `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `favicon-32.png`, `icon.svg` | Manifest, browser tab and source artwork |
 
