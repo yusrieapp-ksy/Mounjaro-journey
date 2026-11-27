@@ -3,6 +3,20 @@
 A single-page tracker that installs on an iPhone home screen, runs full-screen, and works offline.
 Everything you enter stays on your device (IndexedDB and localStorage). Nothing is sent to a server.
 
+## What's new in v9.3
+
+- **Fresh start on every launch.** The Dashboard graph you pick (Lean mass, Waist and so on), the food bar's eaten/left flip, the injection-days toggle on the food chart and the projection's usual-range toggle are now remembered only while the app is open. Close the app and reopen it and everything starts from its defaults at the top of the Dashboard. Older saved choices are ignored.
+- **Visbody tab, cleaner layout.** A **Report / Breakdown** switch sits at the top of the report card.
+  - **Report** is the section slider (Composition, Posture Analysis, 14 Circumferences, Spine & Pain Risk, Glute Assessment) with the details of the tapped section **right underneath it**. It opens on Composition, which shows the Composition breakdown table.
+  - **Breakdown** holds the Body Composition & Segmental Breakdown: the tappable Target & Remark tiles and the Segmental lean and fat table.
+  - The duplicate Circumferences table is gone. Its changes now show on the 14 Circumferences tiles (including the two minimum-thigh tiles).
+  - Leaving the tab resets it to Report and Composition.
+- **Smoother horizontal sliders.** The Dashboard graph selector and the Visbody section slider fade out at the edge that has more to scroll, and the tab you tap glides to the centre.
+- **Softer top edge.** Cards now fade out under the header as you scroll, and scroll targets keep a little space below it, so card titles are no longer clipped.
+- **Composition breakdown footnote** moved behind a small (i) icon next to the title. Tap it to show or hide the note.
+- **Circumference colours.** Changes in waist (high, mid, low) and hips are green when they go down and red when they go up. Neck, shoulders, chest, arms, thighs and calves use a neutral colour.
+- Update the offline cache by uploading `index.html` and `sw.js` together (the service worker is now `v9.3.0`).
+
 ## What's new in v9.2
 
 - **Lean mass is read from the Visbody PDF.** The report lists *lean mass* and *fat free mass* as two different numbers, so they are saved separately (`lbm` and `ffm`). Skeletal muscle (`smm`) is untouched. The same rows also give protein mass and mineral mass, and the app now saves their standard ranges. Also new: WHR, metabolic age, the Visbody score, Visbody's own target weight, fat mass and lean mass, the minimum thigh circumferences, and the Under / Normal / Over status under each segmental number.

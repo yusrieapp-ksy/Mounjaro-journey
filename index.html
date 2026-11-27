@@ -102,6 +102,22 @@ without prior written permission from the copyright owner.
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.js" crossorigin="anonymous"></script>
 
   <style>
+
+    /* ==========================================================================
+       v9.3 ADDITIONS: softer top edge, fading horizontal sliders, view toggle
+       ========================================================================== */
+    #app { --app-bg: #020617; }
+    html.light #app { --app-bg: #f1f5f9; }
+    /* Cards dissolve into the page just under the header instead of being cut off hard */
+    header.pt-safe::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 14px; background: linear-gradient(to bottom, var(--app-bg), transparent); pointer-events: none; }
+    #mainScrollContainer { scroll-padding-top: 16px; }
+    #scanForm, #mounjaroFormTitle, .glass-card { scroll-margin-top: 16px; }
+    /* Horizontal sliders: a soft fade on whichever edge has more to scroll */
+    .hs-fade { position: relative; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+      -webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--hl, 0px), #000 calc(100% - var(--hr, 0px)), transparent 100%);
+      mask-image: linear-gradient(to right, transparent 0, #000 var(--hl, 0px), #000 calc(100% - var(--hr, 0px)), transparent 100%); }
+    .hs-fade::-webkit-scrollbar { display: none; }
+
     /* Custom Scrollbars & iOS Safe Areas */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
@@ -665,45 +681,52 @@ without prior written permission from the copyright owner.
           </form>
         </div>
 
-        <!-- 5-PAGE REPORT VIEWER TAB SYSTEM -->
+        <!-- REPORT VIEWER: Report (slider + details right underneath) and Breakdown (tables) -->
         <div class="glass-card rounded-2xl border border-slate-800 overflow-hidden">
-          <!-- Inner Sub-Tabs -->
-          <div class="flex overflow-x-auto bg-slate-950/80 border-b border-slate-800 p-1 space-x-1 text-xs">
-            <button onclick="switchVisbodySubTab(1)" id="visSubTab-1" class="vis-subtab bg-slate-800 text-cyan-400 font-semibold px-3 py-2 rounded-lg whitespace-nowrap">Page 1: Composition</button>
-            <button onclick="switchVisbodySubTab(2)" id="visSubTab-2" class="vis-subtab text-slate-400 font-semibold px-3 py-2 rounded-lg whitespace-nowrap">Page 2: Posture Analysis</button>
-            <button onclick="switchVisbodySubTab(3)" id="visSubTab-3" class="vis-subtab text-slate-400 font-semibold px-3 py-2 rounded-lg whitespace-nowrap">Page 3: 14 Circumferences</button>
-            <button onclick="switchVisbodySubTab(4)" id="visSubTab-4" class="vis-subtab text-slate-400 font-semibold px-3 py-2 rounded-lg whitespace-nowrap">Page 4: Spine & Pain Risk</button>
-            <button onclick="switchVisbodySubTab(5)" id="visSubTab-5" class="vis-subtab text-slate-400 font-semibold px-3 py-2 rounded-lg whitespace-nowrap">Page 5: Glute Assessment</button>
+          <div class="p-2 pb-0">
+            <div id="visViewToggle" class="flex bg-slate-950 p-0.5 rounded-lg border border-slate-800 text-[11px] font-semibold">
+              <button type="button" id="visView-report" onclick="setVisbodyView('report')" class="flex-1 px-3 py-1.5 rounded-md bg-slate-800 text-cyan-400">Report</button>
+              <button type="button" id="visView-breakdown" onclick="setVisbodyView('breakdown')" class="flex-1 px-3 py-1.5 rounded-md text-slate-400">Breakdown</button>
+            </div>
           </div>
 
-          <!-- Page 1 Content -->
-          <div id="visPage-1" class="p-4 space-y-4">
+          <div id="visReportView">
+            <!-- Section slider -->
+            <div id="visSubTabBar" class="flex overflow-x-auto bg-slate-950/80 border-b border-slate-800 p-1 mt-2 space-x-1 text-xs">
+              <button onclick="switchVisbodySubTab(1)" id="visSubTab-1" class="vis-subtab bg-slate-800 text-cyan-400 font-semibold px-3 py-2 rounded-lg whitespace-nowrap">Composition</button>
+              <button onclick="switchVisbodySubTab(2)" id="visSubTab-2" class="vis-subtab text-slate-400 font-semibold px-3 py-2 rounded-lg whitespace-nowrap">Posture Analysis</button>
+              <button onclick="switchVisbodySubTab(3)" id="visSubTab-3" class="vis-subtab text-slate-400 font-semibold px-3 py-2 rounded-lg whitespace-nowrap">14 Circumferences</button>
+              <button onclick="switchVisbodySubTab(4)" id="visSubTab-4" class="vis-subtab text-slate-400 font-semibold px-3 py-2 rounded-lg whitespace-nowrap">Spine & Pain Risk</button>
+              <button onclick="switchVisbodySubTab(5)" id="visSubTab-5" class="vis-subtab text-slate-400 font-semibold px-3 py-2 rounded-lg whitespace-nowrap">Glute Assessment</button>
+            </div>
+
+            <div id="visPage-1" class="p-4 space-y-4">
+              <div id="visPage1Details" class="hidden"></div>
+              <div id="visCompTable"></div>
+            </div>
+            <div id="visPage-2" class="p-4 space-y-4 hidden">
+              <h3 class="text-sm font-bold text-white">Posture Analysis & Alignment Angles</h3>
+              <div id="visPage2Details" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+            </div>
+            <div id="visPage-3" class="p-4 space-y-4 hidden">
+              <h3 class="text-sm font-bold text-white">14 Body Circumference Measurements</h3>
+              <div id="visPage3Details" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
+            </div>
+            <div id="visPage-4" class="p-4 space-y-4 hidden">
+              <h3 class="text-sm font-bold text-white">Spinal Health & Joint Pain Risk Index</h3>
+              <div id="visPage4Details" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+            </div>
+            <div id="visPage-5" class="p-4 space-y-4 hidden">
+              <h3 class="text-sm font-bold text-white">Glute Shape & Pelvic Alignment</h3>
+              <div id="visPage5Details" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+            </div>
+          </div>
+
+          <!-- Breakdown view: composition and segmental tables -->
+          <div id="visBreakdownView" class="hidden p-4 space-y-4">
             <h3 class="text-sm font-bold text-white">Body Composition & Segmental Breakdown</h3>
-            <div id="visPage1Details" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
-          </div>
-
-          <!-- Page 2 Content -->
-          <div id="visPage-2" class="p-4 space-y-4 hidden">
-            <h3 class="text-sm font-bold text-white">Posture Analysis & Alignment Angles</h3>
-            <div id="visPage2Details" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
-          </div>
-
-          <!-- Page 3 Content -->
-          <div id="visPage-3" class="p-4 space-y-4 hidden">
-            <h3 class="text-sm font-bold text-white">14 Body Circumference Measurements</h3>
-            <div id="visPage3Details" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
-          </div>
-
-          <!-- Page 4 Content -->
-          <div id="visPage-4" class="p-4 space-y-4 hidden">
-            <h3 class="text-sm font-bold text-white">Spinal Health & Joint Pain Risk Index</h3>
-            <div id="visPage4Details" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
-          </div>
-
-          <!-- Page 5 Content -->
-          <div id="visPage-5" class="p-4 space-y-4 hidden">
-            <h3 class="text-sm font-bold text-white">Glute Shape & Pelvic Alignment</h3>
-            <div id="visPage5Details" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+            <div id="visBreakTiles" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
+            <div id="visCompV92" class="space-y-3"></div>
           </div>
         </div>
 
@@ -2035,6 +2058,8 @@ without prior written permission from the copyright owner.</pre>
     }
 
     /* ---- localStorage wrapper (never throws) ---- */
+    // v9.3: display toggles that last only while the app is open (a fresh launch starts from the defaults)
+    const viewState = {};
     const LS = {
       get(key, fallback) {
         try { const v = localStorage.getItem(key); return v === null ? fallback : JSON.parse(v); }
@@ -2054,6 +2079,7 @@ without prior written permission from the copyright owner.</pre>
       profile = { ...DEFAULT_PROFILE, ...(LS.get('vmt_profile', {}) || {}) };
       prefs = { sfx: true, accent: 'accent-cyan', fit: 'regular', sizeCal: null, theme: 'dark', proteinTarget: 100, calorieFloor: null, sugarMax: 20, fatMax: null, calorieMax: null, activity: 1.55, deficit: 500, waterTarget: 2500, stepTarget: 8000, lastBackup: null, backupSnooze: null, meals: [], targetsAt: {}, sfxAlerts: true, ...(LS.get('vmt_prefs', {}) || {}) };
       delete prefs.hair; delete prefs.beard; // removed with the haircut guide
+      delete prefs.visTrend; delete prefs.pinMode; delete prefs.foodInj; delete prefs.projBand; // v9.3: the dashboard graph choice is no longer remembered between launches
     }
 
     function applyProfileAndPrefs() {
@@ -2304,7 +2330,7 @@ without prior written permission from the copyright owner.</pre>
        Safety copies (snapshots, recently deleted) live in a separate small database, so the main
        data schema is untouched.
        ========================================================================== */
-    const APP_VERSION = '9.2';
+    const APP_VERSION = '9.3';
     const $id = id => document.getElementById(id);
     const fmtWhen = iso => { try { return new Date(iso).toLocaleString([], { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' }); } catch (e) { return ''; } };
     const fmtBytes = n => (n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(n < 10240 ? 1 : 0)} KB` : `${(n / 1048576).toFixed(1)} MB`);
@@ -2948,17 +2974,21 @@ without prior written permission from the copyright owner.</pre>
       hint.style.color = w.length ? '#fbbf24' : '#34d399';
     }
     function clearQuickPaste() { ['foodQuickPaste', 'foodItemCal', 'foodItemProtein', 'foodItemFat', 'foodItemSugar'].forEach(id => { const e = $id(id); if (e) e.value = ''; }); parseQuickPaste(); }
-    function togglePinMode() { playSfx('click'); prefs.pinMode = prefs.pinMode === 'eaten' ? 'left' : 'eaten'; LS.set('vmt_prefs', prefs); renderFoodDay(); }
+    function togglePinMode() { playSfx('click'); viewState.pinMode = viewState.pinMode === 'eaten' ? 'left' : 'eaten'; renderFoodDay(); }
 
     /* ---- one body-composition trend chart with a pill switcher ---- */
     const VIS_MODES = { fat: ['Fat mass', 'fa-chart-area text-amber-400', 'Body Fat Mass (kg)'], smm: ['Muscle', 'fa-dumbbell text-indigo-400', 'Skeletal Muscle Mass (kg), zoomed'], lbm: ['Lean mass', 'fa-person text-teal-400', 'Lean Mass and Muscle (kg)'], vfl: ['Visceral', 'fa-heart-pulse text-rose-400', 'Visceral Fat Level'], waist: ['Waist', 'fa-ruler-horizontal text-emerald-400', 'Waist Circumferences (cm)'], water: ['Water', 'fa-droplet text-sky-400', 'ECW/TBW ratio (normal 0.360 to 0.390)'] };
-    function setVisTrend(m) { playSfx('click'); prefs.visTrend = m; LS.set('vmt_prefs', prefs); renderVisTrend(); }
-    function renderVisTrend() {
+    // v9.3: the chosen graph is remembered only while the app is open; a fresh launch starts on Fat mass again
+    let visTrendMode = 'fat';
+    function setVisTrend(m) { playSfx('click'); visTrendMode = m; renderVisTrend(true); }
+    function renderVisTrend(smooth) {
       const pills = $id('visTrendPills'); if (!pills) return;
       const scans = appState.visbodyScans, hasWater = scans.some(s => isNum(s.ecwRatio));
-      let mode = VIS_MODES[prefs.visTrend] ? prefs.visTrend : 'fat'; if (mode === 'water' && !hasWater) mode = 'fat';
-      pills.innerHTML = Object.keys(VIS_MODES).filter(k => k !== 'water' || hasWater).map(k => `<button type="button" onclick="setVisTrend('${k}')" class="flex-1 whitespace-nowrap px-3 py-1.5 rounded-md ${k === mode ? 'bg-slate-800 text-cyan-400' : 'text-slate-400'}">${VIS_MODES[k][0]}</button>`).join('');
+      let mode = VIS_MODES[visTrendMode] ? visTrendMode : 'fat'; if (mode === 'water' && !hasWater) mode = 'fat';
+      const keepLeft = pills.scrollLeft;
+      pills.innerHTML = Object.keys(VIS_MODES).filter(k => k !== 'water' || hasWater).map(k => `<button type="button" data-k="${k}" onclick="setVisTrend('${k}')" class="flex-1 whitespace-nowrap px-3 py-1.5 rounded-md ${k === mode ? 'bg-slate-800 text-cyan-400' : 'text-slate-400'}">${VIS_MODES[k][0]}</button>`).join('');
       $id('visTrendTitle').innerHTML = `<i class="fa-solid ${VIS_MODES[mode][1]}"></i> ${VIS_MODES[mode][2]}`;
+      hsInit(pills); pills.scrollLeft = keepLeft; hsCenter(pills, pills.querySelector(`[data-k="${mode}"]`), !!smooth);
       const multiYear = new Set(scans.map(s => s.date.slice(0, 4))).size > 1, labels = scans.map(s => shortDate(s.date, multiYear));
       let cfg;
       if (mode === 'fat') cfg = { type: 'line', data: { labels, datasets: [{ label: 'Body Fat Mass (kg)', data: scans.map(s => s.bfm), borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', fill: true }] }, options: chartOpts(NO_LEGEND, scans.length) };
@@ -3276,7 +3306,7 @@ without prior written permission from the copyright owner.</pre>
        ========================================================================== */
     // Put a tab back the way it opens fresh: first sub-page, edit modes off, panels closed.
     function resetTabView(tabId) {
-      if (tabId === 'tab-visbody' && document.getElementById('visPage-1')) switchVisbodySubTab(1, true);
+      if (tabId === 'tab-visbody' && document.getElementById('visPage-1')) { setVisbodyView('report', true); switchVisbodySubTab(1, true); }
       if (tabId === 'tab-food') { switchFoodSubTab('intake', true); switchFoodMode('add', true); }
       if (tabId === 'tab-dailylog' && exerciseEditMode) { exerciseEditMode = false; renderExerciseChecklist(currentExerciseTicks()); }
       if (tabId === 'tab-advisor') { const c = document.getElementById('diagnosticOutputCard'); if (c) c.classList.add('hidden'); }
@@ -3608,23 +3638,24 @@ without prior written permission from the copyright owner.</pre>
 
       if (!scan) {
         const msg = `<p class="col-span-full text-xs text-slate-500">No scan saved yet. Add one with the “Add a Visbody Scan” form above.</p>`;
-        [1, 2, 3, 4, 5].forEach(i => { document.getElementById(`visPage${i}Details`).innerHTML = msg; });
+        [1, 2, 3, 4, 5].forEach(i => { document.getElementById(`visPage${i}Details`).innerHTML = msg; }); document.getElementById('visBreakTiles').innerHTML = msg;
         return;
       }
 
       // key + raw value turn a tile into a tappable target/remark card
-      const tile = (label, value, cls = 'text-white text-sm', pad = 'p-3', key = null, raw = null) => {
+      const tile = (label, value, cls = 'text-white text-sm', pad = 'p-3', key = null, raw = null, extra = '') => {
         const tap = key ? ` role="button" tabindex="0" onclick="openTargetModal('${key}')" onkeydown="if(event.key==='Enter')openTargetModal('${key}')"` : '';
         return `<div${tap} class="${pad} bg-slate-800/80 rounded-xl ${key ? 'cursor-pointer active:bg-slate-700/80' : ''}">
           <span class="text-slate-400 text-[10px] flex items-center justify-between gap-1"><span>${label}</span>${key ? '<i class="fa-solid fa-bullseye text-[9px] text-slate-600"></i>' : ''}</span>
           <span class="font-bold ${cls}">${value}</span>
+          ${extra ? `<div class="text-[10px] leading-snug mt-0.5">${extra}</div>` : ''}
           ${key ? `<div class="mt-1 text-[10px] leading-snug">${visTargetLine(key, raw)}</div>` : ''}
         </div>`;
       };
       const T = 'text-white text-sm';
       const hint = '<p class="col-span-full text-[11px] text-slate-500"><i class="fa-solid fa-bullseye mr-1"></i>Tap any tile to set a target or a remark.</p>';
 
-      document.getElementById('visPage1Details').innerHTML = hint + [
+      document.getElementById('visBreakTiles').innerHTML = hint + [
         tile('Clinic weight', fv(scan.weight, ' kg'), T, 'p-3', 'weight', scan.weight),
         tile('Fat Mass', fv(scan.bfm, ' kg'), 'text-amber-400 text-sm', 'p-3', 'bfm', scan.bfm),
         tile('SMM', fv(scan.smm, ' kg'), 'text-indigo-400 text-sm', 'p-3', 'smm', scan.smm),
@@ -3645,13 +3676,25 @@ without prior written permission from the copyright owner.</pre>
         tile('Left leg angle', fv(scan.legAngleLeft, '\u00b0'), T), tile('Right leg angle', fv(scan.legAngleRight, '\u00b0'), T)
       ].join('');
 
-      const c = (label, v, key) => tile(label, fv(v, ' cm'), 'text-white', 'p-2.5', key, v);
+      // v9.3: change vs the previous scan. Only waist and hips use green/red; neck, limbs and the rest stay neutral.
+      const prevScan = scans.indexOf(scan) > 0 ? scans[scans.indexOf(scan) - 1] : null;
+      const COLOURED = ['highWaist', 'midWaist', 'lowWaist', 'hip'];
+      const circChange = (k, v) => {
+        if (!prevScan || !isNum(v) || !isNum(prevScan[k])) return '<span class="text-slate-600">\u2014</span>';
+        const d = v - prevScan[k];
+        if (Math.abs(d) < 0.05) return '<span class="text-slate-500">no change</span>';
+        const cls = COLOURED.includes(k) ? (d < 0 ? 'text-emerald-400' : 'text-rose-400') : 'text-slate-300';
+        return `<span class="${cls}">${sgn92(d)} cm</span>`;
+      };
+      const c = (label, v, key, k2) => tile(label, fv(v, ' cm'), 'text-white', 'p-2.5', key, v, circChange(k2 || key, v));
+      const cNote = '<p class="col-span-full text-[10px] text-slate-500">Small figure = change since ' + (prevScan ? shortDate(prevScan.date) : 'the previous scan') + '. Green and red are used for waist and hips only.</p>';
       document.getElementById('visPage3Details').innerHTML = hint + [
         c('Neck', scan.neck, 'neck'), c('Shoulder', scan.shoulder, 'shoulder'), c('Chest', scan.chest, 'chest'),
         c('High Waist', scan.highWaist, 'highWaist'), c('Mid Waist', scan.midWaist, 'midWaist'), c('Low Waist', scan.lowWaist, 'lowWaist'),
         c('Hip', scan.hip, 'hip'), c('L Arm', scan.leftArm, 'leftArm'), c('R Arm', scan.rightArm, 'rightArm'),
-        c('L Thigh', scan.leftThigh, 'leftThigh'), c('R Thigh', scan.rightThigh, 'rightThigh'), c('L Calf', scan.leftCalf, 'leftCalf'), c('R Calf', scan.rightCalf, 'rightCalf')
-      ].join('');
+        c('L Thigh', scan.leftThigh, 'leftThigh'), c('R Thigh', scan.rightThigh, 'rightThigh'), c('L Calf', scan.leftCalf, 'leftCalf'), c('R Calf', scan.rightCalf, 'rightCalf'),
+        c('L Thigh min', scan.minLeftThigh, null, 'minLeftThigh'), c('R Thigh min', scan.minRightThigh, null, 'minRightThigh')
+      ].join('') + cNote;
 
       const idx = scans.indexOf(scan);
       const prev = idx > 0 ? scans[idx - 1] : null;
@@ -3680,8 +3723,43 @@ without prior written permission from the copyright owner.</pre>
         document.getElementById(`visSubTab-${i}`).classList.add('text-slate-400');
       }
       document.getElementById(`visPage-${pageNum}`).classList.remove('hidden');
-      document.getElementById(`visSubTab-${pageNum}`).classList.add('bg-slate-800', 'text-cyan-400');
+      const btn = document.getElementById(`visSubTab-${pageNum}`);
+      btn.classList.add('bg-slate-800', 'text-cyan-400');
+      const bar = document.getElementById('visSubTabBar'); hsInit(bar);
+      if (quiet) { bar.scrollLeft = 0; hsUpdate(bar); } else hsCenter(bar, btn, true);
     }
+
+    // v9.3: Report (slider with its details right underneath) or Breakdown (composition and segmental tables)
+    function setVisbodyView(view, quiet) {
+      if (!quiet) playSfx('click');
+      const rep = view !== 'breakdown';
+      document.getElementById('visReportView').classList.toggle('hidden', !rep);
+      document.getElementById('visBreakdownView').classList.toggle('hidden', rep);
+      [['report', rep], ['breakdown', !rep]].forEach(([k, on]) => {
+        const b = document.getElementById(`visView-${k}`); if (!b) return;
+        b.classList.toggle('bg-slate-800', on); b.classList.toggle('text-cyan-400', on); b.classList.toggle('text-slate-400', !on);
+      });
+      if (rep) { const bar = document.getElementById('visSubTabBar'); hsInit(bar); hsUpdate(bar); }
+    }
+
+    // v9.3: horizontal sliders get a soft fade on the edge that has more to scroll, and a tapped tab glides to the centre
+    function hsUpdate(el) {
+      if (!el) return;
+      const max = el.scrollWidth - el.clientWidth, l = el.scrollLeft;
+      el.style.setProperty('--hl', l > 4 ? '24px' : '0px');
+      el.style.setProperty('--hr', max - l > 4 ? '32px' : '0px');
+    }
+    function hsInit(el) {
+      if (!el || el._hs) return; el._hs = true; el.classList.add('hs-fade');
+      el.addEventListener('scroll', () => hsUpdate(el), { passive: true }); hsUpdate(el);
+    }
+    function hsCenter(el, btn, smooth) {
+      if (!el || !btn) return;
+      const left = Math.max(0, Math.min(btn.offsetLeft - (el.clientWidth - btn.offsetWidth) / 2, el.scrollWidth - el.clientWidth));
+      if (smooth) el.scrollTo({ left, behavior: 'smooth' }); else el.scrollLeft = left;
+      hsUpdate(el);
+    }
+    window.addEventListener('resize', () => { hsUpdate(document.getElementById('visSubTabBar')); hsUpdate(document.getElementById('visTrendPills')); });
 
     function renderVisbodyBreakdownChart() {
       const metric = document.getElementById('breakdownMetricSelect').value;
@@ -5128,7 +5206,7 @@ without prior written permission from the copyright owner.</pre>
       const pin = document.getElementById('foodPinned');
       if (pin) {
         const chip = (v, label, cls) => `<span><b class="${cls}">${fmtFood(v)}</b> <span class="text-slate-500">${label}</span></span>`;
-        const eatenView = prefs.pinMode === 'eaten' || !L.calMax;
+        const eatenView = viewState.pinMode === 'eaten' || !L.calMax;
         const left = (target, ate) => Math.round((target - (isNum(ate) ? ate : 0)) * 10) / 10;
         const leftChip = (val, label, ceiling) => `<span><b class="${val < 0 ? 'text-rose-400' : (!ceiling && val === 0) ? 'text-emerald-400' : 'text-white'}">${val < 0 ? fmtFood(-val) + ' over' : (!ceiling && val === 0) ? '\u2713' : fmtFood(val)}</b> <span class="text-slate-500">${label}</span></span>`;
         if (!eatenView) pin.innerHTML = leftChip(left(L.calMax, t.calories), 'kcal left', true) + leftChip(Math.max(0, left(L.protein, t.protein)), 'P left', false) + leftChip(left(L.sugar, t.sugar), 'sugar left', true);
@@ -5726,7 +5804,7 @@ without prior written permission from the copyright owner.</pre>
       renderFoodTrendChart();
     }
 
-    function toggleFoodInj() { playSfx('click'); prefs.foodInj = prefs.foodInj === false; LS.set('vmt_prefs', prefs); renderFoodTrendChart(); }
+    function toggleFoodInj() { playSfx('click'); viewState.foodInj = viewState.foodInj === false; renderFoodTrendChart(); }
     async function renderFoodTrendChart() {
       const logs = await dbGetAll('foodLogs');
       const byDate = new Map(logs.map(l => [l.date, l]));
@@ -5793,12 +5871,12 @@ without prior written permission from the copyright owner.</pre>
 
       // v8.8: Mounjaro injection days over the intake bars (days 1 to 3 = appetite suppression, days 5 to 7 = late-week rebound)
       const shotIdx = appState.mjShots.map(x => Math.round((parseLocalDate(x.dateTime.slice(0, 10)) - parseLocalDate(days[0])) / 86400000)).filter(i => i > -8 && i < n);
-      const injOn = prefs.foodInj !== false && shotIdx.length > 0;
+      const injOn = viewState.foodInj !== false && shotIdx.length > 0;
       const injRow = document.getElementById('foodInjRow');
       if (injRow) {
         injRow.classList.toggle('hidden', !appState.mjShots.length);
-        document.getElementById('foodInjBtn').textContent = prefs.foodInj !== false ? 'Hide injection days' : 'Show injection days';
-        document.getElementById('foodInjLegend').innerHTML = prefs.foodInj !== false ? '<span class="inline-flex items-center gap-1"><span class="w-0.5 h-3 bg-violet-400"></span>Injection</span><span class="inline-flex items-center gap-1"><span class="w-3 h-2.5 rounded-sm" style="background:rgba(45,212,191,.35)"></span>Days 1 to 3</span><span class="inline-flex items-center gap-1"><span class="w-3 h-2.5 rounded-sm" style="background:rgba(251,191,36,.35)"></span>Days 5 to 7</span>' : '';
+        document.getElementById('foodInjBtn').textContent = viewState.foodInj !== false ? 'Hide injection days' : 'Show injection days';
+        document.getElementById('foodInjLegend').innerHTML = viewState.foodInj !== false ? '<span class="inline-flex items-center gap-1"><span class="w-0.5 h-3 bg-violet-400"></span>Injection</span><span class="inline-flex items-center gap-1"><span class="w-3 h-2.5 rounded-sm" style="background:rgba(45,212,191,.35)"></span>Days 1 to 3</span><span class="inline-flex items-center gap-1"><span class="w-3 h-2.5 rounded-sm" style="background:rgba(251,191,36,.35)"></span>Days 5 to 7</span>' : '';
       }
       const injPlugin = {
         id: 'injDays',
@@ -5980,22 +6058,18 @@ without prior written permission from the copyright owner.</pre>
     }
     function statusOf92(v, r) { return !isNum(v) || !r ? '' : v < r[0] ? 'Under' : v > r[1] ? 'Over' : 'In range'; }
     function renderVisCompV92(scan) {
-      const anchor = document.getElementById('visPage1Details'); if (!anchor) return;
-      let host = document.getElementById('visCompV92');
-      if (!host) { host = document.createElement('div'); host.id = 'visCompV92'; host.className = 'space-y-3 mb-3'; const p = anchor.closest('details') || anchor.parentElement; p.parentElement.insertBefore(host, p); }
-      if (!scan) { host.innerHTML = ''; return; }
+      const host = document.getElementById('visCompV92'), ch = document.getElementById('visCompTable'); if (!host || !ch) return;
+      if (!scan) { host.innerHTML = ''; ch.innerHTML = '<p class="text-xs text-slate-500">No scan saved yet. Add one with the “Add a Visbody Scan” form above.</p>'; return; }
       const all = appState.visbodyScans, i = all.findIndex(x => x.date === scan.date), prev = i > 0 ? all[i - 1] : null;
       const dl = (k, dp = 1, goodDown) => { if (!prev || !isNum(scan[k]) || !isNum(prev[k])) return '<span class="text-slate-600">\u2014</span>'; const d = scan[k] - prev[k]; if (Math.abs(d) < Math.pow(10, -dp) / 2) return '<span class="text-slate-500">0</span>'; const good = goodDown === undefined ? null : (goodDown ? d < 0 : d > 0); return `<span class="${good === null ? 'text-slate-300' : good ? 'text-emerald-400' : 'text-rose-400'}">${sgn92(d, dp)}</span>`; };
       const stCls = { 'In range': 'text-emerald-400', Over: 'text-amber-400', Under: 'text-amber-400' };
       const row = (l, k, u, dp, goodDown, refKey) => { const rg = scan.ref && scan.ref[refKey || k], st = statusOf92(scan[k], rg); return `<tr class="border-t border-slate-800"><td class="py-1.5 text-slate-300">${l}</td><td class="py-1.5 text-white font-semibold text-right">${f92(scan[k], dp)} <span class="text-[9px] text-slate-500">${u}</span></td><td class="py-1.5 text-right text-[10px] text-slate-500">${rg ? rg[0] + '\u2013' + rg[1] : ''}${st ? ` <span class="${stCls[st]}">${st}</span>` : ''}</td><td class="py-1.5 text-right text-[11px]">${dl(k, dp, goodDown)}</td></tr>`; };
       const comp = row('Weight', 'weight', 'kg', 1, true) + row('Body fat mass', 'bfm', 'kg', 1, true) + row('Fat-free mass', 'ffm', 'kg', 1) + row('Lean mass', 'lbm', 'kg', 1, false) + row('Skeletal muscle', 'smm', 'kg', 1, false) + row('Body water', 'tbw', 'kg', 1) + row('Protein mass', 'protein', 'kg', 1) + row('Mineral mass', 'mineral', 'kg', 1) + row('Body fat %', 'pbf', '%', 1, true) + row('Visceral fat level', 'vfl', '', 1, true) + row('BMR', 'bmr', 'kcal', 0) + row('WHR', 'whr', '', 2, true) + row('Metabolic age', 'metAge', 'yr', 0, true);
       const gold = scan.gold ? `<div class="text-[10px] text-slate-400 mt-2">Visbody's own targets: ${['weight', 'bfm', 'lbm'].filter(k => isNum(scan.gold[k])).map(k => ({ weight: 'weight', bfm: 'fat mass', lbm: 'lean mass' })[k] + ' ' + scan.gold[k] + ' kg').join(', ')}.</div>` : '';
-      const cm = [['Neck', 'neck'], ['Chest', 'chest'], ['L arm', 'leftArm'], ['R arm', 'rightArm'], ['High waist', 'highWaist'], ['Mid waist', 'midWaist'], ['Low waist', 'lowWaist'], ['Hips', 'hip'], ['L thigh', 'leftThigh'], ['R thigh', 'rightThigh'], ['L thigh min', 'minLeftThigh'], ['R thigh min', 'minRightThigh'], ['L calf', 'leftCalf'], ['R calf', 'rightCalf']].map(([l, k]) => `<tr class="border-t border-slate-800"><td class="py-1.5 text-slate-300">${l}</td><td class="py-1.5 text-white font-semibold text-right">${f92(scan[k])} <span class="text-[9px] text-slate-500">cm</span></td><td class="py-1.5 text-right text-[11px]">${dl(k, 1, true)}</td></tr>`).join('');
       const seg = [['LeftArm', 'L arm'], ['RightArm', 'R arm'], ['Trunk', 'Trunk'], ['LeftLeg', 'L leg'], ['RightLeg', 'R leg']].filter(([k]) => isNum(scan['ln' + k])).map(([k, l]) => { const a = scan.segStat && scan.segStat['ln' + k], b = scan.segStat && scan.segStat['ft' + k]; return `<tr class="border-t border-slate-800"><td class="py-1.5 text-slate-300">${l}</td><td class="py-1.5 text-right text-white">${f92(scan['ln' + k], 2)} <span class="text-[10px] ${a === 'Normal' ? 'text-emerald-400' : 'text-amber-400'}">${a || ''}</span></td><td class="py-1.5 text-right text-white">${f92(scan['ft' + k], 2)} <span class="text-[10px] ${b === 'Normal' ? 'text-emerald-400' : 'text-amber-400'}">${b || ''}</span></td><td class="py-1.5 text-right text-[11px]">${dl('ln' + k, 2, false)} / ${dl('ft' + k, 2, true)}</td></tr>`; }).join('');
       const th = 'text-[10px] text-slate-500 font-medium text-right';
-      host.innerHTML = `<div class="glass-card p-4 rounded-2xl border border-slate-800"><h3 class="text-sm font-bold text-white mb-2"><i class="fa-solid fa-table-list text-teal-400"></i> Composition breakdown <span class="text-[10px] font-normal text-slate-500">${prev ? 'change vs ' + shortDate(prev.date) : 'first scan'}</span></h3><table class="w-full text-xs"><thead><tr><th></th><th class="${th}">Value</th><th class="${th}">Standard range</th><th class="${th}">Change</th></tr></thead><tbody>${comp}</tbody></table>${gold}<div class="text-[10px] text-slate-500 mt-1">\u2014 means not on this scan. Older scans fill in when you re-import their PDF.</div></div>`
-        + (seg ? `<div class="glass-card p-4 rounded-2xl border border-slate-800"><h3 class="text-sm font-bold text-white mb-2"><i class="fa-solid fa-person text-indigo-400"></i> Segmental lean and fat</h3><table class="w-full text-xs"><thead><tr><th></th><th class="${th}">Lean kg</th><th class="${th}">Fat kg</th><th class="${th}">Change</th></tr></thead><tbody>${seg}</tbody></table></div>` : '')
-        + `<div class="glass-card p-4 rounded-2xl border border-slate-800"><h3 class="text-sm font-bold text-white mb-2"><i class="fa-solid fa-ruler text-emerald-400"></i> Circumferences</h3><table class="w-full text-xs"><thead><tr><th></th><th class="${th}">Now</th><th class="${th}">Change</th></tr></thead><tbody>${cm}</tbody></table></div>`;
+      ch.innerHTML = `<div class="glass-card p-4 rounded-2xl border border-slate-800"><h3 class="text-sm font-bold text-white mb-2"><i class="fa-solid fa-table-list text-teal-400"></i> Composition breakdown <span class="text-[10px] font-normal text-slate-500">${prev ? 'change vs ' + shortDate(prev.date) : 'first scan'}</span><button type="button" aria-label="About this table" onclick="document.getElementById('compNote').classList.toggle('hidden')" class="ml-auto text-slate-500 hover:text-cyan-400 p-1 -m-1"><i class="fa-solid fa-circle-info text-xs"></i></button></h3><div id="compNote" class="hidden text-[10px] text-slate-400 bg-slate-800/60 rounded-lg px-2.5 py-1.5 mb-2">\u2014 means not on this scan. Older scans fill in when you re-import their PDF.</div><table class="w-full text-xs"><thead><tr><th></th><th class="${th}">Value</th><th class="${th}">Standard range</th><th class="${th}">Change</th></tr></thead><tbody>${comp}</tbody></table>${gold}</div>`;
+      host.innerHTML = (seg ? `<div class="glass-card p-4 rounded-2xl border border-slate-800"><h3 class="text-sm font-bold text-white mb-2"><i class="fa-solid fa-person text-indigo-400"></i> Segmental lean and fat</h3><table class="w-full text-xs"><thead><tr><th></th><th class="${th}">Lean kg</th><th class="${th}">Fat kg</th><th class="${th}">Change</th></tr></thead><tbody>${seg}</tbody></table></div>` : '');
     }
     // Lean vs fat loss between the last two scans, and intake against measured BMR
     function leanFat92(foods) {
@@ -6841,7 +6915,7 @@ const RISE_NAME = { navel: 'navel waist', below: 'low waist', hip: 'upper hip' }
       LS.set('vmt_profile', profile);
       playSfx('chime'); closeProfileEdit(); applyProfileAndPrefs(); renderActiveTab(); showToast('Profile saved');
     }
-    function toggleProjBand() { playSfx('click'); prefs.projBand = !prefs.projBand; LS.set('vmt_prefs', prefs); renderGoalProjection(); }
+    function toggleProjBand() { playSfx('click'); viewState.projBand = !viewState.projBand; renderGoalProjection(); }
     async function renderGoalProjection() {
       const q = id => document.getElementById(id); if (!q('projCard')) return;
       const gp = goalProjection(), today = localDateStr();
@@ -6870,7 +6944,7 @@ const RISE_NAME = { navel: 'navel waist', below: 'low waist', hip: 'upper hip' }
         q('projAim').textContent = `Aim for about ${aim.toFixed(2)} kg of loss a week: roughly ${exp.toFixed(1)} kg at your ${weighDayName()} weigh-in on ${shortDate(nw)}.${gp.neededKg && gp.neededPct > 1 ? ` Your target date needs about ${gp.neededPct.toFixed(2)}% a week, just above the usual 0.5 to 1.0% reference, so a slightly later date would be gentler.` : ''}`;
       }
       // v8.7: three clear lines (your weigh-ins, your pace, the pace your date needs) plus the target. The 0.5 to 1.0% range is optional.
-      const C = { actual: '#22d3ee', pace: '#fbbf24', need: '#c084fc', target: '#34d399' }, showBand = !!prefs.projBand;
+      const C = { actual: '#22d3ee', pace: '#fbbf24', need: '#c084fc', target: '#34d399' }, showBand = !!viewState.projBand;
       const bb = q('projBandBtn'); if (bb) { bb.textContent = showBand ? 'Hide usual range' : 'Show usual range'; bb.className = `text-[11px] font-semibold px-2.5 py-1 rounded-full border ${showBand ? 'border-cyan-500 text-cyan-400' : 'border-slate-700 text-slate-300'} bg-slate-800`; }
       const rowSw = (col, st) => `<span class="inline-block w-6 shrink-0" style="border-top:3px ${st} ${col}"></span>`;
       const row = (sw, name, val) => `<div class="flex items-center gap-2">${sw}<span class="text-slate-200">${name}</span><span class="ml-auto text-right text-slate-300">${val}</span></div>`;
