@@ -3,6 +3,16 @@
 A single-page tracker that installs on an iPhone home screen, runs full-screen, and works offline.
 Everything you enter stays on your device (IndexedDB and localStorage). Nothing is sent to a server.
 
+## What's new in v9.4
+
+- **Supplements that count as food now log themselves.** Ticking **Infinity Supa-EFA Omega 3** on the Daily tab adds a Snack entry to that date's Food log (12 kcal, 0.3 g protein, 1.2 g fat, 0 g sugar per softgel). Unticking removes it. Rosuvastatin and the zero-calorie creatine add nothing.
+- **1× / 2× selector** on the item's card. One tap updates both the Daily check-in and the Food entry (2 softgels = 24 kcal, 0.6 g protein, 2.4 g fat). The choice is saved per day.
+- **Editable for any item.** The pencil now has a "Counts as food" section: unit name, units per day and kcal, protein, fat and sugar per unit. Change them and the selected day updates if the item is already ticked. Leave it empty for items with no calories, and any custom item you add can log itself the same way.
+- **Auto badge in the Food log.** These entries show an "Auto · Daily tab" badge, so you can see at a glance that they are already counted. Change them from the Daily tab (their edit and save-as-meal buttons are hidden, delete still works).
+- Auto entries are skipped by "Copy previous meals" and by the Recent chips. Entries keep their own numbers, so editing an item never rewrites past days.
+- **Catch-up for past days.** Open the pencil on an item that counts as food and tap "Add to Food log for past ticked days". It adds the entry to earlier ticked days, skipping days that already have it, a matching hand-typed entry (such as a Quick Paste of `12 0.3 1.2 0`) or a typed day total. It shows what it will do, asks first and saves a safety copy.
+- Upload `index.html` and `sw.js` together (service worker `v9.4.0`).
+
 ## What's new in v9.3
 
 - **Fresh start on every launch.** The Dashboard graph you pick (Lean mass, Waist and so on), the food bar's eaten/left flip, the injection-days toggle on the food chart and the projection's usual-range toggle are now remembered only while the app is open. Close the app and reopen it and everything starts from its defaults at the top of the Dashboard. Older saved choices are ignored.
